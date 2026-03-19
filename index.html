@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C.P · Controle Projetos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0d10; --surface:#16161a; --surface2:#1e1e24;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#e8e8f0; --muted:#6b6b7d;
+  --accent:#7c5cfc; --accent2:#c084fc;
+  --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --blue:#3b82f6; --pink:#ec4899;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── UPLOAD SCREEN ── */
+.upload-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:24px;}
+.upload-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;width:520px;max-width:95vw;}
+.upload-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+.upload-logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;}
+.upload-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+.drop-zone{border:2px dashed var(--border2);border-radius:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px;position:relative;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(124,92,252,0.05);}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-icon{font-size:32px;margin-bottom:10px;}
+.drop-title{font-size:14px;font-weight:500;margin-bottom:4px;}
+.drop-sub{font-size:12px;color:var(--muted);}
+.upload-steps{background:var(--surface2);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
+.upload-steps-title{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:12px;line-height:1.5;}
+.step:last-child{margin-bottom:0;}
+.step-num{width:20px;height:20px;background:rgba(124,92,252,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'DM Mono',monospace;color:var(--accent2);flex-shrink:0;margin-top:1px;}
+.step a{color:var(--accent2);text-decoration:none;}
+.upload-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px;position:relative;}
+.upload-or::before,.upload-or::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);}
+.upload-or::before{left:0;} .upload-or::after{right:0;}
+.demo-btn{width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
+.demo-btn:hover{border-color:var(--border2);color:var(--text);}
+.upload-error{margin-top:12px;padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:12px;color:#fca5a5;display:none;}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;}
+.logo{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:800;font-size:17px;display:flex;align-items:center;gap:10px;}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;}
+.logo small{color:var(--muted);font-weight:400;font-size:11px;display:block;font-family:'DM Mono',monospace;}
+.nav{padding:10px 10px;flex:1;overflow-y:auto;}
+.nav-section{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);padding:12px 12px 5px;letter-spacing:.08em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(124,92,252,0.15);color:var(--accent2);}
+.nav-icon{width:18px;text-align:center;font-size:14px;}
+.av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.footer-info{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;}
+.footer-btn{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;width:100%;margin-bottom:6px;}
+.footer-btn:hover{border-color:var(--border2);color:var(--text);}
+.footer-btn.primary{background:rgba(124,92,252,0.1);border-color:rgba(124,92,252,0.2);color:var(--accent2);}
+.footer-btn.primary:hover{background:rgba(124,92,252,0.2);}
+
+/* ── MAIN ── */
+.main{margin-left:220px;min-height:100vh;}
+.topbar{padding:14px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--surface);position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;flex:1;}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;width:220px;}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;}
+.badge{background:rgba(124,92,252,0.2);color:var(--accent2);font-size:11px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:99px;}
+.content{padding:22px 26px;}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--c,var(--accent));}
+.stat-label{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;}
+.stat-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── VIEWS ── */
+.view{display:none;} .view.active{display:block;}
+
+/* ── BOARD ── */
+.filters-bar{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;}
+.chip{padding:5px 12px;border-radius:99px;font-size:12px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.chip:hover{color:var(--text);}
+.chip.active{background:rgba(124,92,252,0.15);border-color:rgba(124,92,252,0.3);color:var(--accent2);}
+.board-wrap{overflow-x:auto;padding-bottom:16px;}
+.board{display:flex;gap:12px;min-width:max-content;}
+.col{width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.col-head{padding:11px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.col-name{font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px;}
+.col-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.col-count{font-size:10px;font-family:'DM Mono',monospace;background:var(--surface2);padding:2px 7px;border-radius:99px;color:var(--muted);}
+.col-cards{padding:8px;display:flex;flex-direction:column;gap:7px;max-height:68vh;overflow-y:auto;}
+.col-cards::-webkit-scrollbar{width:3px;}
+.col-cards::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 11px;cursor:pointer;transition:all .15s;}
+.card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.card-key{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px;}
+.card-title{font-size:12px;line-height:1.45;margin-bottom:7px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.client-tag{font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,0.05);color:var(--muted);}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 15px;text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:10px 15px;font-size:12px;}
+.td-key{font-family:'DM Mono',monospace;color:var(--muted);}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;white-space:nowrap;}
+
+/* ── ANALYTICS ── */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.chart-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;}
+.bar-chart{display:flex;flex-direction:column;gap:9px;}
+.bar-row{display:flex;align-items:center;gap:9px;}
+.bar-label{font-size:11px;color:var(--muted);min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.bar-count{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);min-width:22px;text-align:right;}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:560px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:26px;transform:translateY(14px);transition:transform .2s;}
+.overlay.open .modal{transform:translateY(0);}
+.modal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;}
+.modal-key{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;line-height:1.3;}
+.modal-close{width:30px;height:30px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.modal-close:hover{color:var(--text);}
+.modal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.meta-item label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.act-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.act-btn:hover{border-color:var(--accent);color:var(--accent2);}
+
+/* ── AI ── */
+.ai-sec{margin-top:18px;border-top:1px solid var(--border);padding-top:18px;}
+.ai-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:5px;}
+.ai-label::before{content:'⬡';color:var(--accent2);}
+.ai-row{display:flex;gap:8px;}
+.ai-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.ai-input:focus{border-color:rgba(124,92,252,0.5);}
+.ai-btn{padding:9px 16px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ai-btn:hover{background:#6a4de0;}
+.ai-btn:disabled{opacity:.5;cursor:not-allowed;}
+.ai-resp{margin-top:11px;padding:13px;background:rgba(124,92,252,0.07);border:1px solid rgba(124,92,252,0.15);border-radius:10px;font-size:13px;line-height:1.65;display:none;white-space:pre-wrap;}
+.ai-spin{display:none;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-top:10px;}
+.dots span{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--accent);animation:dk 1s infinite;}
+.dots span:nth-child(2){animation-delay:.2s;} .dots span:nth-child(3){animation-delay:.4s;}
+@keyframes dk{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* ── TOAST ── */
+.sp-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
+.sp-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--pc,var(--accent));}
+.sp-card-name{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-card-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--pv,var(--text));}
+.sp-card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.sp-matrix-th{padding:8px 10px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--surface);text-align:center;white-space:nowrap;}
+.sp-matrix-th.left{text-align:left;}
+.sp-matrix-td{padding:8px 10px;font-size:12px;text-align:center;border-bottom:1px solid var(--border);}
+.sp-matrix-td.name{text-align:left;font-weight:500;}
+.sp-matrix-td.total{font-weight:700;font-family:'DM Mono',monospace;}
+.sp-missing-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
+.sp-person-bar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;min-width:24px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.toast{position:fixed
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:rgba(34,197,94,.3);}
+.toast.err{border-color:rgba(239,68,68,.3);}
+
+@media(max-width:900px){
+  .sidebar{width:58px;}
+  .logo small,.nav-item span,.nav-section,.footer-info{display:none;}
+  .main{margin-left:58px;}
+  .stats-row{grid-template-columns:repeat(3,1fr)!important;}
+  .analytics-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div class="upload-screen" id="setup-screen">
+  <div class="upload-card">
+    <div class="upload-logo"><div class="upload-logo-dot"></div>C.P · Controle Projetos</div>
+    <div class="upload-sub">Configure a conexão com o Jira — dados salvos automaticamente</div>
+
+    <div class="upload-steps" style="margin-bottom:20px">
+      <div class="upload-steps-title">Como gerar seu API Token</div>
+      <div class="step"><div class="step-num">1</div><div>Acesse <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" style="color:var(--accent2)">id.atlassian.com → Security → API tokens ↗</a></div></div>
+      <div class="step"><div class="step-num">2</div><div>Clique em <strong style="color:var(--text)">Create API token</strong> e dê um nome (ex: Controle Projetos)</div></div>
+      <div class="step"><div class="step-num">3</div><div>Copie o token gerado e cole abaixo</div></div>
+    </div>
+
+    <div class="setup-field" style="margin-bottom:14px">
+      <label style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">E-mail do Jira</label>
+      <input type="email" id="cfg-email" placeholder="seunome@infracommerce.com.br"
+        style="width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none">
+    </div>
+    <div class="setup-field" style="margin-bottom:14px">
+      <label style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">API Token</label>
+      <input type="password" id="cfg-token" placeholder="Cole seu API Token aqui"
+        style="width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div>
+        <label style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Domínio Jira</label>
+        <input type="text" id="cfg-domain" value="infracommerce.atlassian.net"
+          style="width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none">
+      </div>
+      <div>
+        <label style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">Projeto (chave)</label>
+        <input type="text" id="cfg-project" value="ODYJS"
+          style="width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none">
+      </div>
+    </div>
+
+    <button onclick="connectJira()" id="setup-btn"
+      style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer">
+      Conectar e carregar issues
+    </button>
+    <div id="setup-error" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:12px;color:#fca5a5"></div>
+    <div id="setup-progress" style="display:none;margin-top:10px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-dot" style="width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;"></div>
+    <div><strong>C.P</strong><small>infracommerce</small></div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Visões</div>
+    <div class="nav-item active" onclick="switchView('board',this)"><span class="nav-icon">⬛</span><span>Board</span></div>
+    <div class="nav-item" onclick="switchView('table',this)"><span class="nav-icon">☰</span><span>Lista</span></div>
+    <div class="nav-item" onclick="switchView('analytics',this)"><span class="nav-icon">◑</span><span>Analytics</span></div>
+    <div class="nav-item" onclick="switchView('sp',this)"><span class="nav-icon">◈</span><span>Story Points</span></div>
+    <div class="nav-section">Responsável</div>
+    <div class="nav-item active-person" id="nav-all" onclick="filterPerson('all',this)"><span class="nav-icon">↺</span><span>Todos</span></div>
+    <div id="person-nav"></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="footer-info" id="footer-file">Nenhum arquivo</div>
+    <button class="footer-btn primary" onclick="showSetup()">⚙ Reconfigurar</button>
+    <button class="footer-btn" onclick="syncNow()" id="sync-btn">↻ Sincronizar</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Controle de Projetos</div>
+    <div class="search-box">
+      <span style="font-size:13px;color:var(--muted)">⌕</span>
+      <input type="text" placeholder="Buscar issues..." oninput="doSearch(this.value)">
+    </div>
+    <div class="badge" id="total-badge">0 issues</div>
+    <a href="https://infracommerce.atlassian.net/jira/software/c/projects/ODYJS/boards/5135" target="_blank" style="text-decoration:none">
+      <button class="act-btn" style="font-size:12px;">↗ Abrir Jira</button>
+    </a>
+  </div>
+
+  <div class="content">
+    <div class="stats-row" style="grid-template-columns:repeat(9,1fr)">
+      <div class="stat-card" style="--c:#6b7280">
+        <div class="stat-label">Backlog</div>
+        <div class="stat-value" id="s-backlog">0</div>
+        <div class="stat-sub" id="s-backlog-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#3b82f6">
+        <div class="stat-label">Em Andamento</div>
+        <div class="stat-value" id="s-andamento">0</div>
+        <div class="stat-sub" id="s-andamento-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#a78bfa">
+        <div class="stat-label">Proposta Enviada</div>
+        <div class="stat-value" id="s-proposta">0</div>
+        <div class="stat-sub" id="s-proposta-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#f97316">
+        <div class="stat-label">Ag. Cliente</div>
+        <div class="stat-value" id="s-agcliente">0</div>
+        <div class="stat-sub" id="s-agcliente-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#f59e0b">
+        <div class="stat-label">Ag. Execução</div>
+        <div class="stat-value" id="s-agexec">0</div>
+        <div class="stat-sub" id="s-agexec-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#ec4899">
+        <div class="stat-label">Em Execução</div>
+        <div class="stat-value" id="s-execucao">0</div>
+        <div class="stat-sub" id="s-execucao-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#22c55e">
+        <div class="stat-label">Concluído</div>
+        <div class="stat-value" id="s-concluido">0</div>
+        <div class="stat-sub" id="s-concluido-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:#ef4444">
+        <div class="stat-label">Cancelado</div>
+        <div class="stat-value" id="s-cancelado">0</div>
+        <div class="stat-sub" id="s-cancelado-pct"></div>
+      </div>
+      <div class="stat-card" style="--c:var(--accent)">
+        <div class="stat-label">Total</div>
+        <div class="stat-value" id="s-tot">0</div>
+        <div class="stat-sub" id="s-cli"></div>
+      </div>
+    </div>
+
+    <div class="view active" id="view-board">
+      <div class="filters-bar" id="client-filters"></div>
+      <div class="board-wrap"><div class="board" id="board"></div></div>
+    </div>
+
+    <div class="view" id="view-table">
+      <div class="table-wrap">
+        <table><thead><tr><th>Chave</th><th>Título</th><th>Cliente</th><th>Status</th><th>Responsável</th><th>SP</th></tr></thead>
+        <tbody id="table-body"></tbody></table>
+      </div>
+    </div>
+
+    <div class="view" id="view-analytics">
+      <div class="analytics-grid">
+        <div class="chart-card"><div class="chart-title">Por cliente</div><div class="bar-chart" id="ch-client"></div></div>
+        <div class="chart-card"><div class="chart-title">Por status</div><div class="bar-chart" id="ch-status"></div></div>
+        <div class="chart-card"><div class="chart-title">Por responsável</div><div class="bar-chart" id="ch-person"></div></div>
+        <div class="chart-card">
+          <div class="chart-title">Análise executiva AI</div>
+          <button class="ai-btn" id="ai-summary-btn" onclick="genSummary()" style="width:100%;margin-top:4px;">⬡ Gerar análise</button>
+          <div class="ai-spin" id="ai-sum-spin"><div class="dots"><span></span><span></span><span></span></div> Analisando...</div>
+          <div class="ai-resp" id="ai-sum-resp" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-sp">
+
+      <!-- Info banner: SP not filled -->
+      <div id="sp-info-banner" style="display:none;align-items:center;gap:14px;padding:14px 18px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:12px;margin-bottom:16px;">
+        <span style="font-size:20px;flex-shrink:0">⚠</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">Story Points não preenchidos no Jira</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5">Para ativar esta tela, abra cada issue no Jira e preencha o campo <strong style="color:var(--text)">Story Points</strong>. Após preencher, clique em <strong style="color:var(--text)">↻ Sincronizar</strong> na sidebar para atualizar.</div>
+        </div>
+        <a href="https://infracommerce.atlassian.net/jira/software/c/projects/ODYJS/boards/5135" target="_blank" style="text-decoration:none;flex-shrink:0">
+          <button class="act-btn" style="font-size:12px;border-color:rgba(245,158,11,0.4);color:#92400E">↗ Abrir Jira</button>
+        </a>
+      </div>
+
+      <!-- SP Summary cards row -->
+      <div id="sp-summary-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;"></div>
+
+      <!-- SP por colaborador — detalhamento por status -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+        <div class="chart-card">
+          <div class="chart-title">Story Points por colaborador</div>
+          <div id="sp-by-person-chart" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Distribuição SP por status</div>
+          <div id="sp-by-status-chart" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+
+      <!-- SP detail table por colaborador x status -->
+      <div class="chart-card" style="margin-bottom:20px;">
+        <div class="chart-title" style="margin-bottom:14px;">Detalhamento por colaborador × status</div>
+        <div style="overflow-x:auto;">
+          <table id="sp-matrix-table" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+        </div>
+      </div>
+
+      <!-- Issues sem SP -->
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="chart-title" style="margin:0">Issues sem Story Points <span id="sp-missing-count" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;margin-left:6px;"></span></div>
+          <button class="act-btn" onclick="switchView('table',document.querySelector('.nav-item:nth-child(3)'))" style="font-size:11px;padding:4px 10px;">↗ Ver na lista</button>
+        </div>
+        <div id="sp-missing-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hd">
+      <div><div class="modal-key" id="m-key"></div><div class="modal-title" id="m-title"></div></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-meta">
+      <div class="meta-item"><label>Status</label><div id="m-status"></div></div>
+      <div class="meta-item"><label>Cliente</label><div id="m-client" style="font-size:13px"></div></div>
+      <div class="meta-item"><label>Responsável</label><div id="m-assignee" style="font-size:13px"></div></div>
+      <div class="meta-item"><label>Story Points</label><div id="m-sp" style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:#166534"></div></div>
+    </div>
+    <div class="modal-actions">
+      <a id="m-link" href="#" target="_blank"><button class="act-btn">↗ Abrir no Jira</button></a>
+    </div>
+    <div class="ai-sec">
+      <div class="ai-label">Assistente AI</div>
+      <div class="ai-row">
+        <input class="ai-input" id="ai-q" placeholder="Pergunte sobre este issue..." onkeydown="if(event.key==='Enter')askAI()">
+        <button class="ai-btn" id="ai-ask" onclick="askAI()">Perguntar</button>
+      </div>
+      <div class="ai-spin" id="ai-spin"><div class="dots"><span></span><span></span><span></span></div> Processando...</div>
+      <div class="ai-resp" id="ai-resp"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const API = (location.protocol === 'file:') ? 'http://localhost:3131' : '';
+
+const STATUS_CFG = {
+  'Backlog':               {color:'#6b7280',bg:'rgba(107,114,128,0.12)'},
+  'Em Andamento':          {color:'#3b82f6',bg:'rgba(59,130,246,0.12)'},
+  'Proposta Enviada':      {color:'#a78bfa',bg:'rgba(167,139,250,0.12)'},
+  'Aguardando Cliente':    {color:'#f97316',bg:'rgba(249,115,22,0.12)'},
+  'Aguardando Execução':   {color:'#f59e0b',bg:'rgba(245,158,11,0.12)'},
+  'Em Execução':           {color:'#ec4899',bg:'rgba(236,72,153,0.12)'},
+  'Concluído':             {color:'#22c55e',bg:'rgba(34,197,94,0.12)'},
+  'Recusado / Cancelado':  {color:'#ef4444',bg:'rgba(239,68,68,0.12)'},
+};
+const STATUS_ORDER = Object.keys(STATUS_CFG);
+
+// ── Mapeamento de status do Jira → status da plataforma ─────────────────────
+// Backlog          ← Backlog, Análise Comercial, To Do, Open
+// Em Andamento     ← Em Andamento, Escopo Product Owner, High Level, In Progress
+// Proposta Enviada ← Proposta Enviada
+// Aguardando Cliente ← Aguardando Cliente, Aprovação Escopo por Cliente, Awaiting Schedule
+// Aguardando Execução ← Aguardando Execução, Aguardando homologação, In Review
+// Em Execução      ← Em Execução, In Execution
+// Concluído        ← Concluído, Executed, Resolvido, Done, Closed, Resolved
+// Recusado/Cancelado ← Recusado/Cancelado, Cancelado, Cancelled, Won't Do, Recusado
+const STATUS_MAP = {
+  'Backlog':'Backlog','Análise Comercial':'Backlog','To Do':'Backlog','Open':'Backlog',
+  'Em Andamento':'Em Andamento','Escopo Product Owner':'Em Andamento','High Level':'Em Andamento','In Progress':'Em Andamento',
+  'Proposta Enviada':'Proposta Enviada',
+  'Aguardando Cliente':'Aguardando Cliente','Aguardando cliente':'Aguardando Cliente','Aprovação Escopo por Cliente':'Aguardando Cliente','Awaiting Schedule':'Aguardando Cliente',
+  'Aguardando Execução':'Aguardando Execução','Aguardando homologação':'Aguardando Execução','In Review':'Aguardando Execução',
+  'Em Execução':'Em Execução','In Execution':'Em Execução',
+  'Concluído':'Concluído','Executed':'Concluído','Resolvido':'Concluído','Done':'Concluído','Closed':'Concluído','Resolved':'Concluído',
+  'Recusado / Cancelado':'Recusado / Cancelado','Cancelado':'Recusado / Cancelado','Cancelled':'Recusado / Cancelado',"Won't Do":'Recusado / Cancelado','Recusado':'Recusado / Cancelado',
+};
+
+function mapStatus(raw) {
+  if (!raw) return 'Backlog';
+  if (STATUS_MAP[raw]) return STATUS_MAP[raw];
+  const l = raw.toLowerCase();
+  for (const [k,v] of Object.entries(STATUS_MAP)) if (k.toLowerCase()===l) return v;
+  return 'Backlog';
+}
+
+const PERSON_COLORS = [
+  {bg:'#1a1a3e',color:'#818cf8'},{bg:'#1e2e1e',color:'#4ade80'},
+  {bg:'#2e1e2e',color:'#f472b6'},{bg:'#2e2a1e',color:'#fbbf24'},
+  {bg:'#1e2e2e',color:'#2dd4bf'},{bg:'#2e1e1e',color:'#f87171'},
+  {bg:'#1e1e2e',color:'#a78bfa'},{bg:'#2a2e1e',color:'#86efac'},
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let issues = [], personMap = {}, currentFilter = {person:'all',client:'all',search:''}, currentIssue = null;
+
+// ── API FUNCTIONS ────────────────────────────────────────────────────────────
+async function connectJira() {
+  const email   = document.getElementById('cfg-email').value.trim();
+  const token   = document.getElementById('cfg-token').value.trim();
+  const domain  = document.getElementById('cfg-domain').value.trim();
+  const project = document.getElementById('cfg-project').value.trim().toUpperCase();
+  if (!email || !token || !domain || !project) {
+    showSetupErr('Preencha todos os campos.'); return;
+  }
+  const btn = document.getElementById('setup-btn');
+  btn.disabled = true; btn.textContent = 'Conectando...';
+  showSetupErr(''); showSetupProg('Testando conexão com o Jira...');
+  try {
+    const r = await fetch(API + '/api/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, token, domain, project})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Erro desconhecido');
+    showSetupProg('✓ ' + d.message + ' Carregando issues...');
+    const sEl = document.getElementById('setup-screen');
+    const aEl = document.getElementById('app');
+    if (sEl) sEl.style.display = 'none';
+    if (aEl) aEl.style.display = 'block';
+    await loadFromAPI();
+  } catch(e) {
+    showSetupErr('Erro: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Conectar e carregar issues';
+    showSetupProg('');
+  }
+}
+
+async function loadFromAPI() {
+  // Show loading indicator inside the app (toast) — safe whether setup is visible or not
+  const setupEl    = document.getElementById('setup-screen');
+  const appEl      = document.getElementById('app');
+  const setupVisible = setupEl && setupEl.style.display !== 'none';
+
+  if (setupVisible) showSetupProg('Buscando todos os issues do Jira...');
+
+  try {
+    const r = await fetch(API + '/api/issues');
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      throw new Error(d.error || 'Erro HTTP ' + r.status);
+    }
+    const d = await r.json();
+    if (!Array.isArray(d.issues)) throw new Error('Resposta inválida do servidor');
+    const ts = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    loadIssues(d.issues, 'Jira · ' + d.total + ' issues · ' + ts);
+    if (setupVisible) showSetupProg('');
+  } catch(e) {
+    // If setup is visible, show error there; otherwise use toast
+    if (setupVisible) {
+      showSetupErr('Erro ao carregar issues: ' + e.message);
+      showSetupProg('');
+      const btn = document.getElementById('setup-btn');
+      if (btn) { btn.disabled = false; btn.textContent = 'Conectar e carregar issues'; }
+    } else {
+      toast('Erro ao carregar issues: ' + e.message, 'err');
+    }
+  }
+}
+
+async function syncNow() {
+  const btn = document.getElementById('sync-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '↻ Sincronizando...'; }
+  toast('Buscando issues do Jira...', '');
+  try {
+    const r = await fetch(API + '/api/issues');
+    if (!r.ok) {
+      const d = await r.json().catch(()=>({}));
+      throw new Error(d.error || 'Erro HTTP ' + r.status);
+    }
+    const d = await r.json();
+    const ts = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    loadIssues(d.issues, 'Jira · ' + d.total + ' issues · ' + ts);
+    toast('✓ ' + d.total + ' issues sincronizados!', 'ok');
+  } catch(e) {
+    toast('Erro na sincronização: ' + e.message, 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '↻ Sincronizar'; }
+}
+
+function showSetup() {
+  showSetupErr('');
+  showSetupProg('');
+  const s = document.getElementById('setup-screen');
+  const a = document.getElementById('app');
+  if (s) s.style.display = 'flex';
+  if (a) a.style.display = 'none';
+}
+function showSetupErr(msg) {
+  const el = document.getElementById('setup-error');
+  if (!el) return;
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+function showSetupProg(msg) {
+  const el = document.getElementById('setup-progress');
+  if (!el) return;
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+
+function detectClient(s) {
+  const u = s.toUpperCase();
+  if (u.includes('SWAROVSKI')) return 'Swarovski';
+  if (u.includes('HERMAN MILLER')||u.includes('HERMANMILLER')||/CSB2C-\d/.test(u)) return 'HermanMiller';
+  if (u.includes('SECULUS')) return 'Seculus';
+  if (u.includes('ANDINA')||u.includes('COCA COLA')) return 'Andina Coca Cola';
+  if (u.includes('DIOR')) return 'Dior';
+  if (u.includes('WELLA')) return 'Wella';
+  if (u.includes('IWC')) return 'IWC';
+  if (u.includes('CARTIER')) return 'Cartier';
+  if (u.includes('MONTBLANC')) return 'Montblanc';
+  if (u.includes('ARMANI')) return 'Armani';
+  if (u.includes('WALITA')) return 'Walita';
+  if (u.includes('ELC')||u.includes('TOM FORD')) return 'ELC / Tom Ford';
+  if (u.includes('BLACK')&&u.includes('DECKER')) return 'Black & Decker';
+  if (u.includes('PALMEIRAS')) return 'Palmeiras';
+  if (u.includes('DUX')) return 'Dux';
+  if (u.includes('PHILIPS')) return 'Philips';
+  if (u.includes('BRAUN')) return 'Braun';
+  return 'Outros';
+}
+
+// ── FILE HANDLING ─────────────────────────────────────────────────────────────
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = parseCSV(e.target.result);
+      loadIssues(parsed, file.name);
+    } catch(err) {
+      const ue = document.getElementById('upload-error');
+      if (ue) { ue.textContent = err.message; ue.style.display = 'block'; }
+      else showSetupErr(err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// Drag & drop (only if drop-zone exists — CSV upload mode)
+const dz = document.getElementById('drop-zone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+}
+
+function loadDemo() {
+  // Uses the real Jira statuses we know about
+  const demo = [
+    {key:'ODYJS-321',summary:'ODY-2273 - SWAROVSKI - Projeto de Omnicanalidade',rawStatus:'Análise Comercial',assignee:'GUILHERME LOPES BERNARDINI',type:'História'},
+    {key:'ODYJS-320',summary:'ODY-2272 - Dux - Integração Marketplace Meli e Amazon',rawStatus:'Análise Comercial',assignee:'PAULO GUILHERME LIMA DE ARAUJO TAVARES',type:'História'},
+    {key:'ODYJS-319',summary:'ODY-2271 - [IWC] Orçamento - correção de fotos',rawStatus:'Análise Comercial',assignee:'LUCAS ESCUER MENDES',type:'História'},
+    {key:'ODYJS-315',summary:'ODY-2267 - CSB2C-63233 - Videos Ajustes Cadeiras Gamings | HermanMiller',rawStatus:'Escopo Product Owner',assignee:'LUCAS ESCUER MENDES',type:'História'},
+    {key:'ODYJS-313',summary:'ODY-2265 - DIOR - Projeto melhorias UX',rawStatus:'Escopo Product Owner',assignee:'GUILHERME LOPES BERNARDINI',type:'História'},
+    {key:'ODYJS-312',summary:'ODY-2264 - DIOR - Ajuste variação nome Velas',rawStatus:'High Level',assignee:'GUILHERME LOPES BERNARDINI',type:'História'},
+    {key:'ODYJS-311',summary:'ODY-2263 - [Swarovski BR] Demandas do Hypercare',rawStatus:'In Execution',assignee:'PEDRO HENRY DONATO',type:'História'},
+    {key:'ODYJS-309',summary:'ODY-2261 - Swarovski CL | LP Dragonfly Capsule',rawStatus:'In Execution',assignee:'PEDRO HENRY DONATO',type:'História'},
+    {key:'ODYJS-306',summary:'ODY-2258 - CSB2C-63195 - LP Herman Miller Rewards',rawStatus:'In Execution',assignee:'DIEGO PICLUM DE BRITTO MARINELLO',type:'História'},
+    {key:'ODYJS-283',summary:'ODY-2235 - Cartier - Aprimorar Página Confirmação Presença',rawStatus:'Proposta Enviada',assignee:'DIEGO PICLUM DE BRITTO MARINELLO',type:'História'},
+    {key:'ODYJS-303',summary:'ODY-2255 - Orçamento de relayout - SECULUS',rawStatus:'Aguardando cliente',assignee:'GUILHERME LOPES BERNARDINI',type:'História'},
+    {key:'ODYJS-299',summary:'ODY-2251 - Swarovski CL | LP Beauty and the Beast',rawStatus:'Aguardando homologação',assignee:'PEDRO HENRY DONATO',type:'História'},
+    {key:'ODYJS-282',summary:'ODY-2234 - Swarovski CL | LP Charms',rawStatus:'Resolvido',assignee:'PEDRO HENRY DONATO',type:'História'},
+    {key:'ODYJS-276',summary:'ODY-2228 - DIOR - Adicionar âncoras nas URLs',rawStatus:'Executed',assignee:'GUILHERME LOPES BERNARDINI',type:'História'},
+    {key:'ODYJS-304',summary:'ODY-2256 - Swarovski CL | LP Lookbook',rawStatus:'Cancelado',assignee:'PEDRO HENRY DONATO',type:'História'},
+    {key:'ODYJS-302',summary:'ODY-2254 - Swarovski CL | LP Vienna Opera ball',rawStatus:'Cancelado',assignee:'PEDRO HENRY DONATO',type:'História'},
+    {key:'ODYJS-295',summary:'ODY-2247 - WELLA - Orçamento LP Sebastian',rawStatus:'Cancelado',assignee:'PEDRO HENRY DONATO',type:'História'},
+  ].map(i => ({...i, status: mapStatus(i.rawStatus), client: detectClient(i.summary), url: JIRA_BASE+i.key, sp: null}));
+  loadIssues(demo, 'demonstração');
+}
+
+function loadIssues(data, filename) {
+  issues = data;
+  buildPersonMap();
+  buildClientFilters();
+  buildPersonNav();
+  updateStats();
+  renderAll();
+  const footerEl = document.getElementById('footer-file');
+  if (footerEl) footerEl.textContent = filename + ' · ' + issues.length + ' issues';
+  const setupEl = document.getElementById('setup-screen');
+  const appEl   = document.getElementById('app');
+  if (setupEl) setupEl.style.display = 'none';
+  if (appEl)   appEl.style.display = 'block';
+  toast('✓ ' + issues.length + ' issues carregados!', 'ok');
+}
+
+// ── BUILD MAPS ────────────────────────────────────────────────────────────────
+function buildPersonMap() {
+  personMap = {};
+  let idx = 0;
+  issues.forEach(i => {
+    if (!personMap[i.assignee]) {
+      const p = i.assignee.split(' ');
+      const initials = p.length >= 2 ? p[0][0]+p[1][0] : i.assignee.slice(0,2);
+      personMap[i.assignee] = {...PERSON_COLORS[idx % PERSON_COLORS.length], initials: initials.toUpperCase(), short: p[0]};
+      idx++;
+    }
+  });
+}
+
+function buildClientFilters() {
+  const counts = {};
+  issues.forEach(i => counts[i.client] = (counts[i.client]||0)+1);
+  const clients = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([c])=>c);
+  const bar = document.getElementById('client-filters');
+  bar.innerHTML = '<button class="chip active" onclick="filterClient(\'all\',this)">Todos clientes</button>';
+  clients.slice(0,9).forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = c;
+    b.onclick = function(){ filterClient(c,this); };
+    bar.appendChild(b);
+  });
+}
+
+function buildPersonNav() {
+  const el = document.getElementById('person-nav');
+  el.innerHTML = '';
+  Object.entries(personMap).forEach(([name, p]) => {
+    const d = document.createElement('div');
+    d.className = 'nav-item';
+    d.onclick = function(){ filterPerson(name,this); };
+    d.innerHTML = `<span class="av" style="background:${p.bg};color:${p.color}">${p.initials}</span><span>${p.short}</span>`;
+    el.appendChild(d);
+  });
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  const t  = issues.length;
+  const nc = new Set(issues.map(i=>i.client)).size;
+  const pct = (n) => t ? Math.round(n/t*100)+'%' : '0%';
+  const count = (s) => issues.filter(i=>i.status===s).length;
+
+  const backlog   = count('Backlog');
+  const andamento = count('Em Andamento');
+  const proposta  = count('Proposta Enviada');
+  const agcliente = count('Aguardando Cliente');
+  const agexec    = count('Aguardando Execução');
+  const execucao  = count('Em Execução');
+  const concluido = count('Concluído');
+  const cancelado = count('Recusado / Cancelado');
+
+  const set = (id, val, sub) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+    const subEl = document.getElementById(id+'-pct');
+    if (subEl) subEl.textContent = sub;
+  };
+
+  set('s-backlog',   backlog,   pct(backlog));
+  set('s-andamento', andamento, pct(andamento));
+  set('s-proposta',  proposta,  pct(proposta));
+  set('s-agcliente', agcliente, pct(agcliente));
+  set('s-agexec',    agexec,    pct(agexec));
+  set('s-execucao',  execucao,  pct(execucao));
+  set('s-concluido', concluido, pct(concluido));
+  set('s-cancelado', cancelado, pct(cancelado));
+
+  const totEl = document.getElementById('s-tot');
+  const cliEl = document.getElementById('s-cli');
+  if (totEl) totEl.textContent = t;
+  if (cliEl) cliEl.textContent = nc + ' clientes';
+  const badge = document.getElementById('total-badge');
+  if (badge) badge.textContent = t + ' issues';
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function getFiltered() {
+  return issues.filter(i => {
+    const mp = currentFilter.person==='all' || i.assignee===currentFilter.person;
+    const mc = currentFilter.client==='all' || i.client===currentFilter.client;
+    const ms = !currentFilter.search || i.summary.toLowerCase().includes(currentFilter.search.toLowerCase()) || i.key.toLowerCase().includes(currentFilter.search.toLowerCase());
+    return mp && mc && ms;
+  });
+}
+function filterPerson(name, el) {
+  currentFilter.person = name;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderAll();
+}
+function filterClient(c, el) {
+  currentFilter.client = c;
+  document.querySelectorAll('#client-filters .chip').forEach(b=>b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderBoard();
+}
+function doSearch(v) { currentFilter.search = v; renderAll(); }
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function pill(status) {
+  const c = STATUS_CFG[status]||{color:'#888',bg:'rgba(136,136,136,0.1)'};
+  return `<span class="pill" style="background:${c.bg};color:${c.color}"><span style="width:6px;height:6px;border-radius:50%;background:${c.color};display:inline-block;flex-shrink:0"></span>${status}</span>`;
+}
+function av(name) {
+  const p = personMap[name]||{initials:'?',bg:'#222',color:'#888'};
+  return `<div class="av" style="background:${p.bg};color:${p.color}" title="${name}">${p.initials}</div>`;
+}
+
+function renderBoard() {
+  const f = getFiltered();
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  if (!f.length) {
+    el.innerHTML = `<div style="padding:40px;color:var(--muted);font-size:13px;font-family:'DM Mono',monospace">${issues.length?'Nenhum issue no filtro atual.':'Carregue um CSV para ver os issues.'}</div>`;
+    return;
+  }
+  STATUS_ORDER.forEach(s => {
+    const items = f.filter(i=>i.status===s);
+    const c = STATUS_CFG[s];
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `
+      <div class="col-head">
+        <div class="col-name"><div class="col-dot" style="background:${c.color}"></div>${s}</div>
+        <div class="col-count">${items.length}</div>
+      </div>
+      <div class="col-cards">${items.map(i=>`
+        <div class="card" onclick="openIssue('${i.key}')">
+          <div class="card-key">${i.key}</div>
+          <div class="card-title">${i.summary.replace(/ODY-\d+ - /,'').slice(0,75)}</div>
+          <div class="card-footer">${av(i.assignee)}<span class="client-tag">${i.client}</span><span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${i.sp != null ? 'rgba(22,101,52,0.12)' : 'rgba(107,114,128,0.08)'};color:${i.sp != null ? '#166534' : 'var(--muted)'};font-family:'DM Mono',monospace;font-weight:600">${i.sp != null ? i.sp+'pt' : '—'}</span></div>
+        </div>`).join('')}
+      </div>`;
+    el.appendChild(col);
+  });
+  document.getElementById('total-badge').textContent = f.length + ' issues';
+}
+
+function renderTable() {
+  document.getElementById('table-body').innerHTML = getFiltered().map(i=>`
+    <tr onclick="openIssue('${i.key}')">
+      <td class="td-key">${i.key}</td>
+      <td style="max-width:280px">${i.summary.replace(/ODY-\d+ - /,'').slice(0,85)}</td>
+      <td>${i.client}</td>
+      <td>${pill(i.status)}</td>
+      <td>${av(i.assignee)}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:#166534"><span style="color:${i.sp != null ? '#166534' : 'var(--muted)'};font-weight:${i.sp != null ? '700' : '400'}">${i.sp != null ? i.sp : '—'}</span></td>
+    </tr>`).join('');
+}
+
+function renderAnalytics() {
+  const f = getFiltered();
+  const bC={}, bS={}, bP={};
+  f.forEach(i=>{ bC[i.client]=(bC[i.client]||0)+1; bS[i.status]=(bS[i.status]||0)+1; bP[i.assignee]=(bP[i.assignee]||0)+1; });
+  const bars = (id, entries, cFn) => {
+    const mx = Math.max(...entries.map(e=>e[1]),1);
+    document.getElementById(id).innerHTML = entries.slice(0,10).map(([l,n])=>`
+      <div class="bar-row">
+        <div class="bar-label" title="${l}">${l}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/mx*100)}%;background:${cFn(l)}"></div></div>
+        <div class="bar-count">${n}</div>
+      </div>`).join('');
+  };
+  bars('ch-client', Object.entries(bC).sort((a,b)=>b[1]-a[1]), ()=>'var(--accent)');
+  bars('ch-status', Object.entries(bS).sort((a,b)=>b[1]-a[1]), s=>(STATUS_CFG[s]||{color:'#888'}).color);
+  bars('ch-person', Object.entries(bP).sort((a,b)=>b[1]-a[1]), p=>(personMap[p]||{color:'#888'}).color);
+}
+
+function renderAll() { renderBoard(); renderTable(); renderAnalytics(); renderSP(); }
+
+// ── STORY POINTS VIEW ────────────────────────────────────────────────────────
+function renderSP() {
+  const STATUSES = ['Backlog','Em Andamento','Proposta Enviada','Aguardando Cliente',
+                    'Aguardando Execução','Em Execução','Concluído','Recusado / Cancelado'];
+  const S_COLOR = {
+    'Backlog':'#6b7280','Em Andamento':'#3b82f6','Proposta Enviada':'#a78bfa',
+    'Aguardando Cliente':'#f97316','Aguardando Execução':'#f59e0b',
+    'Em Execução':'#ec4899','Concluído':'#22c55e','Recusado / Cancelado':'#ef4444',
+  };
+  const S_BG = {
+    'Backlog':'rgba(107,114,128,0.1)','Em Andamento':'rgba(59,130,246,0.1)',
+    'Proposta Enviada':'rgba(167,139,250,0.1)','Aguardando Cliente':'rgba(249,115,22,0.1)',
+    'Aguardando Execução':'rgba(245,158,11,0.1)','Em Execução':'rgba(236,72,153,0.1)',
+    'Concluído':'rgba(34,197,94,0.1)','Recusado / Cancelado':'rgba(239,68,68,0.1)',
+  };
+  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+
+  // ── Capacity rules ────────────────────────────────────────────────────────
+  // 0–125   → Verde  🟢
+  // 126–150 → Amarelo 🟡
+  // 151+    → Vermelho 🔴
+  function capacityFarol(sp) {
+    if (sp <= 125) return { emoji:'🟢', label:'Verde',    color:'#16a34a', bg:'rgba(22,163,74,0.1)',   border:'rgba(22,163,74,0.3)',   text:'Capacity OK' };
+    if (sp <= 150) return { emoji:'🟡', label:'Amarelo',  color:'#d97706', bg:'rgba(217,119,6,0.1)',   border:'rgba(217,119,6,0.3)',   text:'Atenção' };
+    return             { emoji:'🔴', label:'Vermelho',  color:'#dc2626', bg:'rgba(220,38,38,0.1)',   border:'rgba(220,38,38,0.3)',   text:'Sobrecarga' };
+  }
+
+  const f = getFiltered();
+  const hasSP = f.filter(i => i.sp != null && i.sp > 0);
+  const noSP  = f.filter(i => i.sp == null || i.sp === 0);
+
+  // Build person aggregates
+  const persons = {};
+  f.forEach(i => {
+    if (!persons[i.assignee]) persons[i.assignee] = { total:0, count:0, byStatus:{}, issues:[] };
+    const sp = i.sp || 0;
+    persons[i.assignee].total += sp;
+    persons[i.assignee].count++;
+    persons[i.assignee].issues.push(i);
+    persons[i.assignee].byStatus[i.status] = (persons[i.assignee].byStatus[i.status] || 0) + sp;
+  });
+
+  const sortedPersons = Object.entries(persons)
+    .filter(([n]) => n !== 'Sem responsável')
+    .sort((a,b) => b[1].total - a[1].total);
+  const totalSP = sortedPersons.reduce((acc,[,p]) => acc + p.total, 0);
+  const maxSP   = Math.max(...sortedPersons.map(([,p]) => p.total), 1);
+
+  const spByStatus = {};
+  STATUSES.forEach(s => spByStatus[s] = 0);
+  f.forEach(i => { if (i.sp) spByStatus[i.status] = (spByStatus[i.status]||0) + i.sp; });
+
+  // ── Banner when no SP filled ──────────────────────────────────────────────
+  const bannerEl = document.getElementById('sp-info-banner');
+  if (bannerEl) bannerEl.style.display = hasSP.length === 0 ? 'flex' : 'none';
+
+  // ── Capacity cards (one per person) ──────────────────────────────────────
+  const cardsEl = document.getElementById('sp-summary-cards');
+  if (!cardsEl) return;
+
+  cardsEl.innerHTML = sortedPersons.map(([name, p], idx) => {
+    const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+    const pc = P_COLORS[idx % P_COLORS.length];
+    const farol = capacityFarol(p.total);
+    const est   = p.issues.filter(i => i.sp > 0).length;
+    const avg   = est ? (p.total / est).toFixed(1) : '—';
+    const pct   = Math.round(Math.min(p.total, 151) / 151 * 100);
+    // Bar color matches farol
+    return `
+    <div class="sp-card" style="--pc:${farol.color};border:1px solid ${farol.border};background:${farol.bg};border-radius:14px;padding:16px;position:relative;overflow:hidden;">
+      <div class="sp-card::before" style="position:absolute;bottom:0;left:0;right:0;height:3px;background:${farol.color}"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:600;color:${pc};font-family:'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">${short}</div>
+        <span style="font-size:18px" title="Capacity ${farol.label}">${farol.emoji}</span>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:${farol.color};line-height:1;margin-bottom:4px">${p.total}</div>
+      <div style="font-size:10px;font-weight:600;color:${farol.color};margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">${farol.text}</div>
+      <!-- Progress bar: 0-125 green zone -->
+      <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;position:relative;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(22,163,74,0.15);border-right:1px dashed rgba(22,163,74,0.4)"></div>
+        <div style="height:100%;width:${pct}%;background:${farol.color};border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);min-width:${p.total>0?'4px':'0'}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">
+        <span>${p.count} issues</span>
+        <span>${est} estimados · média ${avg}pt</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Capacity summary table ────────────────────────────────────────────────
+  const personChartEl = document.getElementById('sp-by-person-chart');
+  if (personChartEl) {
+    personChartEl.innerHTML = `
+    <div style="margin-bottom:10px;font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;">
+      <span>🟢 Verde: 0–125 pts</span>
+      <span>🟡 Amarelo: 126–150 pts</span>
+      <span>🔴 Vermelho: 151+ pts</span>
+    </div>` +
+    sortedPersons.map(([name, p], idx) => {
+      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+      const pc    = P_COLORS[idx % P_COLORS.length];
+      const farol = capacityFarol(p.total);
+      const pct   = Math.round(p.total / maxSP * 100);
+      const pctTot = totalSP ? Math.round(p.total / totalSP * 100) : 0;
+      return `<div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;flex-shrink:0">${farol.emoji}</span>
+        <div style="font-size:12px;font-weight:600;min-width:120px;color:${pc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${short}</div>
+        <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/maxSP*100)}%;background:rgba(22,163,74,0.08);border-right:1px dashed rgba(22,163,74,0.3)"></div>
+          <div style="height:100%;width:${pct}%;background:${farol.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'};transition:width .5s">
+            ${p.total > 0 ? p.total+'pt' : ''}
+          </div>
+        </div>
+        <div style="font-size:10px;color:${farol.color};font-family:'DM Mono',monospace;font-weight:700;min-width:30px;text-align:right">${pctTot}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── SP by status chart ────────────────────────────────────────────────────
+  const statusChartEl = document.getElementById('sp-by-status-chart');
+  const maxSpStatus = Math.max(...Object.values(spByStatus), 1);
+  if (statusChartEl) statusChartEl.innerHTML = STATUSES.map(s => {
+    const val = spByStatus[s] || 0;
+    const pct = Math.round(val / maxSpStatus * 100);
+    return `<div class="bar-row">
+      <div class="bar-label" title="${s}" style="min-width:130px">${s}</div>
+      <div class="bar-track" style="flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;">
+        <div class="bar-fill" style="width:${pct}%;background:${S_COLOR[s]};height:100%;border-radius:99px;"></div>
+      </div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;min-width:34px;text-align:right;color:${val>0?S_COLOR[s]:'var(--muted)'};font-weight:${val>0?'600':'400'}">${val||'—'}</div>
+    </div>`;
+  }).join('');
+
+  // ── Matrix table colaborador × status ─────────────────────────────────────
+  const matrixEl = document.getElementById('sp-matrix-table');
+  if (matrixEl) {
+    const statusCols = STATUSES.filter(s => sortedPersons.some(([,p]) => (p.byStatus[s]||0) > 0));
+    let html = `<thead><tr>
+      <th class="sp-matrix-th left" style="min-width:130px">Colaborador</th>
+      <th class="sp-matrix-th">Capacity</th>
+      <th class="sp-matrix-th">Issues</th>
+      <th class="sp-matrix-th" style="color:#166534">SP Total</th>
+      ${statusCols.map(s=>`<th class="sp-matrix-th" style="color:${S_COLOR[s]}">${s.replace('Recusado / Cancelado','Cancelado').replace('Aguardando ','Ag.')}</th>`).join('')}
+      <th class="sp-matrix-th">Estimados</th>
+    </tr></thead><tbody>`;
+
+    sortedPersons.forEach(([name, p], idx) => {
+      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+      const pc    = P_COLORS[idx % P_COLORS.length];
+      const farol = capacityFarol(p.total);
+      const est   = p.issues.filter(i => i.sp > 0).length;
+      const estPct = p.count ? Math.round(est/p.count*100) : 0;
+      const alt   = idx % 2 === 0 ? 'background:var(--surface2)' : '';
+      html += `<tr style="${alt}">
+        <td class="sp-matrix-td name" style="color:${pc}">${short}</td>
+        <td class="sp-matrix-td">
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;background:${farol.bg};color:${farol.color};font-size:11px;font-weight:600;border:1px solid ${farol.border}">
+            ${farol.emoji} ${farol.label}
+          </span>
+        </td>
+        <td class="sp-matrix-td" style="color:var(--muted)">${p.count}</td>
+        <td class="sp-matrix-td total" style="color:${farol.color}">${p.total}</td>
+        ${statusCols.map(s => {
+          const v = p.byStatus[s] || 0;
+          return `<td class="sp-matrix-td" style="color:${v>0?S_COLOR[s]:'var(--muted)'};background:${v>0?S_BG[s]:''};font-weight:${v>0?'600':'400'}">${v||'—'}</td>`;
+        }).join('')}
+        <td class="sp-matrix-td" style="color:var(--muted);font-size:11px">${est}/${p.count} (${estPct}%)</td>
+      </tr>`;
+    });
+
+    html += `<tr style="border-top:2px solid var(--border2)">
+      <td class="sp-matrix-td name" style="font-weight:700">Total</td>
+      <td class="sp-matrix-td"></td>
+      <td class="sp-matrix-td total">${f.length}</td>
+      <td class="sp-matrix-td total" style="color:#166534">${totalSP}</td>
+      ${statusCols.map(s=>`<td class="sp-matrix-td total" style="color:${S_COLOR[s]}">${spByStatus[s]||0}</td>`).join('')}
+      <td class="sp-matrix-td" style="font-size:11px;color:var(--muted)">${hasSP.length}/${f.length}</td>
+    </tr></tbody>`;
+    matrixEl.innerHTML = html;
+  }
+
+  // ── Issues sem SP ─────────────────────────────────────────────────────────
+  const missingCountEl = document.getElementById('sp-missing-count');
+  const missingListEl  = document.getElementById('sp-missing-list');
+  if (missingCountEl) missingCountEl.textContent = `(${noSP.length} de ${f.length})`;
+  if (missingListEl) {
+    if (noSP.length === 0) {
+      missingListEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">✓ Todos os issues têm Story Points preenchidos!</div>';
+    } else {
+      missingListEl.innerHTML = noSP.slice(0,50).map(i => {
+        const pm = personMap[i.assignee] || {initials:'?',bg:'#222',color:'#888'};
+        const sc = S_COLOR[i.status] || '#888';
+        return `<div class="sp-missing-card" onclick="openIssue('${i.key}')" style="cursor:pointer">
+          <div style="width:28px;height:28px;border-radius:50%;background:${pm.bg};color:${pm.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${pm.initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${i.key}</div>
+            <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.replace(/ODY-\d+ - /,'').slice(0,70)}</div>
+          </div>
+          <span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${S_BG[i.status]||'rgba(136,136,136,0.1)'};color:${sc};white-space:nowrap;flex-shrink:0">${i.status}</span>
+        </div>`;
+      }).join('') + (noSP.length > 50 ? `<div style="text-align:center;font-size:12px;color:var(--muted);padding:8px">+ ${noSP.length-50} issues adicionais sem SP</div>` : '');
+    }
+  }
+}
+
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function switchView(v, el) {
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  const viewEl = document.getElementById('view-'+v);
+  if (viewEl) viewEl.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  // Re-render SP view every time it's activated to ensure fresh data
+  if (v === 'sp') setTimeout(renderSP, 0);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openIssue(key) {
+  currentIssue = issues.find(i=>i.key===key);
+  if (!currentIssue) return;
+  document.getElementById('m-key').textContent = currentIssue.key;
+  document.getElementById('m-title').textContent = currentIssue.summary.replace(/ODY-\d+ - /,'');
+  document.getElementById('m-status').innerHTML = pill(currentIssue.status);
+  document.getElementById('m-client').textContent = currentIssue.client;
+  document.getElementById('m-assignee').textContent = currentIssue.assignee;
+  document.getElementById('m-type') && (document.getElementById('m-type').textContent = currentIssue.type);
+  const mSpEl = document.getElementById('m-sp');
+  if (mSpEl) {
+    mSpEl.textContent = currentIssue.sp != null ? currentIssue.sp + ' pontos' : '— não informado';
+    mSpEl.style.color = currentIssue.sp != null ? '#166534' : 'var(--muted)';
+    mSpEl.style.fontSize = currentIssue.sp != null ? '20px' : '13px';
+  }
+  document.getElementById('m-link').href = currentIssue.url;
+  document.getElementById('ai-q').value = '';
+  const _aiR = document.getElementById('ai-resp');
+  const _aiS = document.getElementById('ai-spin');
+  if (_aiR) _aiR.style.display = 'none';
+  if (_aiS) _aiS.style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(e) {
+  if (!e || e.target===document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
+}
+
+// ── AI ────────────────────────────────────────────────────────────────────────
+async function askAI() {
+  const q = document.getElementById('ai-q').value.trim();
+  if (!q || !currentIssue) return;
+  const btn = document.getElementById('ai-ask');
+  if (btn) btn.disabled = true;
+  const spinEl = document.getElementById('ai-spin');
+  const respEl = document.getElementById('ai-resp');
+  if (spinEl) spinEl.style.display = 'flex';
+  if (respEl) respEl.style.display = 'none';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:`Assistente de projetos Infracommerce.\n\nIssue: ${currentIssue.key}\nTítulo: ${currentIssue.summary}\nCliente: ${currentIssue.client}\nStatus: ${currentIssue.status}\nResponsável: ${currentIssue.assignee}\n\nPergunta: ${q}\n\nResponda de forma concisa em português.`}]})
+    });
+    const d = await r.json();
+    if (respEl) { respEl.textContent = d.content?.find(b=>b.type==='text')?.text || 'Sem resposta.'; respEl.style.display = 'block'; }
+  } catch(e) { if (respEl) { respEl.textContent = 'Erro: '+e.message; respEl.style.display='block'; } }
+  if (spinEl) spinEl.style.display = 'none';
+  btn.disabled = false;
+}
+
+async function genSummary() {
+  const sumBtn  = document.getElementById('ai-summary-btn');
+  const sumSpin = document.getElementById('ai-sum-spin');
+  const sumResp = document.getElementById('ai-sum-resp');
+  if (sumBtn)  sumBtn.style.display = 'none';
+  if (sumSpin) sumSpin.style.display = 'flex';
+  const bS={}, bC={}, bP={};
+  issues.forEach(i=>{ bS[i.status]=(bS[i.status]||0)+1; bC[i.client]=(bC[i.client]||0)+1; bP[i.assignee]=(bP[i.assignee]||0)+1; });
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Consultor executivo de projetos. Analise o board ODYJS da Infracommerce:\n\nStatus: ${JSON.stringify(bS)}\nTop clientes: ${Object.entries(bC).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>k+':'+v).join(', ')}\nCarga por pessoa: ${JSON.stringify(bP)}\nTotal: ${issues.length} issues\n\nGere resumo executivo em português: 1) Situação atual 2) Pontos de atenção 3) Recomendações. Seja direto e prático.`}]})
+    });
+    const d = await r.json();
+    if (sumResp) { sumResp.textContent = d.content?.find(b=>b.type==='text')?.text || 'Sem resposta.'; sumResp.style.display = 'block'; }
+  } catch(e) { if (sumResp) { sumResp.textContent = 'Erro: '+e.message; sumResp.style.display='block'; } }
+  if (sumSpin) sumSpin.style.display = 'none';
+}
+
+// ── AUTO INIT ─────────────────────────────────────────────────────────────────
+(async function init() {
+  // Check if opened via file:// — warn user to use the server URL instead
+  if (location.protocol === 'file:') {
+    showSetupErr(
+      '⚠ Abra pelo servidor, não pelo arquivo direto!\n\n' +
+      '1. Inicie o servidor: execute iniciar.bat (Windows) ou node server.js\n' +
+      '2. Abra no navegador: http://localhost:3131\n\n' +
+      'Não abra o index.html diretamente — use sempre o endereço acima.'
+    );
+    const errEl = document.getElementById('setup-error');
+    if (errEl) errEl.style.whiteSpace = 'pre-line';
+    return;
+  }
+
+  // Check server health (same-origin, no CORS issues)
+  try {
+    const r = await fetch('/api/status');
+    if (!r.ok) throw new Error('Server error');
+    const d = await r.json();
+    if (!d.running) throw new Error('Not running');
+  } catch(e) {
+    showSetupErr('Erro ao conectar com o servidor. Tente recarregar a página (F5).');
+    return;
+  }
+
+  const setupEl = document.getElementById('setup-screen');
+  const appEl   = document.getElementById('app');
+
+  // Load config
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    // Pre-fill fields
+    const emailEl   = document.getElementById('cfg-email');
+    const domainEl  = document.getElementById('cfg-domain');
+    const projectEl = document.getElementById('cfg-project');
+    if (emailEl   && d.email)   emailEl.value   = d.email;
+    if (domainEl  && d.domain)  domainEl.value  = d.domain;
+    if (projectEl && d.project) projectEl.value = d.project;
+
+    // Cloud mode (Railway/Render): credenciais já estão nas env vars
+    if (d.cloud && d.configured) {
+      if (setupEl) setupEl.style.display = 'none';
+      if (appEl)   appEl.style.display = 'block';
+      await loadFromAPI();
+      return;
+    }
+    // Local mode: já configurado, carrega direto
+    if (d.configured) {
+      if (setupEl) setupEl.style.display = 'none';
+      if (appEl)   appEl.style.display = 'block';
+      await loadFromAPI();
+    }
+  } catch(e) {
+    showSetupErr('Erro ao carregar configuração: ' + e.message);
+  }
+})();
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

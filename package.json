@@ -1,0 +1,15 @@
+{
+  "name": "cp-controle-projetos",
+  "version": "2.1.0",
+  "description": "C.P · Controle Projetos — Integração Jira",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["jira", "projetos", "dashboard"],
+  "license": "MIT"
+}
