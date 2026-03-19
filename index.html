@@ -51,6 +51,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;}
 .nav-item:hover{background:var(--surface2);color:var(--text);}
 .nav-item.active{background:rgba(124,92,252,0.15);color:var(--accent2);}
+.nav-group-header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none;}
+.nav-group-header:hover{background:var(--surface2);}
+.nav-group-arrow{margin-left:auto;font-size:10px;color:var(--muted);transition:transform .2s;}
+.nav-group-arrow.open{transform:rotate(90deg);}
+.nav-group-body{overflow:hidden;max-height:0;transition:max-height .25s cubic-bezier(.4,0,.2,1);opacity:0;transition:max-height .25s cubic-bezier(.4,0,.2,1), opacity .2s;}
+.nav-group-body.open{max-height:600px;opacity:1;}
 .nav-icon{width:18px;text-align:center;font-size:14px;}
 .av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
@@ -183,7 +189,7 @@ td{padding:10px 15px;font-size:12px;}
 
 @media(max-width:900px){
   .sidebar{width:58px;}
-  .logo small,.nav-item span,.nav-section,.footer-info{display:none;}
+  .logo small,.nav-item span,.nav-section,.footer-info,.nav-group-header span:not(.nav-icon):not(.nav-group-arrow){display:none;}
   .main{margin-left:58px;}
   .stats-row{grid-template-columns:repeat(3,1fr)!important;}
   .analytics-grid{grid-template-columns:1fr;}
@@ -257,9 +263,18 @@ td{padding:10px 15px;font-size:12px;}
     <div class="nav-item" onclick="switchView('table',this)"><span class="nav-icon">☰</span><span>Lista</span></div>
     <div class="nav-item" onclick="switchView('analytics',this)"><span class="nav-icon">◑</span><span>Analytics</span></div>
     <div class="nav-item" onclick="switchView('sp',this)"><span class="nav-icon">◈</span><span>Story Points</span></div>
-    <div class="nav-section">Responsável</div>
-    <div class="nav-item active-person" id="nav-all" onclick="filterPerson('all',this)"><span class="nav-icon">↺</span><span>Todos</span></div>
-    <div id="person-nav"></div>
+
+    <!-- Grupo colapsável: Orçamento -->
+    <div class="nav-group-header" id="nav-group-orcamento" onclick="toggleNavGroup('orcamento')">
+      <span class="nav-icon">◧</span>
+      <span>Orçamento</span>
+      <span class="nav-group-arrow" id="arrow-orcamento">▸</span>
+    </div>
+    <div class="nav-group-body" id="group-body-orcamento">
+      <div class="nav-section" style="padding-left:20px">Responsável</div>
+      <div class="nav-item active-person" id="nav-all" onclick="filterPerson('all',this)" style="padding-left:20px"><span class="nav-icon">↺</span><span>Todos</span></div>
+      <div id="person-nav" style="padding-left:8px"></div>
+    </div>
   </nav>
   <div class="sidebar-footer">
     <div class="footer-info" id="footer-file">Nenhum arquivo</div>
@@ -791,10 +806,12 @@ function buildPersonNav() {
   // Botão gerenciar responsáveis
   const btn = document.createElement('div');
   btn.className = 'nav-item';
-  btn.style.cssText = 'opacity:.6;margin-top:4px;font-size:11px;';
+  btn.style.cssText = 'opacity:.6;margin-top:4px;font-size:11px;padding-left:20px';
   btn.onclick = openManageModal;
   btn.innerHTML = '<span class="nav-icon" style="font-size:11px">⚙</span><span>Gerenciar</span>';
   el.appendChild(btn);
+  // Apply open/close state
+  applyNavGroups();
 }
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -1179,6 +1196,26 @@ function renderManageModal() {
       </button>
     </div>`;
   }).join('');
+}
+
+// State: which nav groups are open (saved to localStorage)
+let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"orcamento":true}');
+
+function toggleNavGroup(id) {
+  navGroupState[id] = !navGroupState[id];
+  localStorage.setItem('cp_nav_groups', JSON.stringify(navGroupState));
+  applyNavGroups();
+}
+
+function applyNavGroups() {
+  Object.entries(navGroupState).forEach(([id, open]) => {
+    const body  = document.getElementById('group-body-' + id);
+    const arrow = document.getElementById('arrow-' + id);
+    const hdr   = document.getElementById('nav-group-' + id);
+    if (body)  body.classList.toggle('open', open);
+    if (arrow) arrow.classList.toggle('open', open);
+    if (hdr)   hdr.style.color = open ? 'var(--accent2)' : 'var(--text)';
+  });
 }
 
 function switchView(v, el) {
