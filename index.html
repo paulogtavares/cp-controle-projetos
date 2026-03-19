@@ -965,7 +965,8 @@ function renderSP() {
 
   const f = getFiltered();
   const hasSP = f.filter(i => i.sp != null && i.sp > 0);
-  const noSP  = f.filter(i => i.sp == null || i.sp === 0);
+  const STATUS_IGNORAR_SP = ['Concluído','Recusado / Cancelado'];
+  const noSP  = f.filter(i => (i.sp == null || i.sp === 0) && !STATUS_IGNORAR_SP.includes(i.status));
 
   // Build person aggregates
   const persons = {};
