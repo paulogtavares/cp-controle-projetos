@@ -25,18 +25,28 @@ function log(...a) { console.log(new Date().toLocaleTimeString('pt-BR'), ...a); 
 
 // ── Config: lê variáveis de ambiente OU config.json local ────────────────────
 function loadConfig() {
+  let cfg = {};
   // Variáveis de ambiente têm prioridade (Railway/Render/etc)
   if (process.env.JIRA_EMAIL) {
-    return {
+    cfg = {
       email:   process.env.JIRA_EMAIL.trim(),
       token:   process.env.JIRA_TOKEN.trim(),
       domain:  (process.env.JIRA_DOMAIN || 'infracommerce.atlassian.net').trim().replace(/^https?:\/\//, ''),
       project: (process.env.JIRA_PROJECT || 'ODYJS').trim().toUpperCase(),
     };
+  } else {
+    // Fallback: arquivo local (uso em desenvolvimento)
+    try { cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch { cfg = {}; }
   }
-  // Fallback: arquivo local (uso em desenvolvimento)
-  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
-  catch { return {}; }
+  // Sempre lê inactivePersons do state.json (persiste entre deploys no Railway)
+  const stateFile = path.join(__dirname, 'state.json');
+  try {
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    cfg.inactivePersons = state.inactivePersons || [];
+  } catch {
+    cfg.inactivePersons = cfg.inactivePersons || [];
+  }
+  return cfg;
 }
 
 function saveConfig(c) {
@@ -333,6 +343,39 @@ async function handleRequest(req, res) {
       log('Erro issues:', e.message);
       json(res, 500, { error: e.message });
     }
+    return;
+  }
+
+  // GET /api/inactive — retorna lista de pessoas inativas
+  if (pathname === '/api/inactive' && req.method === 'GET') {
+    const cfg = loadConfig();
+    json(res, 200, { inactive: cfg.inactivePersons || [] });
+    return;
+  }
+
+  // POST /api/inactive — salva lista de pessoas inativas
+  if (pathname === '/api/inactive' && req.method === 'POST') {
+    const b = await readBody(req);
+    if (!Array.isArray(b.inactive)) {
+      json(res, 400, { error: 'Campo "inactive" deve ser um array.' }); return;
+    }
+    const cfg = loadConfig();
+    cfg.inactivePersons = b.inactive;
+    // Em modo nuvem salva em arquivo de estado separado (não sobrescreve env vars)
+    const stateFile = path.join(__dirname, 'state.json');
+    try {
+      let state = {};
+      try { state = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch {}
+      state.inactivePersons = b.inactive;
+      fs.writeFileSync(stateFile, JSON.stringify(state, null, 2), 'utf8');
+    } catch(e) {
+      log('Aviso: não foi possível salvar state.json:', e.message);
+    }
+    // Também tenta salvar no config.json (modo local)
+    if (!IS_CLOUD) {
+      try { cfg.inactivePersons = b.inactive; saveConfig(cfg); } catch {}
+    }
+    json(res, 200, { ok: true, inactive: b.inactive });
     return;
   }
 

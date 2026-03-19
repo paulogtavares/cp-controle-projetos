@@ -509,14 +509,42 @@ const PERSON_COLORS = [
 // ── STATE ────────────────────────────────────────────────────────────────────
 let issues = [], personMap = {}, currentFilter = {person:'all',client:'all',search:''}, currentIssue = null;
 
-// Pessoas inativas — salvo no localStorage para persistir entre sessões
-let inactivePersons = new Set(JSON.parse(localStorage.getItem('cp_inactive_persons') || '[]'));
-function saveInactive() { localStorage.setItem('cp_inactive_persons', JSON.stringify([...inactivePersons])); }
+// Pessoas inativas — salvo no servidor (persiste para todos os usuários e deploys)
+let inactivePersons = new Set();
+
+async function loadInactive() {
+  try {
+    const r = await fetch('/api/inactive');
+    const d = await r.json();
+    inactivePersons = new Set(d.inactive || []);
+  } catch(e) {
+    // fallback: tenta localStorage como backup
+    try { inactivePersons = new Set(JSON.parse(localStorage.getItem('cp_inactive_persons') || '[]')); } catch {}
+  }
+}
+
+async function saveInactive() {
+  const list = [...inactivePersons];
+  try {
+    await fetch('/api/inactive', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ inactive: list })
+    });
+    // sync localStorage as backup
+    localStorage.setItem('cp_inactive_persons', JSON.stringify(list));
+  } catch(e) {
+    // fallback: pelo menos salva no localStorage
+    localStorage.setItem('cp_inactive_persons', JSON.stringify(list));
+  }
+}
+
 function isActive(name) { return !inactivePersons.has(name); }
-function togglePerson(name) {
+
+async function togglePerson(name) {
   if (inactivePersons.has(name)) inactivePersons.delete(name);
   else inactivePersons.add(name);
-  saveInactive();
+  await saveInactive();
   buildPersonNav();
   renderAll();
   renderManageModal();
@@ -562,6 +590,9 @@ async function loadFromAPI() {
   const setupVisible = setupEl && setupEl.style.display !== 'none';
 
   if (setupVisible) showSetupProg('Buscando todos os issues do Jira...');
+
+  // Carrega inativos do servidor antes de renderizar
+  await loadInactive();
 
   try {
     const r = await fetch(API + '/api/issues');
@@ -1141,7 +1172,7 @@ function renderManageModal() {
         <div style="font-size:13px;font-weight:500;color:${active?'var(--text)':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ')}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${total} issues · ${ativos} ativos · ${inativos} concluídos/cancelados</div>
       </div>
-      <button onclick="togglePerson('${name.replace(/'/g,"\'")}')"
+      <button onclick="this.disabled=true;this.textContent='...';togglePerson('${name.replace(/'/g,"\'")}')"
         style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(239,68,68,0.3)'};background:${active?'var(--surface)':'rgba(239,68,68,0.08)'};color:${active?'var(--text)':'#ef4444'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
         ${active ? '● Ativo' : '○ Inativo'}
       </button>

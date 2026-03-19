@@ -2,3 +2,5 @@ config.json
 node_modules/
 *.log
 .env
+
+state.json
