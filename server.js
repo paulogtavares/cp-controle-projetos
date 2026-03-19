@@ -16,6 +16,11 @@ const fs    = require('fs');
 const path  = require('path');
 const url   = require('url');
 
+// ── Versão lida do package.json (fonte da verdade) ────────────────────────────
+const PKG = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const APP_VERSION   = PKG.version    || '0.0.0';
+const APP_BUILD     = PKG.buildDate  || '—';
+
 // ── Porta: Railway define PORT automaticamente ────────────────────────────────
 const PORT        = process.env.PORT || 3131;
 const CONFIG_FILE = path.join(__dirname, 'config.json');
@@ -202,9 +207,10 @@ function parseIssue(i, domain) {
 }
 
 // ── Busca paginada com fallback ───────────────────────────────────────────────
-async function fetchAllIssues(cfg) {
+async function fetchAllIssues(cfg, jqlExtra = '') {
   const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,created,updated';
-  const jql    = encodeURIComponent(`project = "${cfg.project}" ORDER BY created DESC`);
+  const base   = `project = "${cfg.project}"` + (jqlExtra ? ` AND ${jqlExtra}` : '');
+  const jql    = encodeURIComponent(base + ' ORDER BY created DESC');
   const all    = [];
 
   log('Buscando issues via /search/jql...');
@@ -284,11 +290,12 @@ async function handleRequest(req, res) {
   if (pathname === '/api/status') {
     const cfg = loadConfig();
     json(res, 200, {
-      running: true,
+      running:    true,
       configured: !!(cfg.email && cfg.token && cfg.domain && cfg.project),
-      cloud: IS_CLOUD,
-      version: '2.1.0',
-      port: PORT,
+      cloud:      IS_CLOUD,
+      version:    APP_VERSION,
+      buildDate:  APP_BUILD,
+      port:       PORT,
     });
     return;
   }
@@ -398,11 +405,11 @@ const HOST = IS_CLOUD ? '0.0.0.0' : '127.0.0.1';
 
 server.listen(PORT, HOST, () => {
   if (IS_CLOUD) {
-    console.log(`\n  ⬡ C.P · Controle Projetos rodando na porta ${PORT} (modo nuvem)\n`);
+    console.log(`\n  ⬡ C.P · Controle Projetos v${APP_VERSION} (${APP_BUILD}) — porta ${PORT}\n`);
   } else {
     console.log('');
     console.log('  ╔══════════════════════════════════════╗');
-    console.log('  ║   ⬡  C.P · Controle Projetos  v2     ║');
+    console.log(`  ║   ⬡  C.P · Controle Projetos  v${APP_VERSION.padEnd(6)}║`);
     console.log('  ╠══════════════════════════════════════╣');
     console.log(`  ║   http://localhost:${PORT}              ║`);
     console.log('  ╠══════════════════════════════════════╣');

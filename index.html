@@ -56,7 +56,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-group-arrow{margin-left:auto;font-size:10px;color:var(--muted);transition:transform .2s;}
 .nav-group-arrow.open{transform:rotate(90deg);}
 .nav-group-body{overflow:hidden;max-height:0;transition:max-height .25s cubic-bezier(.4,0,.2,1);opacity:0;transition:max-height .25s cubic-bezier(.4,0,.2,1), opacity .2s;}
-.nav-group-body.open{max-height:600px;opacity:1;}
+.nav-group-body.open{max-height:900px;opacity:1;}
 .nav-icon{width:18px;text-align:center;font-size:14px;}
 .av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
@@ -255,29 +255,44 @@ td{padding:10px 15px;font-size:12px;}
 <div class="sidebar">
   <div class="logo">
     <div class="logo-dot" style="width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;"></div>
-    <div><strong>C.P</strong><small>infracommerce</small></div>
+    <div>
+      <strong>C.P</strong>
+      <small>infracommerce</small>
+      <small id="app-version" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:1px;display:block"></small>
+    </div>
   </div>
   <nav class="nav">
-    <div class="nav-section">Visões</div>
-    <div class="nav-item active" onclick="switchView('board',this)"><span class="nav-icon">⬛</span><span>Board</span></div>
-    <div class="nav-item" onclick="switchView('table',this)"><span class="nav-icon">☰</span><span>Lista</span></div>
-    <div class="nav-item" onclick="switchView('analytics',this)"><span class="nav-icon">◑</span><span>Analytics</span></div>
-    <div class="nav-item" onclick="switchView('sp',this)"><span class="nav-icon">◈</span><span>Story Points</span></div>
-
-    <!-- Grupo colapsável: Orçamento -->
+    <!-- Grupo colapsável: Orçamento (contém visões + responsáveis) -->
     <div class="nav-group-header" id="nav-group-orcamento" onclick="toggleNavGroup('orcamento')">
       <span class="nav-icon">◧</span>
       <span>Orçamento</span>
       <span class="nav-group-arrow" id="arrow-orcamento">▸</span>
     </div>
     <div class="nav-group-body" id="group-body-orcamento">
-      <div class="nav-section" style="padding-left:20px">Responsável</div>
-      <div class="nav-item active-person" id="nav-all" onclick="filterPerson('all',this)" style="padding-left:20px"><span class="nav-icon">↺</span><span>Todos</span></div>
-      <div id="person-nav" style="padding-left:8px"></div>
+
+      <!-- Visões -->
+      <div class="nav-section" style="padding-left:20px">Visões</div>
+      <div class="nav-item active" onclick="switchView('board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
+      <div class="nav-item" onclick="switchView('table',this)" style="padding-left:20px"><span class="nav-icon">☰</span><span>Lista</span></div>
+      <div class="nav-item" onclick="switchView('analytics',this)" style="padding-left:20px"><span class="nav-icon">◑</span><span>Analytics</span></div>
+      <div class="nav-item" onclick="switchView('sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
+
+      <!-- Responsável — subgrupo colapsável -->
+      <div class="nav-group-header" id="nav-group-responsavel" onclick="toggleNavGroup('responsavel')"
+           style="padding-left:20px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-top:6px;">
+        <span>Responsável</span>
+        <span class="nav-group-arrow" id="arrow-responsavel" style="font-size:9px">▸</span>
+      </div>
+      <div class="nav-group-body" id="group-body-responsavel">
+        <div class="nav-item active-person" id="nav-all" onclick="filterPerson('all',this)" style="padding-left:28px"><span class="nav-icon">↺</span><span>Todos</span></div>
+        <div id="person-nav" style="padding-left:16px"></div>
+      </div>
+
     </div>
   </nav>
   <div class="sidebar-footer">
     <div class="footer-info" id="footer-file">Nenhum arquivo</div>
+    <div class="footer-info" id="footer-version" style="opacity:.5"></div>
     <button class="footer-btn primary" onclick="showSetup()">⚙ Reconfigurar</button>
     <button class="footer-btn" onclick="syncNow()" id="sync-btn">↻ Sincronizar</button>
   </div>
@@ -418,10 +433,8 @@ td{padding:10px 15px;font-size:12px;}
       </div>
 
     </div>
-    </div>
-  </div>
-</div>
-</div>
+
+
 
 <!-- MANAGE PERSONS MODAL -->
 <div id="manage-overlay" onclick="closeManageModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
@@ -762,6 +775,13 @@ function loadIssues(data, filename) {
   if (setupEl) setupEl.style.display = 'none';
   if (appEl)   appEl.style.display = 'block';
   toast('✓ ' + issues.length + ' issues carregados!', 'ok');
+  // Exibe versão na sidebar
+  fetch('/api/status').then(r=>r.json()).then(d=>{
+    const el = document.getElementById('app-version');
+    if (el && d.version) el.textContent = 'v' + d.version + ' · ' + (d.buildDate||'');
+    const fv = document.getElementById('footer-version');
+    if (fv && d.version) fv.textContent = 'v' + d.version + ' · ' + (d.buildDate||'');
+  }).catch(()=>{});
 }
 
 // ── BUILD MAPS ────────────────────────────────────────────────────────────────
@@ -1199,7 +1219,7 @@ function renderManageModal() {
 }
 
 // State: which nav groups are open (saved to localStorage)
-let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"orcamento":true}');
+let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"orcamento":true,"responsavel":true}');
 
 function toggleNavGroup(id) {
   navGroupState[id] = !navGroupState[id];
@@ -1224,8 +1244,7 @@ function switchView(v, el) {
   if (viewEl) viewEl.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if (el) el.classList.add('active');
-  // Re-render SP view every time it's activated to ensure fresh data
-  if (v === 'sp') setTimeout(renderSP, 0);
+  if (v === 'sp')         setTimeout(renderSP, 0);
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────

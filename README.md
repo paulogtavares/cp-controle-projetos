@@ -1,66 +1,85 @@
 # C.P · Controle Projetos
 
-Painel de gestão integrado ao Jira. Funciona localmente e publicado na nuvem.
+Plataforma de gestão integrada ao Jira — Infracommerce.
 
 ---
 
-## Publicar no Railway (online em 5 min)
+## Versionamento
 
-### 1. Criar conta
-Acesse https://railway.app e faça login com GitHub.
+A versão é controlada no `package.json`. Para registrar uma alteração:
 
-### 2. Criar repositório no GitHub
-```bash
-git init
-git add .
-git commit -m "primeiro commit"
-git remote add origin https://github.com/SEU_USUARIO/cp-controle-projetos.git
-git push -u origin main
+### 1. Antes de qualquer mudança — atualize o package.json
+
+```json
+{
+  "version": "2.2.0",
+  "buildDate": "2026-03-20"
+}
 ```
 
-### 3. Novo projeto no Railway
-- Clique em **New Project → Deploy from GitHub repo**
-- Selecione o repositório criado
-- Railway detecta o `package.json` e faz deploy automático
+**Regra de versão semântica:**
 
-### 4. Adicionar variáveis de ambiente
-No painel do Railway vá em **Variables** e adicione:
+| Tipo de mudança | O que incrementar | Exemplo |
+|---|---|---|
+| Correção de bug pequeno | Patch (último número) | 2.1.0 → 2.1.1 |
+| Nova funcionalidade | Minor (número do meio) | 2.1.0 → 2.2.0 |
+| Reescrita / mudança grande | Major (primeiro número) | 2.1.0 → 3.0.0 |
 
-| Variável      | Valor                              |
-|---------------|------------------------------------|
-| `JIRA_EMAIL`  | paulo.tavares@infracommerce.com.br |
-| `JIRA_TOKEN`  | seu API token do Jira              |
-| `JIRA_DOMAIN` | infracommerce.atlassian.net        |
-| `JIRA_PROJECT`| ODYJS                              |
+### 2. Commitar com mensagem descritiva
 
-### 5. Acessar
-Railway gera uma URL como `https://cp-controle-projetos.up.railway.app`.
-Clique em **Generate Domain** para obter o endereço público.
+```bash
+git add .
+git commit -m "v2.2.0 - descricao clara do que mudou"
+git push
+```
+
+### 3. Onde a versão aparece
+
+- **Sidebar da plataforma** — abaixo do logo (ex: `v2.1.0 · 2026-03-19`)
+- **Rodapé da sidebar** — visível em telas menores
+- **Terminal** — exibida no banner ao iniciar o servidor
+- **GET /api/status** — campos `version` e `buildDate`
 
 ---
 
-## Usar localmente
+## Fazer Rollback
 
-Requisito: Node.js instalado (https://nodejs.org)
+### Opção A — Rollback pelo GitHub (recomendado)
+
+```bash
+# Ver histórico de commits
+git log --oneline
+
+# Voltar para um commit específico
+git revert <hash-do-commit>
+git push
+```
+
+O Railway faz redeploy automático.
+
+### Opção B — Rollback com arquivo ZIP
+
+Se tiver o ZIP de uma versão anterior:
+1. Extraia o ZIP
+2. Copie os arquivos para a pasta do projeto
+3. Atualize o `buildDate` no `package.json` para a data de hoje
+4. Faça o commit e push normalmente
+
+---
+
+## Rodar Localmente
 
 **Windows:** duplo clique em `iniciar.bat`
 **Mac/Linux:** `node server.js`
-
 Acesse: http://localhost:3131
 
 ---
 
-## Variáveis de ambiente
+## Variáveis de Ambiente (Railway)
 
-| Variável       | Descrição                          | Padrão                          |
-|----------------|------------------------------------|---------------------------------|
-| `JIRA_EMAIL`   | E-mail do Atlassian                | —                               |
-| `JIRA_TOKEN`   | API Token do Jira                  | —                               |
-| `JIRA_DOMAIN`  | Domínio do Jira                    | infracommerce.atlassian.net     |
-| `JIRA_PROJECT` | Chave do projeto                   | ODYJS                           |
-| `PORT`         | Porta (Railway define sozinho)     | 3131                            |
-
----
-
-## Gerar API Token
-https://id.atlassian.com/manage-profile/security/api-tokens
+| Variável | Valor |
+|---|---|
+| `JIRA_EMAIL` | paulo.tavares@infracommerce.com.br |
+| `JIRA_TOKEN` | API Token do Jira |
+| `JIRA_DOMAIN` | infracommerce.atlassian.net |
+| `JIRA_PROJECT` | ODYJS |
