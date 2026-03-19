@@ -272,10 +272,10 @@ td{padding:10px 15px;font-size:12px;}
 
       <!-- Visões -->
       <div class="nav-section" style="padding-left:20px">Visões</div>
-      <div class="nav-item active" onclick="switchView('board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
-      <div class="nav-item" onclick="switchView('table',this)" style="padding-left:20px"><span class="nav-icon">☰</span><span>Lista</span></div>
-      <div class="nav-item" onclick="switchView('analytics',this)" style="padding-left:20px"><span class="nav-icon">◑</span><span>Analytics</span></div>
-      <div class="nav-item" onclick="switchView('sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
+      <div class="nav-item nav-view-item active" onclick="switchView('board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('table',this)" style="padding-left:20px"><span class="nav-icon">☰</span><span>Lista</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('analytics',this)" style="padding-left:20px"><span class="nav-icon">◑</span><span>Analytics</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
 
       <!-- Responsável — subgrupo colapsável -->
       <div class="nav-group-header" id="nav-group-responsavel" onclick="toggleNavGroup('responsavel')"
@@ -284,7 +284,7 @@ td{padding:10px 15px;font-size:12px;}
         <span class="nav-group-arrow" id="arrow-responsavel" style="font-size:9px">▸</span>
       </div>
       <div class="nav-group-body" id="group-body-responsavel">
-        <div class="nav-item active-person" id="nav-all" onclick="filterPerson('all',this)" style="padding-left:28px"><span class="nav-icon">↺</span><span>Todos</span></div>
+        <div class="nav-item nav-filter-item active-person" id="nav-all" onclick="filterPerson('all',this)" style="padding-left:28px"><span class="nav-icon">↺</span><span>Todos</span></div>
         <div id="person-nav" style="padding-left:16px"></div>
       </div>
 
@@ -818,7 +818,7 @@ function buildPersonNav() {
   Object.entries(personMap).forEach(([name, p]) => {
     if (!isActive(name)) return; // oculta inativos da sidebar
     const d = document.createElement('div');
-    d.className = 'nav-item';
+    d.className = 'nav-item nav-filter-item';
     d.onclick = function(){ filterPerson(name,this); };
     d.innerHTML = `<span class="av" style="background:${p.bg};color:${p.color}">${p.initials}</span><span>${p.short}</span>`;
     el.appendChild(d);
@@ -889,7 +889,9 @@ function getFilteredActive() {
 }
 function filterPerson(name, el) {
   currentFilter.person = name;
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  // Remove active apenas dos filtros de responsável, não das visões
+  document.querySelectorAll('.nav-filter-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.active-person').forEach(n=>n.classList.remove('active'));
   if (el) el.classList.add('active');
   renderAll();
 }
@@ -1239,12 +1241,14 @@ function applyNavGroups() {
 }
 
 function switchView(v, el) {
+  // Ativa a view correta
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   const viewEl = document.getElementById('view-'+v);
   if (viewEl) viewEl.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  // Remove active apenas dos itens de visão (não dos filtros de responsável)
+  document.querySelectorAll('.nav-view-item').forEach(n=>n.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (v === 'sp')         setTimeout(renderSP, 0);
+  if (v === 'sp') setTimeout(renderSP, 0);
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
