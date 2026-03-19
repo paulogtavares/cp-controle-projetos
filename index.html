@@ -169,8 +169,12 @@ td{padding:10px 15px;font-size:12px;}
 .sp-matrix-td.total{font-weight:700;font-family:'DM Mono',monospace;}
 .sp-missing-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
 .sp-person-bar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;min-width:24px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+#manage-overlay { display:none; }
+#manage-overlay[style*="flex"] { display:flex !important; }
 @keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .toast{position:fixed
+#manage-overlay { display:none; }
+#manage-overlay[style*="flex"] { display:flex !important; }
 @keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
 .toast.show{transform:translateY(0);opacity:1;}
@@ -404,6 +408,23 @@ td{padding:10px 15px;font-size:12px;}
 </div>
 </div>
 
+<!-- MANAGE PERSONS MODAL -->
+<div id="manage-overlay" onclick="closeManageModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:24px;width:420px;max-width:90vw;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Responsáveis</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Inativos saem do capacity e da sidebar</div>
+      </div>
+      <button onclick="closeManageModal()" style="width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px">✕</button>
+    </div>
+    <div id="manage-person-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center">
+      As configurações ficam salvas no seu navegador
+    </div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div class="overlay" id="overlay" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
@@ -487,6 +508,19 @@ const PERSON_COLORS = [
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let issues = [], personMap = {}, currentFilter = {person:'all',client:'all',search:''}, currentIssue = null;
+
+// Pessoas inativas — salvo no localStorage para persistir entre sessões
+let inactivePersons = new Set(JSON.parse(localStorage.getItem('cp_inactive_persons') || '[]'));
+function saveInactive() { localStorage.setItem('cp_inactive_persons', JSON.stringify([...inactivePersons])); }
+function isActive(name) { return !inactivePersons.has(name); }
+function togglePerson(name) {
+  if (inactivePersons.has(name)) inactivePersons.delete(name);
+  else inactivePersons.add(name);
+  saveInactive();
+  buildPersonNav();
+  renderAll();
+  renderManageModal();
+}
 
 // ── API FUNCTIONS ────────────────────────────────────────────────────────────
 async function connectJira() {
@@ -716,12 +750,20 @@ function buildPersonNav() {
   const el = document.getElementById('person-nav');
   el.innerHTML = '';
   Object.entries(personMap).forEach(([name, p]) => {
+    if (!isActive(name)) return; // oculta inativos da sidebar
     const d = document.createElement('div');
     d.className = 'nav-item';
     d.onclick = function(){ filterPerson(name,this); };
     d.innerHTML = `<span class="av" style="background:${p.bg};color:${p.color}">${p.initials}</span><span>${p.short}</span>`;
     el.appendChild(d);
   });
+  // Botão gerenciar responsáveis
+  const btn = document.createElement('div');
+  btn.className = 'nav-item';
+  btn.style.cssText = 'opacity:.6;margin-top:4px;font-size:11px;';
+  btn.onclick = openManageModal;
+  btn.innerHTML = '<span class="nav-icon" style="font-size:11px">⚙</span><span>Gerenciar</span>';
+  el.appendChild(btn);
 }
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -772,6 +814,10 @@ function getFiltered() {
     const ms = !currentFilter.search || i.summary.toLowerCase().includes(currentFilter.search.toLowerCase()) || i.key.toLowerCase().includes(currentFilter.search.toLowerCase());
     return mp && mc && ms;
   });
+}
+// Issues de ativos (para capacity e analytics principais)
+function getFilteredActive() {
+  return getFiltered().filter(i => isActive(i.assignee));
 }
 function filterPerson(name, el) {
   currentFilter.person = name;
@@ -902,7 +948,7 @@ function renderSP() {
   });
 
   const sortedPersons = Object.entries(persons)
-    .filter(([n]) => n !== 'Sem responsável')
+    .filter(([n]) => n !== 'Sem responsável' && isActive(n))
     .sort((a,b) => b[1].total - a[1].total);
   const totalSP = sortedPersons.reduce((acc,[,p]) => acc + p.total, 0);
   const maxSP   = Math.max(...sortedPersons.map(([,p]) => p.total), 1);
@@ -1066,6 +1112,43 @@ function renderSP() {
 
 
 // ── VIEWS ─────────────────────────────────────────────────────────────────────
+function openManageModal() {
+  renderManageModal();
+  const ov = document.getElementById('manage-overlay');
+  if (ov) { ov.style.display = 'flex'; }
+}
+function closeManageModal() {
+  const ov = document.getElementById('manage-overlay');
+  if (ov) ov.style.display = 'none';
+}
+function renderManageModal() {
+  const list = document.getElementById('manage-person-list');
+  if (!list) return;
+  const allPersons = Object.entries(personMap).filter(([n]) => n !== 'Sem responsável');
+  if (allPersons.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">Nenhum responsável encontrado</div>';
+    return;
+  }
+  list.innerHTML = allPersons.map(([name, p]) => {
+    const active = isActive(name);
+    // Count issues by status for this person
+    const total    = issues.filter(i => i.assignee === name).length;
+    const ativos   = issues.filter(i => i.assignee === name && !['Concluído','Recusado / Cancelado'].includes(i.status)).length;
+    const inativos = total - ativos;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:var(--surface2);border:1px solid ${active ? 'var(--border)' : 'rgba(239,68,68,0.2)'};">
+      <div class="av" style="background:${p.bg};color:${p.color};width:36px;height:36px;font-size:13px;flex-shrink:0;opacity:${active?1:0.4}">${p.initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:${active?'var(--text)':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${total} issues · ${ativos} ativos · ${inativos} concluídos/cancelados</div>
+      </div>
+      <button onclick="togglePerson('${name.replace(/'/g,"\'")}')"
+        style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(239,68,68,0.3)'};background:${active?'var(--surface)':'rgba(239,68,68,0.08)'};color:${active?'var(--text)':'#ef4444'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
+        ${active ? '● Ativo' : '○ Inativo'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
 function switchView(v, el) {
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   const viewEl = document.getElementById('view-'+v);
