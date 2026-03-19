@@ -27,11 +27,3 @@ echo.
 start /b cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:3131"
 node server.js
 pause
-
-echo "# cp-controle-projetos" >> README.md 
-git init 
-git add README.md 
-git commit -m "primeiro commit" 
-git branch -M main 
-git remote add origin https://github.com/pgtavares/cp-controle-projetos.git
- git push -u origin main

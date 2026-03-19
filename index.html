@@ -17,7 +17,7 @@
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
 /* ── UPLOAD SCREEN ── */
-.upload-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:24px;}
+.upload-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:24px;}
 .upload-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;width:520px;max-width:95vw;}
 .upload-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:4px;display:flex;align-items:center;gap:10px;}
 .upload-logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;}
@@ -169,7 +169,9 @@ td{padding:10px 15px;font-size:12px;}
 .sp-matrix-td.total{font-weight:700;font-family:'DM Mono',monospace;}
 .sp-missing-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
 .sp-person-bar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;min-width:24px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+@keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .toast{position:fixed
+@keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-color:rgba(34,197,94,.3);}
@@ -187,6 +189,13 @@ td{padding:10px 15px;font-size:12px;}
 <body>
 
 <!-- SETUP SCREEN -->
+<div id="splash-screen" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:16px;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:10px;height:10px;background:var(--accent);border-radius:50%;animation:splashPulse 1.2s ease-in-out infinite"></div>
+    <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text)">C.P · Controle Projetos</span>
+  </div>
+  <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Carregando...</div>
+</div>
 <div class="upload-screen" id="setup-screen">
   <div class="upload-card">
     <div class="upload-logo"><div class="upload-logo-dot"></div>C.P · Controle Projetos</div>
@@ -567,6 +576,8 @@ async function syncNow() {
 function showSetup() {
   showSetupErr('');
   showSetupProg('');
+  const splash = document.getElementById('splash-screen');
+  if (splash) splash.style.display = 'none';
   const s = document.getElementById('setup-screen');
   const a = document.getElementById('app');
   if (s) s.style.display = 'flex';
@@ -1139,8 +1150,17 @@ async function genSummary() {
 
 // ── AUTO INIT ─────────────────────────────────────────────────────────────────
 (async function init() {
+  // Hide splash when done
+  function hideSplash() {
+    const sp = document.getElementById('splash-screen');
+    if (sp) { sp.style.opacity = '0'; sp.style.transition = 'opacity .2s'; setTimeout(() => sp.style.display='none', 200); }
+  }
+
   // Check if opened via file:// — warn user to use the server URL instead
   if (location.protocol === 'file:') {
+    hideSplash();
+    const spScreen = document.getElementById('setup-screen');
+    if (spScreen) spScreen.style.display = 'flex';
     showSetupErr(
       '⚠ Abra pelo servidor, não pelo arquivo direto!\n\n' +
       '1. Inicie o servidor: execute iniciar.bat (Windows) ou node server.js\n' +
@@ -1159,6 +1179,9 @@ async function genSummary() {
     const d = await r.json();
     if (!d.running) throw new Error('Not running');
   } catch(e) {
+    hideSplash();
+    const sErr = document.getElementById('setup-screen');
+    if (sErr) sErr.style.display = 'flex';
     showSetupErr('Erro ao conectar com o servidor. Tente recarregar a página (F5).');
     return;
   }
@@ -1180,16 +1203,21 @@ async function genSummary() {
 
     // Cloud mode (Railway/Render): credenciais já estão nas env vars
     if (d.cloud && d.configured) {
-      if (setupEl) setupEl.style.display = 'none';
-      if (appEl)   appEl.style.display = 'block';
+      hideSplash();
+      if (appEl) appEl.style.display = 'block';
       await loadFromAPI();
       return;
     }
     // Local mode: já configurado, carrega direto
     if (d.configured) {
+      hideSplash();
       if (setupEl) setupEl.style.display = 'none';
       if (appEl)   appEl.style.display = 'block';
       await loadFromAPI();
+    } else {
+      // Mostra setup com fade suave
+      hideSplash();
+      if (setupEl) setupEl.style.display = 'flex';
     }
   } catch(e) {
     showSetupErr('Erro ao carregar configuração: ' + e.message);
