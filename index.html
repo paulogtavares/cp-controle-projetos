@@ -818,6 +818,8 @@ async function loadFromAPI() {
     loadIssues(d.issues, 'Orçamento · ' + d.total + ' issues · ' + ts + src);
     updateCacheIndicator('odyjs', d);
     if (setupVisible) showSetupProg('');
+    // Carrega Projetos em paralelo sem bloquear o Orçamento
+    syncProjIssues(false).catch(e => toast('Projetos: ' + e.message, 'err'));
   } catch(e) {
     // If setup is visible, show error there; otherwise use toast
     if (setupVisible) {
