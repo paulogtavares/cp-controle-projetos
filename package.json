@@ -1,6 +1,6 @@
 {
   "name": "cp-controle-projetos",
-  "version": "2.9.4",
+  "version": "2.9.5",
   "buildDate": "2026-03-20",
   "description": "C.P · Controle Projetos — Integração Jira",
   "main": "server.js",

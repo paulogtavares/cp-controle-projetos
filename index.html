@@ -61,6 +61,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-icon{width:18px;text-align:center;font-size:14px;}
 .av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.config-menu{position:absolute;bottom:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:6px;margin:0 4px 6px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);display:none;flex-direction:column;gap:3px;}
+.config-menu.open{display:flex;}
+.config-menu-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;}
+.config-menu-item:hover{background:var(--surface2);color:var(--text);}
+.config-menu-item.danger{color:#ef4444;}
+.config-menu-item.danger:hover{background:rgba(239,68,68,0.08);}
 .footer-info{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;}
 .footer-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;width:100%;}
 .footer-btn:hover{border-color:var(--border2);color:var(--text);}
@@ -303,21 +309,34 @@ td{padding:10px 15px;font-size:12px;}
     </div>
 
   </nav>
-  <div class="sidebar-footer">
+  <div class="sidebar-footer" style="position:relative;">
     <div id="footer-file" style="display:none"></div>
+
+    <!-- Menu de configurações (aparece acima do botão) -->
+    <div class="config-menu" id="config-menu">
+      <button class="config-menu-item" onclick="openJiraFilters();toggleConfigMenu()">
+        <span style="font-size:13px">⚡</span> Filtros Jira
+      </button>
+      <button class="config-menu-item" onclick="showSetup();toggleConfigMenu()">
+        <span style="font-size:13px">⚙</span> Reconfigurar Jira
+      </button>
+      <div style="height:1px;background:var(--border);margin:3px 4px;"></div>
+      <button class="config-menu-item" onclick="syncAll(true);toggleConfigMenu()">
+        <span style="font-size:13px">⟳</span> Forçar sincronização
+      </button>
+    </div>
+
     <!-- Versão + indicadores de cache -->
-    <div style="margin-bottom:10px;">
-      <div id="footer-version" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.6;margin-bottom:3px;"></div>
-      <div id="cache-status-odyjs" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.7;margin-bottom:2px;"></div>
+    <div style="margin-bottom:8px;">
+      <div id="footer-version" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.6;margin-bottom:2px;"></div>
+      <div id="cache-status-odyjs" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.7;margin-bottom:1px;"></div>
       <div id="cache-status-b2b1"  style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.7;"></div>
     </div>
-    <!-- Reconfigurar -->
-    <button class="footer-btn" onclick="openJiraFilters()" style="margin-bottom:4px;">⚡ Filtros Jira</button>
-    <button class="footer-btn primary" onclick="showSetup()" style="margin-bottom:6px;">⚙ Reconfigurar</button>
-    <!-- Sync unificado -->
+
+    <!-- Linha inferior: Sincronizar + ⚙ Configurações -->
     <div style="display:flex;gap:4px;">
       <button class="footer-btn" onclick="syncAll()" id="sync-all-btn" style="flex:1;justify-content:center;">↻ Sincronizar</button>
-      <button class="footer-btn" onclick="syncAll(true)" title="Forçar busca no Jira (ambos)" style="width:32px;padding:0;flex-shrink:0;font-size:14px;">⟳</button>
+      <button class="footer-btn" onclick="toggleConfigMenu()" id="config-btn" title="Configurações" style="width:32px;padding:0;flex-shrink:0;font-size:15px;">⚙</button>
     </div>
   </div>
 </div>
@@ -2067,6 +2086,26 @@ async function saveJiraFilters() {
     toast('Erro ao salvar filtros: ' + e.message, 'err');
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Salvar e sincronizar'; }
+}
+
+function toggleConfigMenu() {
+  const menu = document.getElementById('config-menu');
+  const btn  = document.getElementById('config-btn');
+  if (!menu) return;
+  const isOpen = menu.classList.toggle('open');
+  if (btn) btn.style.color = isOpen ? 'var(--accent2)' : '';
+  // Fecha ao clicar fora
+  if (isOpen) {
+    setTimeout(() => {
+      document.addEventListener('click', function closeMenu(e) {
+        if (!menu.contains(e.target) && e.target.id !== 'config-btn') {
+          menu.classList.remove('open');
+          if (btn) btn.style.color = '';
+        }
+        document.removeEventListener('click', closeMenu);
+      });
+    }, 0);
+  }
 }
 
 // ── AUTO INIT ─────────────────────────────────────────────────────────────────
