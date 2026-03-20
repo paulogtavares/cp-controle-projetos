@@ -1001,8 +1001,10 @@ function buildClientFilters() {
 function buildPersonNav() {
   const el = document.getElementById('person-nav');
   el.innerHTML = '';
+  const visibleAssignees = new Set(applyJiraFilters(issues, 'odyjs').map(i => i.assignee));
   Object.entries(personMap).forEach(([name, p]) => {
-    if (!isActive(name)) return; // oculta inativos da sidebar
+    if (!isActive(name)) return;
+    if (!visibleAssignees.has(name)) return; // oculta filtrados pelo Jira
     const d = document.createElement('div');
     d.className = 'nav-filter-item';
     d.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .15s;white-space:nowrap';
@@ -1066,16 +1068,27 @@ function updateStats() {
 // Aplica filtros de exclusão do Jira no lado cliente (segunda camada de segurança)
 function applyJiraFilters(list, module) {
   const f = jiraFilters[module] || {};
+  const norm = s => (s || '').trim().toLowerCase();
+  const assignees = (f.assignees || []).map(norm);
+  const statuses  = (f.statuses  || []).map(norm);
+  const types     = (f.types     || []).map(norm);
   return list.filter(i => {
-    if (f.assignees?.length && f.assignees.includes(i.assignee)) return false;
-    if (f.statuses?.length  && f.statuses.includes(i.rawStatus || i.status)) return false;
-    if (f.types?.length     && f.types.includes(i.type)) return false;
+    if (assignees.length && assignees.includes(norm(i.assignee))) return false;
+    if (statuses.length  && statuses.includes(norm(i.rawStatus || i.status))) return false;
+    if (types.length     && types.includes(norm(i.type))) return false;
     return true;
   });
 }
 
 function getFiltered() {
-  const base = applyJiraFilters(issues, 'odyjs');
+  const base = applyJiraFilters(issues, 'odyjs').filter(i => isActive(i.assignee));
+  // Reseta filtro de pessoa se ela não existe mais nos dados visíveis
+  if (currentFilter.person !== 'all' && !base.some(i => i.assignee === currentFilter.person)) {
+    currentFilter.person = 'all';
+    document.querySelectorAll('#person-nav .nav-filter-item, #nav-all').forEach(n=>n.classList.remove('active'));
+    const allBtn = document.getElementById('nav-all');
+    if (allBtn) allBtn.classList.add('active');
+  }
   return base.filter(i => {
     const mp = currentFilter.person==='all' || i.assignee===currentFilter.person;
     const mc = currentFilter.client==='all' || i.client===currentFilter.client;
@@ -1608,16 +1621,25 @@ function filterProjPerson(name, el) {
 }
 
 function getProjFiltered() {
-  return applyJiraFilters(projIssues, 'b2b1')
-    .filter(i => isProjActive(i.assignee))
-    .filter(i => projFilter.person === 'all' || i.assignee === projFilter.person);
+  const filtered = applyJiraFilters(projIssues, 'b2b1')
+    .filter(i => isProjActive(i.assignee));
+  // Se o filtro de pessoa está num responsável que agora é inativo, reseta para Todos
+  if (projFilter.person !== 'all' && !filtered.some(i => i.assignee === projFilter.person)) {
+    projFilter.person = 'all';
+    document.querySelectorAll('#proj-person-nav .nav-filter-item, #proj-nav-all').forEach(n=>n.classList.remove('active'));
+    const allBtn = document.getElementById('proj-nav-all');
+    if (allBtn) allBtn.classList.add('active');
+  }
+  return filtered.filter(i => projFilter.person === 'all' || i.assignee === projFilter.person);
 }
 
 function buildProjPersonNav() {
   const el = document.getElementById('proj-person-nav');
   if (!el) return;
   el.innerHTML = '';
-  const persons = [...new Set(projIssues.map(i => i.assignee))].filter(n => n && n !== 'Sem responsável').sort();
+  // Usa issues já filtrados (inativos + filtros Jira) para montar os chips
+  const visibleIssues = applyJiraFilters(projIssues, 'b2b1');
+  const persons = [...new Set(visibleIssues.map(i => i.assignee))].filter(n => n && n !== 'Sem responsável').sort();
   persons.forEach(name => {
     if (!isProjActive(name)) return; // oculta inativos
     const pm = projPersonMap[name] || personMap[name] || {initials: name.slice(0,2).toUpperCase(), bg:'#222', color:'#888'};
@@ -1989,10 +2011,7 @@ function renderFilterSection(module, field, label, allValues) {
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       ${allValues.map(v => {
         const ignored = current.includes(v);
-        return `<div onclick="toggleFilterItem('${module}','${field}','${v.replace(/'/g,"\'")}',this)"
-          style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid ${ignored?'rgba(239,68,68,0.4)':'var(--border)'};background:${ignored?'rgba(239,68,68,0.08)':'var(--surface2)'};color:${ignored?'#ef4444':'var(--text)'};transition:all .15s">
-          ${ignored?'✕ ':''}${v}
-        </div>`;
+        return `<div onclick="toggleFilterItem('${module}','${field}','${v.replace(/'/g,"\'")}',this)" data-value="${v.replace(/"/g,'&quot;')}" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid ${ignored?'rgba(239,68,68,0.4)':'var(--border)'};background:${ignored?'rgba(239,68,68,0.08)':'var(--surface2)'};color:${ignored?'#ef4444':'var(--text)'};transition:all .15s">${ignored?'✕ ':''}${v}</div>`;
       }).join('')}
     </div>`;
 }
@@ -2004,9 +2023,11 @@ function toggleFilterItem(module, field, value, el) {
   const idx = arr.indexOf(value);
   if (idx >= 0) arr.splice(idx, 1);
   else arr.push(value);
-  // Re-render só a seção alterada
-  const allValues = [...el.parentElement.querySelectorAll('[onclick]')].map(d => d.textContent.trim().replace(/^✕ /,''));
-  renderFilterSection(module, field, el.closest('[style]')?.previousElementSibling?.textContent?.trim() || field, allValues);
+  // Lê valores do data-value (evita problema de espaços/quebras no textContent)
+  const allValues = [...el.parentElement.querySelectorAll('[data-value]')].map(d => d.dataset.value);
+  const labelEl = el.parentElement.previousElementSibling;
+  const label = labelEl ? labelEl.textContent.trim() : field;
+  renderFilterSection(module, field, label, allValues);
 }
 
 function renderFilterPanels() {
