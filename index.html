@@ -51,6 +51,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;}
 .nav-item:hover{background:var(--surface2);color:var(--text);}
 .nav-item.active{background:rgba(124,92,252,0.15);color:var(--accent2);}
+.nav-filter-item.active{background:rgba(124,92,252,0.15)!important;border-color:rgba(124,92,252,0.4)!important;color:var(--accent2)!important;}
 .nav-group-header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none;}
 .nav-group-header:hover{background:var(--surface2);}
 .nav-group-arrow{margin-left:auto;font-size:10px;color:var(--muted);transition:transform .2s;}
@@ -61,7 +62,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
 .footer-info{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;}
-.footer-btn{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;width:100%;margin-bottom:6px;}
+.footer-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;width:100%;}
 .footer-btn:hover{border-color:var(--border2);color:var(--text);}
 .footer-btn.primary{background:rgba(124,92,252,0.1);border-color:rgba(124,92,252,0.2);color:var(--accent2);}
 .footer-btn.primary:hover{background:rgba(124,92,252,0.2);}
@@ -177,6 +178,10 @@ td{padding:10px 15px;font-size:12px;}
 .sp-person-bar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;min-width:24px;transition:width .5s cubic-bezier(.4,0,.2,1);}
 #manage-overlay { display:none; }
 #manage-overlay[style*="flex"] { display:flex !important; }
+#manage-proj-overlay { display:none; }
+#manage-proj-overlay[style*="flex"] { display:flex !important; }
+#jira-filters-overlay { display:none; }
+#jira-filters-overlay[style*="flex"] { display:flex !important; }
 @keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .toast{position:fixed
 #manage-overlay { display:none; }
@@ -277,24 +282,43 @@ td{padding:10px 15px;font-size:12px;}
       <div class="nav-item nav-view-item" onclick="switchView('analytics',this)" style="padding-left:20px"><span class="nav-icon">◑</span><span>Analytics</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
 
-      <!-- Responsável — subgrupo colapsável -->
-      <div class="nav-group-header" id="nav-group-responsavel" onclick="toggleNavGroup('responsavel')"
-           style="padding-left:20px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-top:6px;">
-        <span>Responsável</span>
-        <span class="nav-group-arrow" id="arrow-responsavel" style="font-size:9px">▸</span>
-      </div>
-      <div class="nav-group-body" id="group-body-responsavel">
-        <div class="nav-item nav-filter-item active-person" id="nav-all" onclick="filterPerson('all',this)" style="padding-left:28px"><span class="nav-icon">↺</span><span>Todos</span></div>
-        <div id="person-nav" style="padding-left:16px"></div>
-      </div>
 
     </div>
+
+    <!-- Grupo colapsável: Projetos (independente do Orçamento) -->
+    <div class="nav-group-header" id="nav-group-projetos" onclick="toggleNavGroup('projetos')">
+      <span class="nav-icon">◉</span>
+      <span>Projetos</span>
+      <span class="nav-group-arrow" id="arrow-projetos">▸</span>
+    </div>
+    <div class="nav-group-body" id="group-body-projetos">
+
+      <!-- Visões do Projetos -->
+      <div class="nav-section" style="padding-left:20px">Visões</div>
+      <div class="nav-item nav-view-item" onclick="switchView('proj-board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('proj-table',this)" style="padding-left:20px"><span class="nav-icon">☰</span><span>Lista</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('proj-sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
+
+
+    </div>
+
   </nav>
   <div class="sidebar-footer">
-    <div class="footer-info" id="footer-file">Nenhum arquivo</div>
-    <div class="footer-info" id="footer-version" style="opacity:.5"></div>
-    <button class="footer-btn primary" onclick="showSetup()">⚙ Reconfigurar</button>
-    <button class="footer-btn" onclick="syncNow()" id="sync-btn">↻ Sincronizar</button>
+    <div id="footer-file" style="display:none"></div>
+    <!-- Versão + indicadores de cache -->
+    <div style="margin-bottom:10px;">
+      <div id="footer-version" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.6;margin-bottom:3px;"></div>
+      <div id="cache-status-odyjs" style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.7;margin-bottom:2px;"></div>
+      <div id="cache-status-b2b1"  style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;opacity:.7;"></div>
+    </div>
+    <!-- Reconfigurar -->
+    <button class="footer-btn" onclick="openJiraFilters()" style="margin-bottom:4px;">⚡ Filtros Jira</button>
+    <button class="footer-btn primary" onclick="showSetup()" style="margin-bottom:6px;">⚙ Reconfigurar</button>
+    <!-- Sync unificado -->
+    <div style="display:flex;gap:4px;">
+      <button class="footer-btn" onclick="syncAll()" id="sync-all-btn" style="flex:1;justify-content:center;">↻ Sincronizar</button>
+      <button class="footer-btn" onclick="syncAll(true)" title="Forçar busca no Jira (ambos)" style="width:32px;padding:0;flex-shrink:0;font-size:14px;">⟳</button>
+    </div>
   </div>
 </div>
 
@@ -312,55 +336,64 @@ td{padding:10px 15px;font-size:12px;}
   </div>
 
   <div class="content">
-    <div class="stats-row" style="grid-template-columns:repeat(9,1fr)">
-      <div class="stat-card" style="--c:#6b7280">
-        <div class="stat-label">Backlog</div>
-        <div class="stat-value" id="s-backlog">0</div>
-        <div class="stat-sub" id="s-backlog-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#3b82f6">
-        <div class="stat-label">Em Andamento</div>
-        <div class="stat-value" id="s-andamento">0</div>
-        <div class="stat-sub" id="s-andamento-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#a78bfa">
-        <div class="stat-label">Proposta Enviada</div>
-        <div class="stat-value" id="s-proposta">0</div>
-        <div class="stat-sub" id="s-proposta-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#f97316">
-        <div class="stat-label">Ag. Cliente</div>
-        <div class="stat-value" id="s-agcliente">0</div>
-        <div class="stat-sub" id="s-agcliente-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#f59e0b">
-        <div class="stat-label">Ag. Execução</div>
-        <div class="stat-value" id="s-agexec">0</div>
-        <div class="stat-sub" id="s-agexec-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#ec4899">
-        <div class="stat-label">Em Execução</div>
-        <div class="stat-value" id="s-execucao">0</div>
-        <div class="stat-sub" id="s-execucao-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#22c55e">
-        <div class="stat-label">Concluído</div>
-        <div class="stat-value" id="s-concluido">0</div>
-        <div class="stat-sub" id="s-concluido-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:#ef4444">
-        <div class="stat-label">Cancelado</div>
-        <div class="stat-value" id="s-cancelado">0</div>
-        <div class="stat-sub" id="s-cancelado-pct"></div>
-      </div>
-      <div class="stat-card" style="--c:var(--accent)">
-        <div class="stat-label">Total</div>
-        <div class="stat-value" id="s-tot">0</div>
-        <div class="stat-sub" id="s-cli"></div>
-      </div>
-    </div>
 
     <div class="view active" id="view-board">
+      <!-- Filtro de responsável — Orçamento -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <div class="nav-item nav-filter-item active-person" id="nav-all" onclick="filterPerson('all',this)"
+          style="padding:5px 12px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface2)">
+          <span class="nav-icon">↺</span><span>Todos</span>
+        </div>
+        <div id="person-nav" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+        <button onclick="openManageModal()" style="padding:5px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap">⚙ Gerenciar</button>
+      </div>
+      <div class="stats-row" style="grid-template-columns:repeat(9,1fr);margin-bottom:16px">
+        <div class="stat-card" style="--c:#6b7280">
+          <div class="stat-label">Backlog</div>
+          <div class="stat-value" id="s-backlog">0</div>
+          <div class="stat-sub" id="s-backlog-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#3b82f6">
+          <div class="stat-label">Em Andamento</div>
+          <div class="stat-value" id="s-andamento">0</div>
+          <div class="stat-sub" id="s-andamento-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#a78bfa">
+          <div class="stat-label">Proposta Enviada</div>
+          <div class="stat-value" id="s-proposta">0</div>
+          <div class="stat-sub" id="s-proposta-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#f97316">
+          <div class="stat-label">Ag. Cliente</div>
+          <div class="stat-value" id="s-agcliente">0</div>
+          <div class="stat-sub" id="s-agcliente-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#f59e0b">
+          <div class="stat-label">Ag. Execução</div>
+          <div class="stat-value" id="s-agexec">0</div>
+          <div class="stat-sub" id="s-agexec-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#ec4899">
+          <div class="stat-label">Em Execução</div>
+          <div class="stat-value" id="s-execucao">0</div>
+          <div class="stat-sub" id="s-execucao-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#22c55e">
+          <div class="stat-label">Concluído</div>
+          <div class="stat-value" id="s-concluido">0</div>
+          <div class="stat-sub" id="s-concluido-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:#ef4444">
+          <div class="stat-label">Cancelado</div>
+          <div class="stat-value" id="s-cancelado">0</div>
+          <div class="stat-sub" id="s-cancelado-pct"></div>
+        </div>
+        <div class="stat-card" style="--c:var(--accent)">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="s-tot">0</div>
+          <div class="stat-sub" id="s-cli"></div>
+        </div>
+      </div>
       <div class="filters-bar" id="client-filters"></div>
       <div class="board-wrap"><div class="board" id="board"></div></div>
     </div>
@@ -434,7 +467,118 @@ td{padding:10px 15px;font-size:12px;}
 
     </div>
 
+    <!-- ═══ PROJETOS — Board ═══ -->
+    <div class="view" id="view-proj-board">
+      <!-- Filtro de responsável — Projetos -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <div class="nav-item nav-filter-item" id="proj-nav-all" onclick="filterProjPerson('all',this)"
+          style="padding:5px 12px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface2)">
+          <span class="nav-icon">↺</span><span>Todos</span>
+        </div>
+        <div id="proj-person-nav" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+        <button onclick="openManageProjModal()" style="padding:5px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap">⚙ Gerenciar</button>
+      </div>
+      <div id="proj-stats-row" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:20px;"></div>
+      <div class="board" id="proj-board-cols"></div>
+    </div>
 
+    <!-- ═══ PROJETOS — Lista ═══ -->
+    <div class="view" id="view-proj-table">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:11px 15px;text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase">Chave</th>
+          <th style="padding:11px 15px;text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase">Título</th>
+          <th style="padding:11px 15px;text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase">Status</th>
+          <th style="padding:11px 15px;text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase">Responsável</th>
+          <th style="padding:11px 15px;text-align:center;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase">SP</th>
+          <th style="padding:11px 15px;text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface);text-transform:uppercase">Atualizado</th>
+        </tr></thead>
+        <tbody id="proj-table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ═══ PROJETOS — Story Points ═══ -->
+    <div class="view" id="view-proj-sp">
+      <div id="proj-sp-banner" style="display:none;align-items:center;gap:14px;padding:14px 18px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:12px;margin-bottom:16px;">
+        <span style="font-size:20px">⚠</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">Story Points não preenchidos</div>
+          <div style="font-size:12px;color:var(--muted)">Preencha o campo Story Points nos issues do projeto no Jira e sincronize.</div>
+        </div>
+      </div>
+      <div id="proj-sp-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:20px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+        <div class="chart-card"><div class="chart-title">SP por responsável · Projetos</div><div id="proj-sp-chart" style="display:flex;flex-direction:column;gap:12px;"></div></div>
+        <div class="chart-card"><div class="chart-title">Distribuição por status · Projetos</div><div id="proj-sp-status-chart" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" style="margin-bottom:14px">Detalhamento responsável × status · Projetos</div>
+        <div style="overflow-x:auto"><table id="proj-sp-matrix" style="width:100%;border-collapse:collapse;font-size:12px;"></table></div>
+      </div>
+
+      <!-- Issues sem SP — Projetos -->
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="chart-title" style="margin:0">Issues sem Story Points · Projetos <span id="proj-sp-missing-count" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;margin-left:6px;"></span></div>
+        </div>
+        <div id="proj-sp-missing-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+      </div>
+
+    </div>
+
+<!-- JIRA FILTERS MODAL -->
+<div id="jira-filters-overlay" onclick="closeJiraFilters()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:24px;width:520px;max-width:95vw;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Filtros de busca · Jira</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Itens ignorados na busca — aplicado no próximo ⟳ Sincronizar</div>
+      </div>
+      <button onclick="closeJiraFilters()" style="width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px">✕</button>
+    </div>
+
+    <!-- Tabs Orçamento / Projetos -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+      <button id="ftab-odyjs" onclick="switchFilterTab('odyjs')"
+        style="padding:5px 16px;border-radius:20px;border:1px solid var(--accent);background:rgba(124,92,252,0.15);color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace">◧ Orçamento</button>
+      <button id="ftab-b2b1" onclick="switchFilterTab('b2b1')"
+        style="padding:5px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace">◉ Projetos</button>
+    </div>
+
+    <div id="filter-panel-odyjs">
+      <div id="filter-section-assignees-odyjs"></div>
+      <div id="filter-section-statuses-odyjs" style="margin-top:16px"></div>
+      <div id="filter-section-types-odyjs" style="margin-top:16px"></div>
+    </div>
+    <div id="filter-panel-b2b1" style="display:none">
+      <div id="filter-section-assignees-b2b1"></div>
+      <div id="filter-section-statuses-b2b1" style="margin-top:16px"></div>
+      <div id="filter-section-types-b2b1" style="margin-top:16px"></div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeJiraFilters()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer">Cancelar</button>
+      <button onclick="saveJiraFilters()" style="padding:8px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;font-weight:600">Salvar e sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE PROJ PERSONS MODAL -->
+<div id="manage-proj-overlay" onclick="closeManageProjModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:24px;width:420px;max-width:90vw;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Responsáveis · Projetos</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Inativos saem do capacity e da sidebar</div>
+      </div>
+      <button onclick="closeManageProjModal()" style="width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px">✕</button>
+    </div>
+    <div id="manage-proj-person-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center">
+      As configurações ficam salvas no servidor
+    </div>
+  </div>
+</div>
 
 <!-- MANAGE PERSONS MODAL -->
 <div id="manage-overlay" onclick="closeManageModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
@@ -536,6 +680,42 @@ const PERSON_COLORS = [
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let issues = [], personMap = {}, currentFilter = {person:'all',client:'all',search:''}, currentIssue = null;
+let projIssues = [], projPersonMap = {}, projFilter = {person:'all'};
+let inactiveProjPersons = new Set();
+
+async function loadInactiveProj() {
+  try {
+    const r = await fetch('/api/inactive-proj');
+    const d = await r.json();
+    inactiveProjPersons = new Set(d.inactive || []);
+  } catch {
+    try { inactiveProjPersons = new Set(JSON.parse(localStorage.getItem('cp_inactive_proj') || '[]')); } catch {}
+  }
+}
+async function saveInactiveProj() {
+  const list = [...inactiveProjPersons];
+  try {
+    await fetch('/api/inactive-proj', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ inactive: list })
+    });
+    localStorage.setItem('cp_inactive_proj', JSON.stringify(list));
+  } catch {
+    localStorage.setItem('cp_inactive_proj', JSON.stringify(list));
+  }
+}
+function isProjActive(name) { return !inactiveProjPersons.has(name); }
+async function toggleProjPerson(name) {
+  if (inactiveProjPersons.has(name)) inactiveProjPersons.delete(name);
+  else inactiveProjPersons.add(name);
+  await saveInactiveProj();
+  buildProjPersonNav();
+  renderProjBoard();
+  renderProjTable();
+  renderProjSP();
+  renderManageProjModal();
+}
 
 // Pessoas inativas — salvo no servidor (persiste para todos os usuários e deploys)
 let inactivePersons = new Set();
@@ -619,8 +799,9 @@ async function loadFromAPI() {
 
   if (setupVisible) showSetupProg('Buscando todos os issues do Jira...');
 
-  // Carrega inativos do servidor antes de renderizar
+  // Carrega inativos e filtros antes de renderizar
   await loadInactive();
+  await loadJiraFilters();
 
   try {
     const r = await fetch(API + '/api/issues');
@@ -630,8 +811,12 @@ async function loadFromAPI() {
     }
     const d = await r.json();
     if (!Array.isArray(d.issues)) throw new Error('Resposta inválida do servidor');
-    const ts = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-    loadIssues(d.issues, 'Jira · ' + d.total + ' issues · ' + ts);
+    const ts  = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    const src = d.fromCache ? ' · 📦 cache' : '';
+    const src2 = d.fromCache ? ' · 📦 cache' : '';
+    updateCacheIndicator && updateCacheIndicator('odyjs', d);
+    loadIssues(d.issues, 'Orçamento · ' + d.total + ' issues · ' + ts + src);
+    updateCacheIndicator('odyjs', d);
     if (setupVisible) showSetupProg('');
   } catch(e) {
     // If setup is visible, show error there; otherwise use toast
@@ -646,24 +831,25 @@ async function loadFromAPI() {
   }
 }
 
-async function syncNow() {
-  const btn = document.getElementById('sync-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '↻ Sincronizando...'; }
-  toast('Buscando issues do Jira...', '');
+async function syncNow(force = false) {
+  // botão gerenciado pelo syncAll
+  toast(force ? 'Forçando atualização do Jira...' : 'Verificando cache...', '');
   try {
-    const r = await fetch(API + '/api/issues');
+    const r = await fetch(API + '/api/issues' + (force ? '?force=1' : ''));
     if (!r.ok) {
       const d = await r.json().catch(()=>({}));
       throw new Error(d.error || 'Erro HTTP ' + r.status);
     }
     const d = await r.json();
-    const ts = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-    loadIssues(d.issues, 'Jira · ' + d.total + ' issues · ' + ts);
-    toast('✓ ' + d.total + ' issues sincronizados!', 'ok');
+    const ts  = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    const src = d.fromCache ? '📦 cache' : (d.incremental ? '⚡ delta' : '🔄 completo');
+    loadIssues(d.issues, 'Orçamento · ' + d.total + ' issues · ' + ts);
+    toast('✓ Orçamento: ' + d.total + ' issues · ' + src, 'ok');
+    updateCacheIndicator('odyjs', d);
   } catch(e) {
-    toast('Erro na sincronização: ' + e.message, 'err');
+    toast('Erro: ' + e.message, 'err');
   }
-  if (btn) { btn.disabled = false; btn.textContent = '↻ Sincronizar'; }
+
 }
 
 function showSetup() {
@@ -788,7 +974,7 @@ function loadIssues(data, filename) {
 function buildPersonMap() {
   personMap = {};
   let idx = 0;
-  issues.forEach(i => {
+  applyJiraFilters(issues, 'odyjs').forEach(i => {
     if (!personMap[i.assignee]) {
       const p = i.assignee.split(' ');
       const initials = p.length >= 2 ? p[0][0]+p[1][0] : i.assignee.slice(0,2);
@@ -800,7 +986,7 @@ function buildPersonMap() {
 
 function buildClientFilters() {
   const counts = {};
-  issues.forEach(i => counts[i.client] = (counts[i.client]||0)+1);
+  applyJiraFilters(issues, 'odyjs').forEach(i => counts[i.client] = (counts[i.client]||0)+1);
   const clients = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([c])=>c);
   const bar = document.getElementById('client-filters');
   bar.innerHTML = '<button class="chip active" onclick="filterClient(\'all\',this)">Todos clientes</button>';
@@ -818,9 +1004,10 @@ function buildPersonNav() {
   Object.entries(personMap).forEach(([name, p]) => {
     if (!isActive(name)) return; // oculta inativos da sidebar
     const d = document.createElement('div');
-    d.className = 'nav-item nav-filter-item';
+    d.className = 'nav-filter-item';
+    d.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .15s;white-space:nowrap';
     d.onclick = function(){ filterPerson(name,this); };
-    d.innerHTML = `<span class="av" style="background:${p.bg};color:${p.color}">${p.initials}</span><span>${p.short}</span>`;
+    d.innerHTML = `<span class="av" style="background:${p.bg};color:${p.color};width:20px;height:20px;font-size:9px;flex-shrink:0">${p.initials}</span><span style="color:var(--text);font-weight:500">${p.short}</span>`;
     el.appendChild(d);
   });
   // Botão gerenciar responsáveis
@@ -836,10 +1023,11 @@ function buildPersonNav() {
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
 function updateStats() {
-  const t  = issues.length;
-  const nc = new Set(issues.map(i=>i.client)).size;
+  const filteredIssues = applyJiraFilters(issues, 'odyjs');
+  const t  = filteredIssues.length;
+  const nc = new Set(filteredIssues.map(i=>i.client)).size;
   const pct = (n) => t ? Math.round(n/t*100)+'%' : '0%';
-  const count = (s) => issues.filter(i=>i.status===s).length;
+  const count = (s) => filteredIssues.filter(i=>i.status===s).length;
 
   const backlog   = count('Backlog');
   const andamento = count('Em Andamento');
@@ -875,8 +1063,20 @@ function updateStats() {
 }
 
 // ── FILTERS ───────────────────────────────────────────────────────────────────
+// Aplica filtros de exclusão do Jira no lado cliente (segunda camada de segurança)
+function applyJiraFilters(list, module) {
+  const f = jiraFilters[module] || {};
+  return list.filter(i => {
+    if (f.assignees?.length && f.assignees.includes(i.assignee)) return false;
+    if (f.statuses?.length  && f.statuses.includes(i.rawStatus || i.status)) return false;
+    if (f.types?.length     && f.types.includes(i.type)) return false;
+    return true;
+  });
+}
+
 function getFiltered() {
-  return issues.filter(i => {
+  const base = applyJiraFilters(issues, 'odyjs');
+  return base.filter(i => {
     const mp = currentFilter.person==='all' || i.assignee===currentFilter.person;
     const mc = currentFilter.client==='all' || i.client===currentFilter.client;
     const ms = !currentFilter.search || i.summary.toLowerCase().includes(currentFilter.search.toLowerCase()) || i.key.toLowerCase().includes(currentFilter.search.toLowerCase());
@@ -889,9 +1089,7 @@ function getFilteredActive() {
 }
 function filterPerson(name, el) {
   currentFilter.person = name;
-  // Remove active apenas dos filtros de responsável, não das visões
-  document.querySelectorAll('.nav-filter-item').forEach(n=>n.classList.remove('active'));
-  document.querySelectorAll('.active-person').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('#person-nav .nav-filter-item, #nav-all').forEach(n=>n.classList.remove('active'));
   if (el) el.classList.add('active');
   renderAll();
 }
@@ -973,7 +1171,14 @@ function renderAnalytics() {
   bars('ch-person', Object.entries(bP).sort((a,b)=>b[1]-a[1]), p=>(personMap[p]||{color:'#888'}).color);
 }
 
-function renderAll() { renderBoard(); renderTable(); renderAnalytics(); renderSP(); }
+function renderAll() {
+  // renderAll só atualiza as views do módulo Orçamento (ODYJS)
+  // As views do módulo Projetos (B2B1) são atualizadas só pelo syncProjIssues
+  renderBoard();
+  renderTable();
+  renderAnalytics();
+  renderSP();
+}
 
 // ── STORY POINTS VIEW ────────────────────────────────────────────────────────
 function renderSP() {
@@ -1220,8 +1425,45 @@ function renderManageModal() {
   }).join('');
 }
 
+function openManageProjModal() {
+  renderManageProjModal();
+  const ov = document.getElementById('manage-proj-overlay');
+  if (ov) ov.style.display = 'flex';
+}
+function closeManageProjModal() {
+  const ov = document.getElementById('manage-proj-overlay');
+  if (ov) ov.style.display = 'none';
+}
+function renderManageProjModal() {
+  const list = document.getElementById('manage-proj-person-list');
+  if (!list) return;
+  const persons = [...new Set(projIssues.map(i=>i.assignee))].filter(n=>n&&n!=='Sem responsável').sort();
+  if (persons.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px">Nenhum responsável. Sincronize o módulo Projetos primeiro.</div>';
+    return;
+  }
+  list.innerHTML = persons.map(name => {
+    const pm     = projPersonMap[name] || personMap[name] || {initials:name.slice(0,2).toUpperCase(),bg:'#222',color:'#888'};
+    const active = isProjActive(name);
+    const total    = projIssues.filter(i=>i.assignee===name).length;
+    const ativos   = projIssues.filter(i=>i.assignee===name && !['Concluído','Cancelado'].includes(i.status)).length;
+    const inativos = total - ativos;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:var(--surface2);border:1px solid ${active?'var(--border)':'rgba(239,68,68,0.2)'};">
+      <div class="av" style="background:${pm.bg};color:${pm.color};width:36px;height:36px;font-size:13px;flex-shrink:0;opacity:${active?1:0.4}">${pm.initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:${active?'var(--text)':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${total} issues · ${ativos} ativos · ${inativos} concluídos/cancelados</div>
+      </div>
+      <button onclick="this.disabled=true;this.textContent='...';toggleProjPerson('${name.replace(/'/g,"\'")}')"
+        style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(239,68,68,0.3)'};background:${active?'var(--surface)':'rgba(239,68,68,0.08)'};color:${active?'var(--text)':'#ef4444'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
+        ${active ? '● Ativo' : '○ Inativo'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
 // State: which nav groups are open (saved to localStorage)
-let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"orcamento":true,"responsavel":true}');
+let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"orcamento":true,"projetos":false}');
 
 function toggleNavGroup(id) {
   navGroupState[id] = !navGroupState[id];
@@ -1248,16 +1490,27 @@ function switchView(v, el) {
   // Remove active apenas dos itens de visão (não dos filtros de responsável)
   document.querySelectorAll('.nav-view-item').forEach(n=>n.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (v === 'sp') setTimeout(renderSP, 0);
+  if (v === 'sp')         setTimeout(renderSP, 0);
+  if (v === 'proj-board') setTimeout(renderProjBoard, 0);
+  if (v === 'proj-table') setTimeout(renderProjTable, 0);
+  if (v === 'proj-sp')    setTimeout(renderProjSP, 0);
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function openIssue(key) {
-  currentIssue = issues.find(i=>i.key===key);
+  currentIssue = issues.find(i=>i.key===key) || projIssues.find(i=>i.key===key);
   if (!currentIssue) return;
   document.getElementById('m-key').textContent = currentIssue.key;
   document.getElementById('m-title').textContent = currentIssue.summary.replace(/ODY-\d+ - /,'');
-  document.getElementById('m-status').innerHTML = pill(currentIssue.status);
+  // Pill: usa PROJ_S_COLOR se o issue for do módulo Projetos
+  const isProjIssue = projIssues.some(i=>i.key===currentIssue.key);
+  if (isProjIssue) {
+    const sc = PROJ_S_COLOR[currentIssue.status]||'#888';
+    const sb = PROJ_S_BG[currentIssue.status]||'rgba(136,136,136,0.1)';
+    document.getElementById('m-status').innerHTML = `<span class="pill" style="background:${sb};color:${sc}"><span style="width:6px;height:6px;border-radius:50%;background:${sc};display:inline-block;flex-shrink:0"></span>${currentIssue.status}</span>`;
+  } else {
+    document.getElementById('m-status').innerHTML = pill(currentIssue.status);
+  }
   document.getElementById('m-client').textContent = currentIssue.client;
   document.getElementById('m-assignee').textContent = currentIssue.assignee;
   document.getElementById('m-type') && (document.getElementById('m-type').textContent = currentIssue.type);
@@ -1321,6 +1574,476 @@ async function genSummary() {
     if (sumResp) { sumResp.textContent = d.content?.find(b=>b.type==='text')?.text || 'Sem resposta.'; sumResp.style.display = 'block'; }
   } catch(e) { if (sumResp) { sumResp.textContent = 'Erro: '+e.message; sumResp.style.display='block'; } }
   if (sumSpin) sumSpin.style.display = 'none';
+}
+
+// ── PROJETOS ─────────────────────────────────────────────────────────────────
+
+// Mapeamento de status B2B1 no frontend (espelho do server.js)
+const PROJ_STATUS_MAP_FRONT = {
+  'Backlog':'Backlog','To Do':'Backlog','Open':'Backlog',
+  'Iniciação':'Iniciação','Iniciacao':'Iniciação','Initiation':'Iniciação',
+  'Planejamento':'Planejamento','Planning':'Planejamento',
+  'Desenvolvimento':'Desenvolvimento','Development':'Desenvolvimento','In Progress':'Desenvolvimento','Em Andamento':'Desenvolvimento',
+  'Sign Off':'Sign Off','Sign off':'Sign Off','Signoff':'Sign Off',
+  'Homologação':'Homologação','Homologacao':'Homologação','In Review':'Homologação','UAT':'Homologação','Homologação e preparação para Go Live':'Homologação',
+  'Operação Assistida':'Operação Assistida','Operacao Assistida':'Operação Assistida',
+  'Aguardando Cliente':'Aguardando Cliente','Aguardando cliente':'Aguardando Cliente',
+  'Bloqueado':'Bloqueado','Blocked':'Bloqueado',
+  'Cancelado':'Cancelado','Cancelled':'Cancelado',"Won't Do":'Cancelado',
+  'Concluído':'Concluído','Done':'Concluído','Closed':'Concluído','Resolved':'Concluído','Finalizado':'Concluído',
+};
+function mapProjStatusFront(raw) {
+  if (!raw) return 'Backlog';
+  if (PROJ_STATUS_MAP_FRONT[raw]) return PROJ_STATUS_MAP_FRONT[raw];
+  for (const [k,v] of Object.entries(PROJ_STATUS_MAP_FRONT)) if (k.toLowerCase()===raw.toLowerCase()) return v;
+  return raw;
+}
+
+function filterProjPerson(name, el) {
+  projFilter.person = name;
+  document.querySelectorAll('#proj-person-nav .nav-filter-item, #proj-nav-all').forEach(n=>n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderProjBoard();
+  renderProjTable();
+}
+
+function getProjFiltered() {
+  return applyJiraFilters(projIssues, 'b2b1')
+    .filter(i => isProjActive(i.assignee))
+    .filter(i => projFilter.person === 'all' || i.assignee === projFilter.person);
+}
+
+function buildProjPersonNav() {
+  const el = document.getElementById('proj-person-nav');
+  if (!el) return;
+  el.innerHTML = '';
+  const persons = [...new Set(projIssues.map(i => i.assignee))].filter(n => n && n !== 'Sem responsável').sort();
+  persons.forEach(name => {
+    if (!isProjActive(name)) return; // oculta inativos
+    const pm = projPersonMap[name] || personMap[name] || {initials: name.slice(0,2).toUpperCase(), bg:'#222', color:'#888'};
+    const d = document.createElement('div');
+    d.className = 'nav-filter-item';
+    d.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .15s;white-space:nowrap';
+    d.onclick = function(){ filterProjPerson(name, this); };
+    d.innerHTML = `<span class="av" style="background:${pm.bg};color:${pm.color};width:20px;height:20px;font-size:9px;flex-shrink:0">${pm.initials}</span><span style="color:var(--text);font-weight:500">${name.split(' ')[0]}</span>`;
+    el.appendChild(d);
+  });
+
+}
+
+async function syncProjIssues(force = false) {
+  // botão gerenciado pelo syncAll
+  toast(force ? 'Forçando atualização B2B1...' : 'Verificando cache B2B1...', '');
+  await loadInactiveProj();
+  try {
+    const url = API + '/api/proj-issues' + (force ? '?force=1' : '');
+    const r = await fetch(url);
+    if (!r.ok) { const d = await r.json().catch(()=>{}); throw new Error((d&&d.error)||'Erro HTTP '+r.status); }
+    const d = await r.json();
+    projIssues = d.issues || [];
+    // Monta projPersonMap reaproveitando cores do personMap existente
+    projPersonMap = {};
+    const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+    const names = [...new Set(projIssues.map(i=>i.assignee))].filter(n=>n&&n!=='Sem responsável');
+    names.forEach((name, idx) => {
+      projPersonMap[name] = personMap[name] || {
+        ...{bg: P_COLORS[idx%P_COLORS.length]+'22', color: P_COLORS[idx%P_COLORS.length]},
+        initials: name.split(' ').filter(Boolean).slice(0,2).map(n=>n[0]).join('').toUpperCase(),
+        short: name.split(' ')[0]
+      };
+    });
+    buildProjPersonNav();
+    renderProjBoard();
+    renderProjTable();
+    renderProjSP();
+    const src = d.fromCache ? '📦 cache' : (d.incremental ? '⚡ delta' : '🔄 completo');
+    toast('✓ Projetos: ' + projIssues.length + ' issues · ' + src, 'ok');
+    updateCacheIndicator('b2b1', d);
+  } catch(e) {
+    toast('Erro Projetos: ' + e.message, 'err');
+  }
+
+}
+
+// Status do projeto B2B1 — 11 status mapeados
+const PROJ_S_COLOR = {
+  'Backlog':             '#6b7280',
+  'Iniciação':           '#8b5cf6',
+  'Planejamento':        '#3b82f6',
+  'Desenvolvimento':     '#06b6d4',
+  'Sign Off':            '#f59e0b',
+  'Homologação':         '#f97316',
+  'Operação Assistida':  '#ec4899',
+  'Aguardando Cliente':  '#eab308',
+  'Bloqueado':           '#ef4444',
+  'Cancelado':           '#dc2626',
+  'Concluído':           '#22c55e',
+};
+const PROJ_S_BG = {
+  'Backlog':             'rgba(107,114,128,0.1)',
+  'Iniciação':           'rgba(139,92,246,0.1)',
+  'Planejamento':        'rgba(59,130,246,0.1)',
+  'Desenvolvimento':     'rgba(6,182,212,0.1)',
+  'Sign Off':            'rgba(245,158,11,0.1)',
+  'Homologação':         'rgba(249,115,22,0.1)',
+  'Operação Assistida':  'rgba(236,72,153,0.1)',
+  'Aguardando Cliente':  'rgba(234,179,8,0.1)',
+  'Bloqueado':           'rgba(239,68,68,0.12)',
+  'Cancelado':           'rgba(220,38,38,0.1)',
+  'Concluído':           'rgba(34,197,94,0.1)',
+};
+const PROJ_S_ORDER = Object.keys(PROJ_S_COLOR);
+
+function renderProjBoard() {
+  const statsEl = document.getElementById('proj-stats-row');
+  const boardEl = document.getElementById('proj-board-cols');
+  if (!statsEl || !boardEl) return;
+  const f = getProjFiltered();
+
+  if (projIssues.length === 0) {
+    statsEl.innerHTML = '';
+    boardEl.innerHTML = `<div style="padding:60px;text-align:center;color:var(--muted)">
+      <div style="font-size:28px;margin-bottom:12px">◉</div>
+      <div style="font-size:14px;margin-bottom:8px">Nenhum issue carregado</div>
+      <button class="act-btn" onclick="syncProjIssues()">↻ Carregar Projetos</button>
+    </div>`;
+    return;
+  }
+
+  const total = f.length;
+  statsEl.innerHTML = PROJ_S_ORDER.map(s => {
+    const cnt = f.filter(i=>i.status===s).length;
+    const cfg = {color:PROJ_S_COLOR[s]};
+    return `<div class="stat-card" style="--c:${cfg.color}">
+      <div class="stat-label">${s.replace('Recusado / Cancelado','Cancelado').replace('Aguardando ','Ag. ')}</div>
+      <div class="stat-value" style="font-size:20px">${cnt}</div>
+      <div class="stat-sub">${total ? Math.round(cnt/total*100) : 0}%</div>
+    </div>`;
+  }).join('') + `<div class="stat-card" style="--c:var(--accent)">
+    <div class="stat-label">Total</div>
+    <div class="stat-value" style="font-size:20px">${total}</div>
+    <div class="stat-sub">${new Set(f.map(i=>i.assignee)).size} responsáveis</div>
+  </div>`;
+
+  boardEl.innerHTML = PROJ_S_ORDER.map(s => {
+    const cols = f.filter(i=>i.status===s);
+    const col  = PROJ_S_COLOR[s];
+    return `<div class="col">
+      <div class="col-head">
+        <div class="col-name"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>${s}</div>
+        <span class="col-count">${cols.length}</span>
+      </div>
+      <div class="col-cards">${cols.map(i => {
+        const pm = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#222',color:'#888'};
+        return `<div class="card" onclick="openIssue('${i.key}')">
+          <div class="card-key">${i.key}</div>
+          <div class="card-title">${i.summary.slice(0,70)}</div>
+          <div class="card-footer">
+            <div class="av" style="background:${pm.bg};color:${pm.color}" title="${i.assignee}">${pm.initials}</div>
+            <span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${i.sp!=null?'rgba(22,101,52,0.12)':'rgba(107,114,128,0.08)'};color:${i.sp!=null?'#166534':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:600">${i.sp!=null?i.sp+'pt':'—'}</span>
+          </div>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderProjTable() {
+  const tbody = document.getElementById('proj-table-body');
+  if (!tbody) return;
+  const f = getProjFiltered();
+  if (projIssues.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:60px;text-align:center;color:var(--muted)">
+      <div style="margin-bottom:8px">Nenhum issue. Clique para carregar.</div>
+      <button class="act-btn" onclick="syncProjIssues()">↻ Carregar Projetos</button>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = f.map((i,idx) => {
+    const pm  = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#222',color:'#888'};
+    const col = PROJ_S_COLOR[i.status] || '#888';
+    const bg  = PROJ_S_BG[i.status] || 'rgba(136,136,136,0.1)';
+    const alt = idx%2===0?'background:var(--surface2)':'';
+    return `<tr style="${alt};cursor:pointer" onclick="openIssue('${i.key}')">
+      <td style="padding:10px 15px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--accent2);border-bottom:1px solid var(--border)">${i.key}</td>
+      <td style="padding:10px 15px;font-size:12px;max-width:300px;border-bottom:1px solid var(--border)">${i.summary.slice(0,80)}</td>
+      <td style="padding:10px 15px;border-bottom:1px solid var(--border)"><span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${bg};color:${col};font-weight:500">${i.status}</span></td>
+      <td style="padding:10px 15px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:${pm.bg};color:${pm.color};width:22px;height:22px;font-size:9px">${pm.initials}</div><span style="font-size:12px">${i.assignee.split(' ')[0]}</span></div></td>
+      <td style="padding:10px 15px;text-align:center;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${i.sp!=null?'#166534':'var(--muted)'}">${i.sp!=null?i.sp:'—'}</td>
+      <td style="padding:10px 15px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border)">${i.updated}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderProjSP() {
+  const cardsEl   = document.getElementById('proj-sp-cards');
+  const bannerEl  = document.getElementById('proj-sp-banner');
+  const chartEl   = document.getElementById('proj-sp-chart');
+  const stChartEl = document.getElementById('proj-sp-status-chart');
+  const matrixEl  = document.getElementById('proj-sp-matrix');
+  if (!cardsEl) return;
+
+  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const hasSP = projIssues.filter(i=>i.sp!=null&&i.sp>0);
+  if (bannerEl) bannerEl.style.display = hasSP.length===0?'flex':'none';
+
+  // Status excluídos do capacity — concluídos e cancelados não entram na soma de SP
+  const STATUS_EXCLUIR_CAPACITY_PROJ = ['Concluído', 'Cancelado'];
+  const persons = {};
+  applyJiraFilters(projIssues, 'b2b1').forEach(i => {
+    if (!persons[i.assignee]) persons[i.assignee] = {total:0,count:0,byStatus:{},issues:[]};
+    // Só soma SP se o status não for Concluído ou Cancelado
+    if (!STATUS_EXCLUIR_CAPACITY_PROJ.includes(i.status)) {
+      persons[i.assignee].total += (i.sp||0);
+    }
+    persons[i.assignee].count++;
+    persons[i.assignee].issues.push(i);
+    persons[i.assignee].byStatus[i.status] = (persons[i.assignee].byStatus[i.status]||0)+(i.sp||0);
+  });
+  const sorted  = Object.entries(persons).filter(([n])=>n!=='Sem responsável' && isProjActive(n)).sort((a,b)=>b[1].total-a[1].total);
+  const totalSP = sorted.reduce((acc,[,p])=>acc+p.total,0);
+  const maxSP   = Math.max(...sorted.map(([,p])=>p.total),1);
+
+  function farol(sp) {
+    if (sp<=125) return {emoji:'🟢',label:'Verde',  color:'#16a34a',bg:'rgba(22,163,74,0.1)', border:'rgba(22,163,74,0.3)', text:'Capacity OK'};
+    if (sp<=150) return {emoji:'🟡',label:'Amarelo',color:'#d97706',bg:'rgba(217,119,6,0.1)', border:'rgba(217,119,6,0.3)', text:'Atenção'};
+    return           {emoji:'🔴',label:'Vermelho',color:'#dc2626',bg:'rgba(220,38,38,0.1)', border:'rgba(220,38,38,0.3)', text:'Sobrecarga'};
+  }
+
+  cardsEl.innerHTML = sorted.map(([name,p],idx) => {
+    const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+    const pc = P_COLORS[idx%P_COLORS.length];
+    const f  = farol(p.total);
+    const pct = Math.round(Math.min(p.total,151)/151*100);
+    const est = p.issues.filter(i=>i.sp>0).length;
+    const avg = est?(p.total/est).toFixed(1):'—';
+    return `<div class="sp-card" style="--pc:${f.color};border:1px solid ${f.border};background:${f.bg};border-radius:14px;padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:600;color:${pc};font-family:'DM Mono',monospace">${short}</div>
+        <span style="font-size:18px">${f.emoji}</span>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:${f.color};line-height:1;margin-bottom:4px">${p.total}</div>
+      <div style="font-size:10px;font-weight:600;color:${f.color};margin-bottom:10px;text-transform:uppercase">${f.text}</div>
+      <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;position:relative;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(22,163,74,0.15);border-right:1px dashed rgba(22,163,74,0.4)"></div>
+        <div style="height:100%;width:${pct}%;background:${f.color};border-radius:99px;min-width:${p.total>0?'4px':'0'}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">
+        <span>${p.count} issues</span><span>${est} est · média ${avg}pt</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (chartEl) chartEl.innerHTML =
+    `<div style="margin-bottom:10px;font-size:11px;color:var(--muted);display:flex;gap:16px">🟢 0–125 &nbsp; 🟡 126–150 &nbsp; 🔴 151+</div>` +
+    sorted.map(([name,p],idx)=>{
+      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+      const f = farol(p.total);
+      const pct = Math.round(p.total/maxSP*100);
+      return `<div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:16px">${f.emoji}</span>
+        <div style="font-size:12px;font-weight:600;min-width:120px;color:${P_COLORS[idx%P_COLORS.length]}">${short}</div>
+        <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/maxSP*100)}%;background:rgba(22,163,74,0.08);border-right:1px dashed rgba(22,163,74,0.3)"></div>
+          <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'}">${p.total>0?p.total+'pt':''}</div>
+        </div>
+        <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;font-weight:700;min-width:36px;text-align:right">${totalSP?Math.round(p.total/totalSP*100):0}%</div>
+      </div>`;
+    }).join('');
+
+  const spByStatus = {};
+  PROJ_S_ORDER.forEach(s=>spByStatus[s]=0);
+  applyJiraFilters(projIssues, 'b2b1').forEach(i=>{if(i.sp)spByStatus[i.status]=(spByStatus[i.status]||0)+i.sp;});
+  const maxSt = Math.max(...Object.values(spByStatus),1);
+  if (stChartEl) stChartEl.innerHTML = PROJ_S_ORDER.map(s=>{
+    const val=spByStatus[s]||0, pct=Math.round(val/maxSt*100), col=PROJ_S_COLOR[s];
+    return `<div class="bar-row">
+      <div class="bar-label" style="min-width:130px">${s}</div>
+      <div class="bar-track" style="flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="width:${pct}%;background:${col};height:100%;border-radius:99px"></div></div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;min-width:34px;text-align:right;color:${val>0?col:'var(--muted)'};font-weight:${val>0?'600':'400'}">${val||'—'}</div>
+    </div>`;
+  }).join('');
+
+  if (matrixEl) {
+    const stCols = PROJ_S_ORDER.filter(s=>sorted.some(([,p])=>(p.byStatus[s]||0)>0));
+    let html = `<thead><tr>
+      <th class="sp-matrix-th left">Responsável</th>
+      <th class="sp-matrix-th">Capacity</th>
+      <th class="sp-matrix-th">Issues</th>
+      <th class="sp-matrix-th" style="color:#166534">SP Total</th>
+      ${stCols.map(s=>`<th class="sp-matrix-th" style="color:${PROJ_S_COLOR[s]}">${s.replace('Recusado / Cancelado','Cancelado').replace('Aguardando ','Ag.')}</th>`).join('')}
+    </tr></thead><tbody>`;
+    sorted.forEach(([name,p],idx)=>{
+      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+      const f = farol(p.total);
+      const alt = idx%2===0?'background:var(--surface2)':'';
+      html+=`<tr style="${alt}">
+        <td class="sp-matrix-td name" style="color:${P_COLORS[idx%P_COLORS.length]}">${short}</td>
+        <td class="sp-matrix-td"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;background:${f.bg};color:${f.color};font-size:11px;font-weight:600;border:1px solid ${f.border}">${f.emoji} ${f.label}</span></td>
+        <td class="sp-matrix-td" style="color:var(--muted)">${p.count}</td>
+        <td class="sp-matrix-td total" style="color:${f.color}">${p.total}</td>
+        ${stCols.map(s=>{const v=p.byStatus[s]||0;return `<td class="sp-matrix-td" style="color:${v>0?PROJ_S_COLOR[s]:'var(--muted)'};background:${v>0?PROJ_S_BG[s]:''};font-weight:${v>0?'600':'400'}">${v||'—'}</td>`;}).join('')}
+      </tr>`;
+    });
+    html+=`<tr style="border-top:2px solid var(--border2)">
+      <td class="sp-matrix-td name" style="font-weight:700">Total</td>
+      <td class="sp-matrix-td"></td>
+      <td class="sp-matrix-td total">${projIssues.length}</td>
+      <td class="sp-matrix-td total" style="color:#166534">${totalSP}</td>
+      ${stCols.map(s=>`<td class="sp-matrix-td total" style="color:${PROJ_S_COLOR[s]}">${spByStatus[s]||0}</td>`).join('')}
+    </tr></tbody>`;
+    matrixEl.innerHTML = html;
+  }
+
+  // ── Issues sem SP — Projetos ───────────────────────────────────────────────
+  const STATUS_IGNORAR_SP_PROJ = ['Concluído', 'Cancelado'];
+  const noSPProj = applyJiraFilters(projIssues, 'b2b1').filter(i =>
+    (i.sp == null || i.sp === 0) && !STATUS_IGNORAR_SP_PROJ.includes(i.status)
+  );
+  const missingCountEl = document.getElementById('proj-sp-missing-count');
+  const missingListEl  = document.getElementById('proj-sp-missing-list');
+  if (missingCountEl) missingCountEl.textContent = `(${noSPProj.length} issues)`;
+  if (missingListEl) {
+    if (noSPProj.length === 0) {
+      missingListEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">✓ Todos os issues têm Story Points preenchidos!</div>';
+    } else {
+      missingListEl.innerHTML = noSPProj.slice(0,50).map(i => {
+        const pm = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#222',color:'#888'};
+        const sc = PROJ_S_COLOR[i.status] || '#888';
+        const sb = PROJ_S_BG[i.status]    || 'rgba(136,136,136,0.1)';
+        return `<div class="sp-missing-card" onclick="openIssue('${i.key}')" style="cursor:pointer">
+          <div style="width:28px;height:28px;border-radius:50%;background:${pm.bg};color:${pm.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${pm.initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${i.key}</div>
+            <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.slice(0,70)}</div>
+          </div>
+          <span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${sb};color:${sc};white-space:nowrap;flex-shrink:0">${i.status}</span>
+        </div>`;
+      }).join('') + (noSPProj.length > 50 ? `<div style="text-align:center;font-size:12px;color:var(--muted);padding:8px">+ ${noSPProj.length-50} issues adicionais sem SP</div>` : '');
+    }
+  }
+}
+
+// ── CACHE INDICATOR ──────────────────────────────────────────────────────────
+function updateCacheIndicator(module, d) {
+  const el = document.getElementById('cache-status-' + module);
+  if (!el || !d) return;
+  const ts  = d.syncedAt ? new Date(d.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+  const src = d.fromCache ? '📦 cache' : (d.incremental ? '⚡ delta' : '🔄 completo');
+  const lbl = module === 'odyjs' ? 'Orçamento' : 'Projetos';
+  el.textContent = lbl + ': ' + src + ' · ' + ts;
+}
+
+async function syncAll(force = false) {
+  const btn = document.getElementById('sync-all-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '↻ Atualizando...'; }
+  // Dispara os dois em paralelo — não espera um para começar o outro
+  await Promise.all([
+    syncNow(force).catch(e => toast('Erro Orçamento: ' + e.message, 'err')),
+    syncProjIssues(force).catch(e => toast('Erro Projetos: ' + e.message, 'err')),
+  ]);
+  if (btn) { btn.disabled = false; btn.textContent = '↻ Sincronizar'; }
+}
+
+// ── JIRA FILTERS MODAL ───────────────────────────────────────────────────────
+let jiraFilters = { odyjs: {}, b2b1: {} };
+let currentFilterTab = 'odyjs';
+
+async function loadJiraFilters() {
+  try {
+    const r = await fetch('/api/jira-filters');
+    const d = await r.json();
+    jiraFilters = d.filters || { odyjs: {}, b2b1: {} };
+  } catch {}
+}
+
+function openJiraFilters() {
+  renderFilterPanels();
+  const ov = document.getElementById('jira-filters-overlay');
+  if (ov) ov.style.display = 'flex';
+}
+function closeJiraFilters() {
+  const ov = document.getElementById('jira-filters-overlay');
+  if (ov) ov.style.display = 'none';
+}
+function switchFilterTab(tab) {
+  currentFilterTab = tab;
+  document.getElementById('filter-panel-odyjs').style.display = tab === 'odyjs' ? '' : 'none';
+  document.getElementById('filter-panel-b2b1').style.display  = tab === 'b2b1'  ? '' : 'none';
+  ['odyjs','b2b1'].forEach(t => {
+    const btn = document.getElementById('ftab-' + t);
+    if (!btn) return;
+    const active = t === tab;
+    btn.style.background = active ? 'rgba(124,92,252,0.15)' : 'transparent';
+    btn.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+    btn.style.color = active ? 'var(--accent2)' : 'var(--muted)';
+  });
+}
+
+function renderFilterSection(module, field, label, allValues) {
+  const el = document.getElementById(`filter-section-${field}-${module}`);
+  if (!el) return;
+  const current = (jiraFilters[module]?.[field]) || [];
+  el.innerHTML = `
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${label}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      ${allValues.map(v => {
+        const ignored = current.includes(v);
+        return `<div onclick="toggleFilterItem('${module}','${field}','${v.replace(/'/g,"\'")}',this)"
+          style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid ${ignored?'rgba(239,68,68,0.4)':'var(--border)'};background:${ignored?'rgba(239,68,68,0.08)':'var(--surface2)'};color:${ignored?'#ef4444':'var(--text)'};transition:all .15s">
+          ${ignored?'✕ ':''}${v}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function toggleFilterItem(module, field, value, el) {
+  if (!jiraFilters[module]) jiraFilters[module] = {};
+  if (!jiraFilters[module][field]) jiraFilters[module][field] = [];
+  const arr = jiraFilters[module][field];
+  const idx = arr.indexOf(value);
+  if (idx >= 0) arr.splice(idx, 1);
+  else arr.push(value);
+  // Re-render só a seção alterada
+  const allValues = [...el.parentElement.querySelectorAll('[onclick]')].map(d => d.textContent.trim().replace(/^✕ /,''));
+  renderFilterSection(module, field, el.closest('[style]')?.previousElementSibling?.textContent?.trim() || field, allValues);
+}
+
+function renderFilterPanels() {
+  // Orçamento
+  const odyjsAssignees = [...new Set(issues.map(i=>i.assignee))].filter(n=>n&&n!=='Sem responsável').sort();
+  const odyjsStatuses  = [...new Set(issues.map(i=>i.rawStatus||i.status))].filter(Boolean).sort();
+  const odyjsTypes     = [...new Set(issues.map(i=>i.type))].filter(Boolean).sort();
+  renderFilterSection('odyjs', 'assignees', 'Ignorar responsáveis', odyjsAssignees);
+  renderFilterSection('odyjs', 'statuses',  'Ignorar status',        odyjsStatuses);
+  renderFilterSection('odyjs', 'types',     'Ignorar tipos',         odyjsTypes);
+
+  // Projetos
+  const b2b1Assignees = [...new Set(projIssues.map(i=>i.assignee))].filter(n=>n&&n!=='Sem responsável').sort();
+  const b2b1Statuses  = [...new Set(projIssues.map(i=>i.rawStatus||i.status))].filter(Boolean).sort();
+  const b2b1Types     = [...new Set(projIssues.map(i=>i.type))].filter(Boolean).sort();
+  renderFilterSection('b2b1', 'assignees', 'Ignorar responsáveis', b2b1Assignees);
+  renderFilterSection('b2b1', 'statuses',  'Ignorar status',        b2b1Statuses);
+  renderFilterSection('b2b1', 'types',     'Ignorar tipos',         b2b1Types);
+}
+
+async function saveJiraFilters() {
+  const btn = document.querySelector('#jira-filters-overlay button[onclick="saveJiraFilters()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  try {
+    await fetch('/api/jira-filters', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ filters: jiraFilters })
+    });
+    closeJiraFilters();
+    toast('✓ Filtros salvos — sincronizando...', 'ok');
+    // Cache foi invalidado no servidor — força sync completo
+    await syncAll(true);
+  } catch(e) {
+    toast('Erro ao salvar filtros: ' + e.message, 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Salvar e sincronizar'; }
 }
 
 // ── AUTO INIT ─────────────────────────────────────────────────────────────────
