@@ -1246,12 +1246,18 @@ function renderSP() {
   const STATUS_IGNORAR_SP = ['Concluído','Recusado / Cancelado'];
   const noSP  = f.filter(i => (i.sp == null || i.sp === 0) && !STATUS_IGNORAR_SP.includes(i.status));
 
+  // Status excluídos do capacity — finalizados não entram na soma de SP
+  const STATUS_EXCLUIR_CAPACITY = ['Concluído', 'Recusado / Cancelado'];
+
   // Build person aggregates
   const persons = {};
   f.forEach(i => {
     if (!persons[i.assignee]) persons[i.assignee] = { total:0, count:0, byStatus:{}, issues:[] };
     const sp = i.sp || 0;
-    persons[i.assignee].total += sp;
+    // Só soma SP se o status não for Concluído ou Recusado/Cancelado
+    if (!STATUS_EXCLUIR_CAPACITY.includes(i.status)) {
+      persons[i.assignee].total += sp;
+    }
     persons[i.assignee].count++;
     persons[i.assignee].issues.push(i);
     persons[i.assignee].byStatus[i.status] = (persons[i.assignee].byStatus[i.status] || 0) + sp;
@@ -1831,7 +1837,7 @@ function renderProjSP() {
   if (bannerEl) bannerEl.style.display = hasSP.length===0?'flex':'none';
 
   // Status excluídos do capacity — concluídos e cancelados não entram na soma de SP
-  const STATUS_EXCLUIR_CAPACITY_PROJ = ['Concluído', 'Cancelado'];
+  const STATUS_EXCLUIR_CAPACITY_PROJ = ['Concluído', 'Cancelado', 'Recusado / Cancelado'];
   const persons = {};
   applyJiraFilters(projIssues, 'b2b1').forEach(i => {
     if (!persons[i.assignee]) persons[i.assignee] = {total:0,count:0,byStatus:{},issues:[]};
