@@ -592,8 +592,9 @@ async function handleRequest(req, res) {
       log(`[cache] B2B1: servindo ${cache.b2b1.issues.length} issues do cache`);
       const age = Date.now() - new Date(cache.b2b1.syncedAt).getTime();
       if (age > CACHE_TTL * 0.8) {
-        const projCfg = { ...cfg, project: projKey, projects: ['B2B1', 'B2C'], statusFn: mapProjStatus };
-        const b2b1Filters1 = (loadConfig().jiraFilters || {}).b2b1 || {};
+        const freshCfg1 = loadConfig();
+        const projCfg = { ...cfg, project: projKey, projects: ['B2B1', 'B2C'], statusFn: mapProjStatus, pinnedIssues: freshCfg1.pinnedIssues || [] };
+        const b2b1Filters1 = (freshCfg1.jiraFilters || {}).b2b1 || {};
         const b2b1Jql1 = buildJqlExtra('created >= "2025-01-01"', b2b1Filters1);
         refreshCache('b2b1', projCfg, b2b1Jql1, true).catch(()=>{});
       }
@@ -604,8 +605,9 @@ async function handleRequest(req, res) {
 
     log(`[cache] B2B1: buscando do Jira (${force?'completo forçado':'cache expirado'})...`);
     try {
-      const projCfg = { ...cfg, project: projKey, projects: ['B2B1', 'B2C'], statusFn: mapProjStatus };
-      const b2b1Filters2 = (loadConfig().jiraFilters || {}).b2b1 || {};
+      const freshCfg2 = loadConfig();
+      const projCfg = { ...cfg, project: projKey, projects: ['B2B1', 'B2C'], statusFn: mapProjStatus, pinnedIssues: freshCfg2.pinnedIssues || [] };
+      const b2b1Filters2 = (freshCfg2.jiraFilters || {}).b2b1 || {};
       const b2b1Jql2 = buildJqlExtra('created >= "2025-01-01"', b2b1Filters2);
       await refreshCache('b2b1', projCfg, b2b1Jql2, !force);
       const entry = cache.b2b1;

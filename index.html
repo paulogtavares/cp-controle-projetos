@@ -2342,11 +2342,15 @@ function addPinnedKeys() {
   if (!input) return;
   const raw = input.value.trim();
   if (!raw) return;
-  // Aceita vírgula ou espaço como separador
-  const keys = raw.split(/[,\s]+/).map(k => k.trim().toUpperCase()).filter(k => /^[A-Z]+-\d+$/.test(k));
-  if (keys.length === 0) { toast('Chave inválida — use formato B2C-10186', 'err'); return; }
+  // Aceita vírgula, ponto-e-vírgula ou espaço como separador
+  const parts = raw.toUpperCase().split(/[\s,;]+/).map(k => k.trim()).filter(Boolean);
+  const keys  = parts.filter(k => /^[A-Z]+-[0-9]+$/.test(k));
+  const invalid = parts.filter(k => !/^[A-Z]+-[0-9]+$/.test(k));
+  if (invalid.length) toast('Formato inválido ignorado: ' + invalid.join(', '), 'err');
+  if (keys.length === 0) return;
   keys.forEach(k => { if (!pinnedIssues.includes(k)) pinnedIssues.push(k); });
   input.value = '';
+  toast('✓ ' + keys.length + ' issue(s) adicionado(s) — clique Salvar para confirmar', 'ok');
   renderPinnedList();
 }
 
@@ -2362,14 +2366,16 @@ function renderPinnedList() {
     list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Nenhum issue fixo. Adicione chaves acima.</div>';
     return;
   }
-  list.innerHTML = pinnedIssues.map(key => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);">
+  list.innerHTML = pinnedIssues.map(key => {
+    const safeKey = key.replace(/'/g, "\'");
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:13px">📌</span>
         <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--accent2)">${key}</span>
       </div>
-      <button onclick="removePinnedKey('${key}')" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>`).join('');
+      <button onclick="removePinnedKey('${safeKey}')" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>`;
+  }).join('');
 }
 
 async function savePinnedIssues() {
