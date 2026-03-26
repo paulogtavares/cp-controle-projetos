@@ -2344,8 +2344,8 @@ function addPinnedKeys() {
   if (!raw) return;
   // Aceita vírgula, ponto-e-vírgula ou espaço como separador
   const parts = raw.toUpperCase().split(/[\s,;]+/).map(k => k.trim()).filter(Boolean);
-  const keys  = parts.filter(k => /^[A-Z]+-[0-9]+$/.test(k));
-  const invalid = parts.filter(k => !/^[A-Z]+-[0-9]+$/.test(k));
+  const keys  = parts.filter(k => /^[A-Z][A-Z0-9]*-[0-9]+$/.test(k));
+  const invalid = parts.filter(k => !/^[A-Z][A-Z0-9]*-[0-9]+$/.test(k));
   if (invalid.length) toast('Formato inválido ignorado: ' + invalid.join(', '), 'err');
   if (keys.length === 0) return;
   keys.forEach(k => { if (!pinnedIssues.includes(k)) pinnedIssues.push(k); });
