@@ -37,7 +37,16 @@ function loadCacheFromDisk() {
   try {
     const raw = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
     if (raw.odyjs) cache.odyjs = raw.odyjs;
-    if (raw.b2b1)  cache.b2b1  = raw.b2b1;
+    if (raw.b2b1)  {
+      // Verifica se o cache tem os campos de Go Live — se não, está desatualizado
+      const sample = raw.b2b1?.issues?.find(i => i.sp > 0);
+      if (sample && !('goLivePlanejado' in sample)) {
+        log('[cache] B2B1 desatualizado (sem campos goLive) — descartando para forçar refetch');
+        cache.b2b1 = null;
+      } else {
+        cache.b2b1 = raw.b2b1;
+      }
+    }
     log(`[cache] carregado do disco: ODYJS=${cache.odyjs?.issues?.length||0} B2B1=${cache.b2b1?.issues?.length||0}`);
   } catch { log('[cache] sem cache em disco — primeira execução'); }
 }
@@ -55,7 +64,7 @@ function isCacheValid(entry) {
 // Busca issues específicos por chave (pinados) e retorna no formato padrão
 async function fetchPinnedIssues(cfg, keys) {
   if (!keys || keys.length === 0) return [];
-  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,created,updated';
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_13380,created,updated';
   const jql    = encodeURIComponent(`key in (${keys.join(',')}) ORDER BY key ASC`);
   try {
     let r = await jiraGet(cfg, `/rest/api/3/search/jql?jql=${jql}&maxResults=50&fields=${fields}`);
@@ -300,44 +309,57 @@ function mapStatus(raw) {
 const PROJ_STATUS_MAP = {
   // Backlog
   'Backlog':                  'Backlog',
+  'BACKLOG':                  'Backlog',
   'To Do':                    'Backlog',
   'Open':                     'Backlog',
 
   // Iniciação
   'Iniciação':                'Iniciação',
+  'INICIAÇÃO':                'Iniciação',
+  'INICIACAO':                'Iniciação',
   'Iniciacao':                'Iniciação',
   'Initiation':               'Iniciação',
 
   // Planejamento
   'Planejamento':             'Planejamento',
+  'PLANEJAMENTO':             'Planejamento',
   'Planning':                 'Planejamento',
 
   // Desenvolvimento
   'Desenvolvimento':          'Desenvolvimento',
+  'DESENVOLVIMENTO':          'Desenvolvimento',
   'Development':              'Desenvolvimento',
   'In Progress':              'Desenvolvimento',
-  'Em Andamento':             'Desenvolvimento',
+  'Em Andamento':             'Em Andamento',
 
   // Sign Off
   'Sign Off':                 'Sign Off',
+  'SIGN OFF':                 'Sign Off',
   'Sign off':                 'Sign Off',
   'Signoff':                  'Sign Off',
 
   // Homologação
-  'Homologação':                        'Homologação',
-  'Homologacao':                        'Homologação',
-  'Homologation':                       'Homologação',
-  'In Review':                          'Homologação',
-  'UAT':                                'Homologação',
-  'Homologação e preparação para Go Live': 'Homologação',
+  'Homologação':                              'Homologação',
+  'HOMOLOGAÇÃO':                              'Homologação',
+  'HOMOLOGACAO':                              'Homologação',
+  'Homologacao':                              'Homologação',
+  'Homologation':                             'Homologação',
+  'In Review':                                'Homologação',
+  'UAT':                                      'Homologação',
+  'Homologação e preparação para Go Live':    'Homologação e preparação para Go Live',
+  'HOMOLOGAÇÃO E PREPARAÇÃO PARA GO LIVE':    'Homologação e preparação para Go Live',
+  'Homologacao e preparacao para Go Live':    'Homologação e preparação para Go Live',
 
   // Operação Assistida
   'Operação Assistida':       'Operação Assistida',
+  'OPERAÇÃO ASSISTIDA':       'Operação Assistida',
   'Operacao Assistida':       'Operação Assistida',
+  'OPERACAO ASSISTIDA':       'Operação Assistida',
   'Assisted Operation':       'Operação Assistida',
 
   // Aguardando Cliente
   'Aguardando Cliente':       'Aguardando Cliente',
+  'AGUARDANDO CLIENTE':       'Aguardando Cliente',
   'Aguardando cliente':       'Aguardando Cliente',
   'Awaiting Customer':        'Aguardando Cliente',
   'Waiting for customer':     'Aguardando Cliente',
@@ -404,13 +426,16 @@ function parseIssue(i, domain, statusFn = mapStatus) {
     type: f.issuetype?.name || 'História', priority: f.priority?.name || 'Medium',
     sp: sp != null ? Number(sp) : null, client: detectClient(f.summary),
     created: (f.created || '').slice(0, 10), updated: (f.updated || '').slice(0, 10),
+    dataInicio:      (f.customfield_12143 || f.created || null),
+    goLivePlanejado: (f.customfield_12152 || null),
+    goLiveRealizado: (f.customfield_13380 || null),
     url: `https://${domain}/browse/${i.key}`,
   };
 }
 
 // ── Busca paginada com fallback ───────────────────────────────────────────────
 async function fetchAllIssues(cfg, jqlExtra = '') {
-  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,created,updated';
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12152,customfield_13380,created,updated';
   // Suporta múltiplos projetos: cfg.projects = ['B2B1','B2C'] ou cfg.project = 'B2B1'
   const projectClause = Array.isArray(cfg.projects) && cfg.projects.length > 1
     ? `project in (${cfg.projects.map(p => `"${p}"`).join(',')})`
@@ -551,6 +576,13 @@ async function handleRequest(req, res) {
     const force = new URL(req.url, 'http://localhost').searchParams.get('force') === '1';
     if (!cfg.email || !cfg.token) { json(res, 401, { error: 'Não configurado.' }); return; }
 
+    // force=1 → limpa cache em memória e disco para forçar rebusca completa
+    if (force) {
+      cache.odyjs = null;
+      saveCacheToDisk();
+      log('[cache] ODYJS: cache invalidado por force=1');
+    }
+
     if (!force && isCacheValid(cache.odyjs)) {
       log(`[cache] ODYJS: servindo ${cache.odyjs.issues.length} issues do cache`);
       const age = Date.now() - new Date(cache.odyjs.syncedAt).getTime();
@@ -587,7 +619,14 @@ async function handleRequest(req, res) {
     const force   = reqUrlP.searchParams.get('force') === '1';
     if (!cfg.email || !cfg.token) { json(res, 401, { error: 'Não configurado.' }); return; }
 
-    // Serve do cache se válido
+    // force=1 → limpa cache em memória e disco para forçar rebusca completa
+    if (force) {
+      cache.b2b1 = null;
+      saveCacheToDisk();
+      log('[cache] B2B1: cache invalidado por force=1');
+    }
+
+    // Serve do cache se válido (apenas quando não é force)
     if (!force && isCacheValid(cache.b2b1)) {
       log(`[cache] B2B1: servindo ${cache.b2b1.issues.length} issues do cache`);
       const age = Date.now() - new Date(cache.b2b1.syncedAt).getTime();
@@ -695,6 +734,23 @@ async function handleRequest(req, res) {
       log('[pinados] erro ao salvar:', e.message);
     }
     json(res, 200, { ok: true, pinned: keys });
+    return;
+  }
+
+  // GET /api/debug-cache — inspeciona o cache atual (últimos 3 issues do B2B1)
+  if (pathname === '/api/debug-cache' && req.method === 'GET') {
+    const b2b1Issues = cache.b2b1?.issues || [];
+    const sample = b2b1Issues.slice(0, 3).map(i => ({
+      key: i.key, status: i.status, sp: i.sp,
+      goLivePlanejado: i.goLivePlanejado || null,
+      goLiveRealizado: i.goLiveRealizado || null,
+    }));
+    json(res, 200, {
+      b2b1Count: b2b1Issues.length,
+      b2b1SyncedAt: cache.b2b1?.syncedAt || null,
+      sample,
+      hasGoLiveFields: b2b1Issues.length > 0 && 'goLivePlanejado' in (b2b1Issues[0] || {}),
+    });
     return;
   }
 

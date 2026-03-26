@@ -283,6 +283,7 @@ td{padding:10px 15px;font-size:12px;}
     </div>
     <div class="nav-group-body" id="group-body-visaogeral">
       <div class="nav-item nav-view-item" onclick="switchView('overview',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points Total</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('monthly',this)" style="padding-left:20px"><span class="nav-icon">📅</span><span>Story Points Mensal</span></div>
     </div>
     <!-- Grupo colapsável: Orçamento (contém visões + responsáveis) -->
     <div class="nav-group-header" id="nav-group-orcamento" onclick="toggleNavGroup('orcamento')">
@@ -520,6 +521,62 @@ td{padding:10px 15px;font-size:12px;}
         <div class="chart-title" style="margin-bottom:14px;">Detalhamento por responsável</div>
         <div style="overflow-x:auto;">
           <table id="overview-matrix" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VISÃO GERAL — Story Points Mensal ═══ -->
+    <!-- ═══ VISÃO GERAL — Story Points Mensal ═══ -->
+    <div class="view" id="view-monthly">
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text)">Story Points Mensal · Projetos</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">SP dos cards em andamento agrupados pelo mês de Go Live Planejado — Projetos</div>
+      </div>
+
+      <!-- Cards de resumo do mês atual -->
+      <div id="monthly-summary-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px;"></div>
+
+      <!-- Visão do time — SP por mês -->
+      <div class="chart-card" style="margin-bottom:20px;">
+        <div class="chart-title">Visão do time · SP por mês</div>
+        <div id="monthly-team-chart" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
+      </div>
+
+      <!-- Painel de detalhe do mês selecionado -->
+      <div class="chart-card" id="monthly-detail-card" style="margin-bottom:20px;display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="chart-title" style="margin:0">📅 Cards planejados para <span id="monthly-detail-label" style="color:var(--accent2)"></span> <span id="monthly-detail-count" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;margin-left:4px;"></span></div>
+          <button onclick="closeMonthDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+        </div>
+        <div id="monthly-detail-list" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Projeção de SP por responsável -->
+      <div class="chart-card" style="margin-bottom:20px;">
+        <div class="chart-title" style="margin-bottom:4px;">Projeção de SP por responsável</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">SP acumulado por responsável — diminui conforme Go Live Planejado mês a mês · 🟢 ≤125 · 🟡 ≤150 · 🔴 >150 · <strong style="color:var(--accent2)">Clique em um responsável</strong> para ver os cards</div>
+        <div style="overflow-x:auto;">
+          <table id="monthly-projection" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+        </div>
+      </div>
+
+      <!-- Painel de detalhe do responsável na projeção -->
+      <div class="chart-card" id="proj-person-detail" style="margin-bottom:20px;display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div class="chart-title" style="margin:0">Cards de <span id="proj-person-detail-name" style="color:var(--accent2)"></span></div>
+            <div id="proj-person-detail-sub" style="font-size:11px;color:var(--muted);margin-top:3px;"></div>
+          </div>
+          <button onclick="closeProjPersonDetail()" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+        </div>
+        <div id="proj-person-detail-list" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Visão individual — SP por responsável por mês -->
+      <div class="chart-card">
+        <div class="chart-title" style="margin-bottom:14px;">Visão individual · SP por responsável e mês</div>
+        <div style="overflow-x:auto;">
+          <table id="monthly-matrix" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
         </div>
       </div>
     </div>
@@ -1279,6 +1336,7 @@ function renderAll() {
   renderAnalytics();
   renderSP();
   renderOverview();
+  renderMonthly();
 }
 
 // ── STORY POINTS VIEW ────────────────────────────────────────────────────────
@@ -1599,6 +1657,8 @@ function switchView(v, el) {
   if (el) el.classList.add('active');
   if (v === 'sp')         setTimeout(renderSP, 0);
   if (v === 'overview')   setTimeout(renderOverview, 0);
+  if (v === 'monthly')    setTimeout(renderMonthly, 0);
+  if (v === 'monthly')    setTimeout(renderMonthly, 0);
   if (v === 'proj-board') setTimeout(renderProjBoard, 0);
   if (v === 'proj-table') setTimeout(renderProjTable, 0);
   if (v === 'proj-sp')    setTimeout(renderProjSP, 0);
@@ -1774,6 +1834,7 @@ async function syncProjIssues(force = false) {
     renderProjTable();
     renderProjSP();
     renderOverview();
+    renderMonthly();
     const src = d.fromCache ? '📦 cache' : (d.incremental ? '⚡ delta' : '🔄 completo');
     toast('✓ Projetos: ' + projIssues.length + ' issues · ' + src, 'ok');
     updateCacheIndicator('b2b1', d);
@@ -2399,6 +2460,718 @@ async function savePinnedIssues() {
     toast('Erro ao salvar: ' + e.message, 'err');
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Salvar e sincronizar'; }
+}
+
+// ── STORY POINTS MENSAL ──────────────────────────────────────────────────────
+let monthlyPeriod = 3; // meses a exibir
+
+function setMonthlyPeriod(n) {
+  monthlyPeriod = n;
+  [3,6,12].forEach(v => {
+    const btn = document.getElementById('mperiod-' + v);
+    if (btn) btn.className = v === n ? 'chip active' : 'chip';
+  });
+  renderMonthly();
+}
+
+let _monthlyByMonth = {}; // cache do agrupamento atual
+
+function renderMonthly() {
+  const summaryEl = document.getElementById('monthly-summary-cards');
+  const teamEl    = document.getElementById('monthly-team-chart');
+  const personEl  = document.getElementById('monthly-person-chart');
+  const matrixEl  = document.getElementById('monthly-matrix');
+  if (!summaryEl) return;
+
+  const STATUS_ENTREGUE = ['Concluído'];
+  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+
+  // Gera lista dos N últimos meses
+  const now = new Date();
+  const months = [];
+  for (let i = monthlyPeriod - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key:   d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'),
+      label: d.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'}).replace('. de ',' ').replace('.','/'),
+      year:  d.getFullYear(),
+      month: d.getMonth() + 1,
+    });
+  }
+
+  // Agrega SP entregue por mês e por responsável
+  // Usa o campo updated como proxy para mês de entrega (quando o status mudou para Concluído)
+  const allIssues = [
+    ...applyJiraFilters(issues, 'odyjs').filter(i => isActive(i.assignee)),
+    ...applyJiraFilters(projIssues, 'b2b1').filter(i => isProjActive(i.assignee)),
+  ].filter(i => STATUS_ENTREGUE.includes(i.status) && i.sp > 0);
+
+  // monthData[monthKey][person] = sp
+  const monthData = {};
+  months.forEach(m => monthData[m.key] = {});
+
+  allIssues.forEach(i => {
+    if (!i.updated) return;
+    const d = new Date(i.updated);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (!monthData[key]) return; // fora do período
+    if (!monthData[key][i.assignee]) monthData[key][i.assignee] = 0;
+    monthData[key][i.assignee] += (i.sp || 0);
+  });
+
+  // Pessoas com pelo menos 1 entrega no período
+  const persons = [...new Set(
+    months.flatMap(m => Object.keys(monthData[m.key] || {}))
+  )].filter(n => n && n !== 'Sem responsável').sort();
+
+  // Totais por mês
+  const monthTotals = months.map(m => ({
+    ...m,
+    total: Object.values(monthData[m.key] || {}).reduce((a,b)=>a+b,0)
+  }));
+  const maxTotal   = Math.max(...monthTotals.map(m => m.total), 1);
+  const grandTotal = monthTotals.reduce((a,m)=>a+m.total,0);
+  const avgPerMonth = months.length ? Math.round(grandTotal / months.length) : 0;
+
+  // ── Cards de resumo ───────────────────────────────────────────────────────
+  const bestMonth = monthTotals.reduce((a,b)=>b.total>a.total?b:a, monthTotals[0]);
+  summaryEl.innerHTML = [
+    { label:'Total no período', value: grandTotal+'pt', sub: monthlyPeriod+' meses', color:'#4F46E5' },
+    { label:'Média mensal',     value: avgPerMonth+'pt', sub: 'por mês', color:'#0891B2' },
+    { label:'Melhor mês',       value: bestMonth?.total+'pt', sub: bestMonth?.label || '—', color:'#16A34A' },
+    { label:'Responsáveis',     value: persons.length, sub: 'com entregas', color:'#D97706' },
+  ].map(c => `<div class="stat-card" style="--c:${c.color}">
+    <div class="stat-label">${c.label}</div>
+    <div class="stat-value" style="font-size:22px;color:${c.color}">${c.value}</div>
+    <div class="stat-sub">${c.sub}</div>
+  </div>`).join('');
+
+  // ── Gráfico de barras: time por mês ──────────────────────────────────────
+  if (teamEl) {
+    if (grandTotal === 0) {
+      teamEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:12px">Nenhum issue concluído com SP no período.</div>';
+    } else {
+      const barH = 32;
+      teamEl.innerHTML = monthTotals.map(m => {
+        const pct = Math.round(m.total / maxTotal * 100);
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);min-width:52px;text-align:right">${m.label}</div>
+          <div style="flex:1;height:${barH}px;background:var(--surface2);border-radius:6px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4F46E5,#0891B2);border-radius:6px;display:flex;align-items:center;padding:0 10px;box-sizing:border-box;min-width:${m.total>0?'40px':'0'}">
+              ${m.total>0?`<span style="font-size:11px;font-weight:700;color:#fff">${m.total}pt</span>`:''}
+            </div>
+          </div>
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);min-width:36px">${m.total?m.total+'pt':'—'}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Gráfico por responsável ────────────────────────────────────────────────
+  if (personEl) {
+    if (persons.length === 0) {
+      personEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Nenhum dado no período.</div>';
+    } else {
+      personEl.innerHTML = persons.map((name, idx) => {
+        const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+        const pc = P_COLORS[idx % P_COLORS.length];
+        const personTotal = months.reduce((a,m)=>a+(monthData[m.key]?.[name]||0),0);
+        const maxP = Math.max(...months.map(m=>monthData[m.key]?.[name]||0),1);
+        return `<div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;font-weight:600;color:${pc}">${short}</span>
+            <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${personTotal}pt total</span>
+          </div>
+          <div style="display:flex;gap:4px;align-items:flex-end;height:48px;">
+            ${months.map(m => {
+              const sp = monthData[m.key]?.[name] || 0;
+              const h  = sp ? Math.max(Math.round(sp/maxP*44),4) : 2;
+              return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div title="${m.label}: ${sp}pt" style="width:100%;height:${h}px;background:${sp?pc:'var(--border)'};border-radius:3px 3px 0 0;opacity:${sp?1:0.3};transition:all .2s"></div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px;">
+            ${months.map(m=>`<div style="flex:1;text-align:center;font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${m.label}</div>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Matriz mês × responsável ──────────────────────────────────────────────
+  if (matrixEl) {
+    if (persons.length === 0) { matrixEl.innerHTML = ''; return; }
+    let t = `<thead><tr>
+      <th class="sp-matrix-th left">Responsável</th>
+      ${months.map(m=>`<th class="sp-matrix-th">${m.label}</th>`).join('')}
+      <th class="sp-matrix-th" style="color:#166534">Total</th>
+    </tr></thead><tbody>`;
+    persons.forEach((name, idx) => {
+      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+      const personTotal = months.reduce((a,m)=>a+(monthData[m.key]?.[name]||0),0);
+      const alt = idx%2===0?'background:var(--surface2)':'';
+      t += `<tr style="${alt}">
+        <td class="sp-matrix-td name" style="color:${P_COLORS[idx%P_COLORS.length]}">${short}</td>
+        ${months.map(m=>{
+          const v=monthData[m.key]?.[name]||0;
+          return `<td class="sp-matrix-td" style="color:${v>0?'#166534':'var(--muted)'};font-weight:${v>0?'600':'400'}">${v||'—'}</td>`;
+        }).join('')}
+        <td class="sp-matrix-td total" style="color:#166534">${personTotal}</td>
+      </tr>`;
+    });
+    t += `<tr style="border-top:2px solid var(--border2)">
+      <td class="sp-matrix-td name" style="font-weight:700">Total</td>
+      ${monthTotals.map(m=>`<td class="sp-matrix-td total" style="color:#4F46E5">${m.total||'—'}</td>`).join('')}
+      <td class="sp-matrix-td total" style="color:#166534">${grandTotal}</td>
+    </tr></tbody>`;
+    matrixEl.innerHTML = t;
+  }
+}
+
+// ── STORY POINTS MENSAL ──────────────────────────────────────────────────────
+function renderMonthly() {
+  const summaryEl = document.getElementById('monthly-summary-cards');
+  const teamEl    = document.getElementById('monthly-team-chart');
+  const matrixEl  = document.getElementById('monthly-matrix');
+  if (!summaryEl) return;
+
+  const STATUS_ATIVOS = [
+    'backlog', 'iniciacao', 'planejamento', 'desenvolvimento',
+    'em andamento', 'sign off', 'homologacao', 'homologacao e preparacao para go live',
+    'operacao assistida', 'aguardando cliente'
+  ];
+  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Filtrar issues em andamento com Go Live Planejado válido e preenchido
+  // Exclui data placeholder 1999-12-31, datas inválidas e issues sem SP
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  // Sem applyJiraFilters — tela mensal mostra todos os cards ativos
+  // independente dos filtros de board (tipo, responsável etc.)
+  const issuesFiltrados = projIssues
+    .filter(i => isProjActive(i.assignee))
+    .filter(i => STATUS_ATIVOS.includes((i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')))
+    .filter(i => {
+      if (!i.goLivePlanejado) return false;
+      const d = new Date(i.goLivePlanejado);
+      if (isNaN(d.getTime()) || d.getFullYear() < 2020) return false;
+      return true;
+    })
+    .filter(i => i.sp != null && i.sp > 0);
+
+  if (issuesFiltrados.length === 0) {
+    summaryEl.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted)">
+      <div style="font-size:28px;margin-bottom:12px">📅</div>
+      <div style="font-size:14px">Nenhum issue em andamento com <strong>Go Live Planejado</strong> e <strong>Story Points</strong> preenchidos.</div>
+      <div style="font-size:12px;margin-top:6px;opacity:.7">Sincronize o módulo Projetos e verifique se os campos estão preenchidos no Jira.</div>
+    </div>`;
+    if (teamEl)   teamEl.innerHTML = '';
+    if (matrixEl) matrixEl.innerHTML = '';
+    return;
+  }
+
+  // ── Agrupar por Mês/Ano ───────────────────────────────────────────────────
+  // monthKey: "2025-01" → label: "Jan/25"
+  const byMonth = {}; // { "2025-01": { total:0, byPerson:{ nome: sp } } }
+  const persons  = new Set();
+
+  // Nova regra: o SP de um card aparece em TODOS os meses entre início e go live (inclusive)
+  // Início = dataInicio do card (ou created como fallback)
+  // Fim    = goLivePlanejado
+  issuesFiltrados.forEach(i => {
+    const sp   = i.sp || 0;
+    const name = i.assignee || 'Sem responsável';
+    const dFim = new Date(i.goLivePlanejado);
+
+    // Data de início: usa dataInicio do card, senão usa created, senão usa o próprio goLive
+    let dIni = i.dataInicio ? new Date(i.dataInicio) : (i.created ? new Date(i.created) : dFim);
+    if (isNaN(dIni.getTime())) dIni = dFim;
+
+    // Normalizar para o primeiro dia de cada mês
+    const iniYear = dIni.getFullYear();
+    const iniMon  = dIni.getMonth(); // 0-based
+    const fimYear = dFim.getFullYear();
+    const fimMon  = dFim.getMonth(); // 0-based
+
+    // Iterar por todos os meses entre início e go live (inclusive)
+    let y = iniYear, m = iniMon;
+    while (y < fimYear || (y === fimYear && m <= fimMon)) {
+      const mKey = y + '-' + String(m+1).padStart(2,'0');
+      if (!byMonth[mKey]) byMonth[mKey] = { total:0, byPerson:{}, issues:[] };
+      byMonth[mKey].total += sp;
+      byMonth[mKey].byPerson[name] = (byMonth[mKey].byPerson[name] || 0) + sp;
+      // Adicionar o issue apenas no mês do go live para evitar duplicatas no painel de detalhe
+      if (y === fimYear && m === fimMon) byMonth[mKey].issues.push(i);
+      persons.add(name);
+      // Avançar um mês
+      m++;
+      if (m > 11) { m = 0; y++; }
+    }
+  });
+
+  const months      = Object.keys(byMonth).sort();
+  const personList  = [...persons].filter(n => n !== 'Sem responsável').sort();
+  const maxMonthSP  = Math.max(...months.map(m => byMonth[m].total), 1);
+  _monthlyByMonth = byMonth; // salva para uso no showMonthDetail
+
+  function monthLabel(k) {
+    const [y, m] = k.split('-');
+    return `${MESES_PT[parseInt(m)-1]}/${y.slice(2)}`;
+  }
+
+  // ── Cards de resumo ────────────────────────────────────────────────────────
+  const thisKey = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const nextKey = (() => {
+    const d = new Date(hoje); d.setMonth(d.getMonth()+1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  })();
+  const prevKey = (() => {
+    const d = new Date(hoje); d.setMonth(d.getMonth()-1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  })();
+
+  // Total SP real = todos os issues em andamento (com ou sem data de go live)
+  const STATUS_ATIVOS_ALL = STATUS_ATIVOS; // reutiliza
+  const todosAtivos = projIssues.filter(i =>
+    isProjActive(i.assignee) &&
+    STATUS_ATIVOS_ALL.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
+    i.sp != null && i.sp > 0
+  );
+  const totalGeral  = todosAtivos.reduce((acc, i) => acc + (i.sp || 0), 0);
+  const totalIssues = todosAtivos.length;
+  const semSP = projIssues.filter(i =>
+    isProjActive(i.assignee) &&
+    STATUS_ATIVOS_ALL.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
+    (i.sp == null || i.sp === 0)
+  ).length;
+
+  summaryEl.innerHTML = [
+    { label: 'Total SP', val: totalGeral,  sub: `${totalIssues} issues`,   color:'#6366f1', emoji:'◈' },
+    { label: monthLabel(prevKey) + ' (ant)', val: byMonth[prevKey]?.total||0, sub: `${byMonth[prevKey]?.issues?.length||0} issues`, color:'#0891B2', emoji:'◁' },
+    { label: monthLabel(thisKey) + ' (atual)', val: byMonth[thisKey]?.total||0, sub: `${byMonth[thisKey]?.issues?.length||0} issues`, color:'#16a34a', emoji:'◈' },
+    { label: monthLabel(nextKey) + ' (próx)', val: byMonth[nextKey]?.total||0, sub: `${byMonth[nextKey]?.issues?.length||0} issues`, color:'#d97706', emoji:'▷' },
+    { label: 'Sem SP',  val: semSP, sub: 'issues sem estimativa', color:'#ef4444', emoji:'⚠' },
+  ].map(c => `<div style="border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:14px;">
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:6px">${c.emoji} ${c.label}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:${c.color}">${c.val}</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">${c.sub}</div>
+  </div>`).join('');
+
+  // ── Gráfico do time — barras por mês ─────────────────────────────────────
+  if (teamEl) {
+    // Gráfico de colunas verticais — cada mês é uma coluna
+    const maxH = 120;
+    teamEl.style.cssText = 'display:flex;align-items:flex-end;gap:8px;overflow-x:auto;padding-bottom:4px;';
+    teamEl.innerHTML = months.map(mKey => {
+      const d = byMonth[mKey];
+      const pct = Math.round(d.total / maxMonthSP * 100);
+      const barH = Math.max(Math.round(pct / 100 * maxH), d.total > 0 ? 8 : 0);
+      const isThis = mKey === thisKey;
+      const color  = isThis ? '#6366f1' : '#0891B2';
+      var colDiv = '<div data-mkey="' + mKey + '" onclick="showMonthDetail(this.dataset.mkey)" style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px;flex:1;cursor:pointer;border-radius:8px;padding:6px 4px;">';
+      return colDiv
+        + '<div style="font-size:11px;font-family:DM Mono,monospace;font-weight:700;color:' + color + '">' + (d.total>0?d.total+'pt':'') + '</div>'
+        + '<div style="width:100%;background:var(--surface2);border-radius:6px 6px 0 0;display:flex;align-items:flex-end;height:' + maxH + 'px;overflow:hidden;">'
+        + '<div style="width:100%;height:' + barH + 'px;background:' + color + ';border-radius:6px 6px 0 0;"></div></div>'
+        + '<div style="font-size:11px;font-family:DM Mono,monospace;color:' + (isThis?'#6366f1':'var(--muted)') + ';font-weight:' + (isThis?'700':'400') + ';text-align:center">' + monthLabel(mKey) + '</div>'
+        + '<div style="font-size:10px;color:var(--muted);text-align:center">' + d.issues.length + ' iss.</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // ── Matriz: responsável × mês ─────────────────────────────────────────────
+  // ── Cards sem Go Live Planejado ───────────────────────────────────────────
+  const missingCountEl = document.getElementById('monthly-missing-count');
+  const missingListEl  = document.getElementById('monthly-missing-list');
+
+  const issuesSemData = projIssues
+    .filter(i => isProjActive(i.assignee))
+    .filter(i => STATUS_ATIVOS.includes((i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')))
+    .filter(i => {
+      if (!i.goLivePlanejado) return true;
+      const d = new Date(i.goLivePlanejado);
+      return isNaN(d.getTime()) || d.getFullYear() < 2020;
+    });
+
+  if (missingCountEl) missingCountEl.textContent = `(${issuesSemData.length} issues)`;
+  if (missingListEl) {
+    if (issuesSemData.length === 0) {
+      missingListEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">✓ Todos os cards em andamento têm Go Live Planejado preenchido!</div>';
+    } else {
+      missingListEl.innerHTML = issuesSemData.slice(0,100).map(i => {
+        const pm  = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#333',color:'#888'};
+        const sc  = PROJ_S_COLOR?.[i.status] || '#888';
+        const sbg = PROJ_S_BG?.[i.status]    || 'rgba(136,136,136,0.1)';
+        return `<div class="sp-missing-card" onclick="openIssue('${i.key}')" style="cursor:pointer;">
+          <div style="width:28px;height:28px;border-radius:50%;background:${pm.bg};color:${pm.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${pm.initials}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${i.key}</div>
+            <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.slice(0,70)}</div>
+          </div>
+          <span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${sbg};color:${sc};white-space:nowrap;flex-shrink:0;margin-right:6px">${i.status}</span>
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:${i.sp?'#6366f1':'var(--muted)'};white-space:nowrap;flex-shrink:0">${i.sp?i.sp+'pt':'— sp'}</span>
+        </div>`;
+      }).join('') + (issuesSemData.length > 100 ? `<div style="text-align:center;font-size:12px;color:var(--muted);padding:8px">+ ${issuesSemData.length-100} issues adicionais</div>` : '');
+    }
+  }
+
+  // ── Projeção de SP por responsável ──────────────────────────────────────────
+  // Lógica: SP atual do responsável, diminuindo mês a mês conforme Go Lives
+  const projectionEl = document.getElementById('monthly-projection');
+  if (projectionEl) {
+    // Pegar TODOS os issues em andamento de cada responsável (com ou sem data)
+    const STATUS_ATIVOS_NORM = ['backlog','iniciacao','planejamento','desenvolvimento','sign off','homologacao','operacao assistida','aguardando cliente'];
+    const allActive = projIssues.filter(i =>
+      isProjActive(i.assignee) &&
+      STATUS_ATIVOS_NORM.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
+      i.sp != null && i.sp > 0
+    );
+
+    // SP total atual por responsável
+    const spAtual = {};
+    allActive.forEach(i => {
+      spAtual[i.assignee] = (spAtual[i.assignee] || 0) + i.sp;
+    });
+
+    // Por mês e responsável: SP que vai ser entregue naquele mês
+    const spEntregaMes = {}; // { pessoa: { mKey: sp } }
+    allActive.forEach(i => {
+      if (!i.goLivePlanejado) return;
+      const d = new Date(i.goLivePlanejado);
+      if (isNaN(d.getTime()) || d.getFullYear() < 2020) return;
+      const mKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (!spEntregaMes[i.assignee]) spEntregaMes[i.assignee] = {};
+      spEntregaMes[i.assignee][mKey] = (spEntregaMes[i.assignee][mKey] || 0) + i.sp;
+    });
+
+    // Determinar range de meses: do mês atual até o último mês com entrega
+    const allMonths = new Set();
+    Object.values(spEntregaMes).forEach(m => Object.keys(m).forEach(k => allMonths.add(k)));
+    const hoje2 = new Date();
+    const todayKey = hoje2.getFullYear() + '-' + String(hoje2.getMonth()+1).padStart(2,'0');
+    allMonths.add(todayKey);
+    const projMonths = [...allMonths].sort().filter(m => m >= todayKey);
+
+    // Regra de farol
+    function farolSP(sp) {
+      if (sp <= 125) return { color:'#16a34a', bg:'rgba(22,163,74,0.12)', label:'🟢' };
+      if (sp <= 150) return { color:'#d97706', bg:'rgba(217,119,6,0.12)',  label:'🟡' };
+      return             { color:'#dc2626', bg:'rgba(220,38,38,0.12)',   label:'🔴' };
+    }
+
+    const projPersons = Object.keys(spAtual).sort();
+
+    if (projPersons.length === 0) {
+      projectionEl.innerHTML = '<tr><td style="padding:16px;text-align:center;color:var(--muted)">Nenhum dado disponível</td></tr>';
+    } else {
+      let tblP = '<thead><tr>'
+        + '<th class="sp-matrix-th left">Responsável</th>'
+        + '<th class="sp-matrix-th">SP Atual</th>'
+        + projMonths.map(m => {
+            const isThis = m === todayKey;
+            return '<th class="sp-matrix-th" style="color:' + (isThis?'#6366f1':'var(--muted)') + '">' + monthLabel(m) + '</th>';
+          }).join('')
+        + '</tr></thead><tbody>';
+
+      tblP += '</tbody>';
+      projectionEl.innerHTML = tblP;
+
+      // Adicionar linhas via createElement — sem escape de aspas em onclick
+      var tbody = projectionEl.querySelector('tbody');
+      projPersons.forEach(function(name, idx) {
+        var short = name.split(' ').slice(0,2).map(function(n){
+          return n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
+        }).join(' ');
+        var pm      = projPersonMap[name] || personMap[name] || {};
+        var color   = pm.color || '#6366f1';
+        var spTotal = spAtual[name];
+        var farolAt = farolSP(spTotal);
+        var altBg   = idx%2===0 ? 'var(--surface2)' : 'transparent';
+
+        // Calcular SP acumulado por mês
+        var spAcum = spTotal;
+        var cellsByMonth = projMonths.map(function(m) {
+          var entrega = (spEntregaMes[name] && spEntregaMes[name][m]) || 0;
+          spAcum -= entrega;
+          if (spAcum < 0) spAcum = 0;
+          return { sp: spAcum, entrega: entrega };
+        });
+
+        // Linha clicável
+        var tr = document.createElement('tr');
+        tr.style.background = altBg;
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('mouseover', function(){ this.style.filter='brightness(1.2)'; });
+        tr.addEventListener('mouseout',  function(){ this.style.filter=''; });
+        tr.addEventListener('click', function(){ showProjPersonDetail(name); });
+
+        // Célula nome
+        var tdName = document.createElement('td');
+        tdName.className = 'sp-matrix-td name';
+        tdName.style.color = color;
+        tdName.innerHTML = short + ' <span style="font-size:9px;opacity:.5">&#9654;</span>';
+        tr.appendChild(tdName);
+
+        // Célula SP atual
+        var tdSP = document.createElement('td');
+        tdSP.className = 'sp-matrix-td';
+        tdSP.style.textAlign = 'center';
+        var spSpan = document.createElement('span');
+        spSpan.style.cssText = 'font-size:13px;font-family:DM Mono,monospace;font-weight:700;color:'+farolAt.color+';background:'+farolAt.bg+';padding:2px 8px;border-radius:6px;';
+        spSpan.textContent = farolAt.label + ' ' + spTotal;
+        tdSP.appendChild(spSpan);
+        tr.appendChild(tdSP);
+
+        // Células dos meses
+        cellsByMonth.forEach(function(cell) {
+          var f   = farolSP(cell.sp);
+          var tip = cell.entrega > 0 ? ' (-' + cell.entrega + 'pt)' : '';
+          var td  = document.createElement('td');
+          td.className = 'sp-matrix-td';
+          td.style.textAlign = 'center';
+          var span = document.createElement('span');
+          span.style.cssText = 'font-size:12px;font-family:DM Mono,monospace;font-weight:600;color:'+f.color+';background:'+f.bg+';padding:2px 8px;border-radius:6px;white-space:nowrap;';
+          span.title = 'Entrega: ' + (cell.entrega||0) + 'pt';
+          span.textContent = f.label + ' ' + cell.sp + tip;
+          td.appendChild(span);
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  if (matrixEl) {
+    let tbl = `<thead><tr>
+      <th class="sp-matrix-th left">Responsável</th>
+      <th class="sp-matrix-th">Total SP</th>
+      ${months.map(m => `<th class="sp-matrix-th" style="color:${m===thisKey?'#6366f1':'var(--muted)'}">${monthLabel(m)}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+    personList.forEach((name, idx) => {
+      const totalPerson = months.reduce((acc, m) => acc + (byMonth[m].byPerson[name]||0), 0);
+      if (totalPerson === 0) return;
+      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+      const alt = idx%2===0?'background:var(--surface2)':'';
+      tbl += `<tr style="${alt}">
+        <td class="sp-matrix-td name" style="color:${P_COLORS[idx%P_COLORS.length]}">${short}</td>
+        <td class="sp-matrix-td total" style="color:#6366f1">${totalPerson}</td>
+        ${months.map(m => {
+          const v = byMonth[m].byPerson[name] || 0;
+          const isThis = m === thisKey;
+          return `<td class="sp-matrix-td" style="color:${v>0?(isThis?'#6366f1':'#0891B2'):'var(--muted)'};font-weight:${v>0?'600':'400'}${isThis&&v>0?';background:rgba(99,102,241,0.06)':''}">${v||'—'}</td>`;
+        }).join('')}
+      </tr>`;
+    });
+
+    // Linha de total
+    tbl += `<tr style="border-top:2px solid var(--border2);font-weight:700">
+      <td class="sp-matrix-td name">Total time</td>
+      <td class="sp-matrix-td total" style="color:#6366f1">${issuesFiltrados.reduce((a,i)=>a+(i.sp||0),0)}</td>
+      ${months.map(m => {
+        const isThis = m === thisKey;
+        return `<td class="sp-matrix-td total" style="color:${isThis?'#6366f1':'#0891B2'}${isThis?';background:rgba(99,102,241,0.06)':''}">${byMonth[m].total||'—'}</td>`;
+      }).join('')}
+    </tr></tbody>`;
+    matrixEl.innerHTML = tbl;
+  }
+}
+
+// ── DETALHE DO MÊS MENSAL ────────────────────────────────────────────────────
+function showMonthDetail(mKey) {
+  if (!mKey) return;
+  var card    = document.getElementById('monthly-detail-card');
+  var labelEl = document.getElementById('monthly-detail-label');
+  var countEl = document.getElementById('monthly-detail-count');
+  var listEl  = document.getElementById('monthly-detail-list');
+  if (!card || !listEl) return;
+
+  var MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var STATUS_ATIVOS_NORM = ['backlog','iniciacao','planejamento','desenvolvimento','em andamento','sign off','homologacao','homologacao e preparacao para go live','operacao assistida','aguardando cliente'];
+
+  var issues = (projIssues || []).filter(function(i) {
+    if (!i.goLivePlanejado) return false;
+    var d = new Date(i.goLivePlanejado);
+    if (isNaN(d.getTime()) || d.getFullYear() < 2020) return false;
+    var iMKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (iMKey !== mKey) return false;
+    var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return STATUS_ATIVOS_NORM.includes(sNorm);
+  }).sort(function(a,b){ return (b.sp||0)-(a.sp||0); });
+
+  var parts = mKey.split('-');
+  var label = MESES_PT[parseInt(parts[1])-1] + '/' + parts[0].slice(2);
+  var total = issues.reduce(function(s,i){ return s+(i.sp||0); }, 0);
+
+  if (labelEl) labelEl.textContent = label;
+  if (countEl) countEl.textContent = '(' + issues.length + ' issues · ' + total + 'pt)';
+
+  listEl.innerHTML = '';
+  if (issues.length === 0) {
+    var empty = document.createElement('div');
+    empty.style.cssText = 'padding:16px;text-align:center;color:var(--muted);font-size:12px';
+    empty.textContent = 'Nenhum issue encontrado para ' + label;
+    listEl.appendChild(empty);
+  } else {
+    issues.forEach(function(i) {
+      var pm  = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#33333380',color:'#888'};
+      var sc  = (PROJ_S_COLOR && PROJ_S_COLOR[i.status]) || '#888';
+      var sbg = (PROJ_S_BG   && PROJ_S_BG[i.status])    || 'rgba(136,136,136,0.1)';
+      var short = (i.assignee||'').split(' ').slice(0,2).map(function(n){
+        return n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
+      }).join(' ');
+
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;margin-bottom:4px;';
+      row.title = i.key;
+      row.addEventListener('click', function(){ openIssue(i.key); });
+
+      var avatar = document.createElement('div');
+      avatar.style.cssText = 'width:28px;height:28px;border-radius:50%;background:'+pm.bg+';color:'+pm.color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0';
+      avatar.textContent = pm.initials;
+
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0;';
+      var keyLine = document.createElement('div');
+      keyLine.style.cssText = 'font-size:11px;font-family:DM Mono,monospace;color:var(--muted)';
+      keyLine.textContent = i.key + ' · ' + short;
+      var sumLine = document.createElement('div');
+      sumLine.style.cssText = 'font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+      sumLine.textContent = i.summary.slice(0,70);
+      info.appendChild(keyLine);
+      info.appendChild(sumLine);
+
+      var badge = document.createElement('span');
+      badge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:99px;background:'+sbg+';color:'+sc+';white-space:nowrap;flex-shrink:0;margin-right:6px';
+      badge.textContent = i.status;
+
+      var sp = document.createElement('span');
+      sp.style.cssText = 'font-size:12px;font-family:DM Mono,monospace;font-weight:700;color:#6366f1;white-space:nowrap;flex-shrink:0';
+      sp.textContent = i.sp ? i.sp+'pt' : '—';
+
+      row.appendChild(avatar);
+      row.appendChild(info);
+      row.appendChild(badge);
+      row.appendChild(sp);
+      listEl.appendChild(row);
+    });
+  }
+
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function closeMonthDetail() {
+  const card = document.getElementById('monthly-detail-card');
+  if (card) card.style.display = 'none';
+}
+
+// ── DETALHE DO RESPONSÁVEL — PROJEÇÃO ────────────────────────────────────────
+function showProjPersonDetail(name) {
+  if (!name) return;
+  var card    = document.getElementById('proj-person-detail');
+  var nameEl  = document.getElementById('proj-person-detail-name');
+  var subEl   = document.getElementById('proj-person-detail-sub');
+  var listEl  = document.getElementById('proj-person-detail-list');
+  if (!card || !listEl) return;
+
+  var STATUS_ATIVOS_NORM = [
+    'backlog','iniciacao','planejamento','desenvolvimento','em andamento',
+    'sign off','homologacao','homologacao e preparacao para go live',
+    'operacao assistida','aguardando cliente'
+  ];
+
+  // Buscar todos os issues em andamento do responsável
+  var issues = (projIssues || []).filter(function(i) {
+    if (i.assignee !== name) return false;
+    if (!i.sp || i.sp <= 0) return false;
+    var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return STATUS_ATIVOS_NORM.includes(sNorm);
+  }).sort(function(a,b){ return (b.sp||0)-(a.sp||0); });
+
+  var short = name.split(' ').slice(0,2).map(function(n){
+    return n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
+  }).join(' ');
+
+  var totalSP   = issues.reduce(function(s,i){ return s+(i.sp||0); }, 0);
+  var comData   = issues.filter(function(i){ return i.goLivePlanejado && new Date(i.goLivePlanejado).getFullYear() >= 2020; }).length;
+  var semData   = issues.length - comData;
+
+  if (nameEl) nameEl.textContent = short;
+  if (subEl)  subEl.textContent  = issues.length + ' cards · ' + totalSP + 'pt total · ' + comData + ' com Go Live · ' + semData + ' sem data';
+
+  listEl.innerHTML = '';
+
+  if (issues.length === 0) {
+    var empty = document.createElement('div');
+    empty.style.cssText = 'padding:16px;text-align:center;color:var(--muted);font-size:12px';
+    empty.textContent = 'Nenhum card em andamento para ' + short;
+    listEl.appendChild(empty);
+  } else {
+    issues.forEach(function(i) {
+      var sc   = (PROJ_S_COLOR && PROJ_S_COLOR[i.status]) || '#888';
+      var sbg  = (PROJ_S_BG   && PROJ_S_BG[i.status])    || 'rgba(136,136,136,0.1)';
+      var MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      var goLiveLabel = '—';
+      if (i.goLivePlanejado) {
+        var d = new Date(i.goLivePlanejado);
+        if (!isNaN(d.getTime()) && d.getFullYear() >= 2020) {
+          goLiveLabel = MESES_PT[d.getMonth()] + '/' + String(d.getFullYear()).slice(2);
+        }
+      }
+
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;';
+      row.addEventListener('click', function(){ openIssue(i.key); });
+
+      // SP badge
+      var spBadge = document.createElement('span');
+      spBadge.style.cssText = 'font-size:13px;font-family:DM Mono,monospace;font-weight:800;color:#6366f1;min-width:38px;text-align:right;flex-shrink:0;';
+      spBadge.textContent = (i.sp||0) + 'pt';
+
+      // Info
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0;';
+      var keyLine = document.createElement('div');
+      keyLine.style.cssText = 'font-size:11px;font-family:DM Mono,monospace;color:var(--muted)';
+      keyLine.textContent = i.key;
+      var sumLine = document.createElement('div');
+      sumLine.style.cssText = 'font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      sumLine.textContent = i.summary.slice(0,70);
+      info.appendChild(keyLine);
+      info.appendChild(sumLine);
+
+      // Status badge
+      var sBadge = document.createElement('span');
+      sBadge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:99px;background:'+sbg+';color:'+sc+';white-space:nowrap;flex-shrink:0;';
+      sBadge.textContent = i.status;
+
+      // Go Live badge
+      var glBadge = document.createElement('span');
+      var hasGoLive = goLiveLabel !== '—';
+      glBadge.style.cssText = 'font-size:11px;font-family:DM Mono,monospace;padding:2px 8px;border-radius:6px;'
+        + (hasGoLive ? 'background:rgba(99,102,241,.12);color:#6366f1;' : 'background:rgba(239,68,68,.1);color:#ef4444;')
+        + 'white-space:nowrap;flex-shrink:0;font-weight:600;';
+      glBadge.textContent = hasGoLive ? ('🗓 ' + goLiveLabel) : '⚠ sem data';
+
+      row.appendChild(spBadge);
+      row.appendChild(info);
+      row.appendChild(sBadge);
+      row.appendChild(glBadge);
+      listEl.appendChild(row);
+    });
+  }
+
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function closeProjPersonDetail() {
+  var card = document.getElementById('proj-person-detail');
+  if (card) card.style.display = 'none';
 }
 
 // ── AUTO INIT ─────────────────────────────────────────────────────────────────
