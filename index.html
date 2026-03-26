@@ -275,9 +275,14 @@ td{padding:10px 15px;font-size:12px;}
     </div>
   </div>
   <nav class="nav">
-    <!-- Visão Geral — item fixo no topo da nav -->
-    <div class="nav-item nav-view-item" onclick="switchView('overview',this)" style="font-weight:600;color:var(--text);margin-bottom:6px;">
-      <span class="nav-icon">◈</span><span>Visão Geral</span>
+    <!-- Grupo colapsável: Visão Geral -->
+    <div class="nav-group-header" id="nav-group-visaogeral" onclick="toggleNavGroup('visaogeral')">
+      <span class="nav-icon">◈</span>
+      <span>Visão Geral</span>
+      <span class="nav-group-arrow" id="arrow-visaogeral">▸</span>
+    </div>
+    <div class="nav-group-body" id="group-body-visaogeral">
+      <div class="nav-item nav-view-item" onclick="switchView('overview',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points Total</span></div>
     </div>
     <!-- Grupo colapsável: Orçamento (contém visões + responsáveis) -->
     <div class="nav-group-header" id="nav-group-orcamento" onclick="toggleNavGroup('orcamento')">
@@ -1565,7 +1570,7 @@ function renderManageProjModal() {
 }
 
 // State: which nav groups are open (saved to localStorage)
-let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"orcamento":true,"projetos":false}');
+let navGroupState = JSON.parse(localStorage.getItem('cp_nav_groups') || '{"visaogeral":true,"orcamento":true,"projetos":false}');
 
 function toggleNavGroup(id) {
   navGroupState[id] = !navGroupState[id];
