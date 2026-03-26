@@ -188,6 +188,8 @@ td{padding:10px 15px;font-size:12px;}
 #manage-proj-overlay[style*="flex"] { display:flex !important; }
 #jira-filters-overlay { display:none; }
 #jira-filters-overlay[style*="flex"] { display:flex !important; }
+#pinned-overlay { display:none; }
+#pinned-overlay[style*="flex"] { display:flex !important; }
 @keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .toast{position:fixed
 #manage-overlay { display:none; }
@@ -320,6 +322,9 @@ td{padding:10px 15px;font-size:12px;}
     <div class="config-menu" id="config-menu">
       <button class="config-menu-item" onclick="openJiraFilters();toggleConfigMenu()">
         <span style="font-size:13px">⚡</span> Filtros Jira
+      </button>
+      <button class="config-menu-item" onclick="openPinnedModal();toggleConfigMenu()">
+        <span style="font-size:13px">📌</span> Issues fixos · Projetos
       </button>
       <button class="config-menu-item" onclick="showSetup();toggleConfigMenu()">
         <span style="font-size:13px">⚙</span> Reconfigurar Jira
@@ -610,6 +615,35 @@ td{padding:10px 15px;font-size:12px;}
   </div>
 </div>
 
+<!-- PINNED ISSUES MODAL -->
+<div id="pinned-overlay" onclick="closePinnedModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:24px;width:460px;max-width:95vw;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Issues fixos · Projetos</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Sempre sincronizados, mesmo fora do filtro de data</div>
+      </div>
+      <button onclick="closePinnedModal()" style="width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px">✕</button>
+    </div>
+
+    <!-- Input para adicionar -->
+    <div style="display:flex;gap:6px;margin:16px 0;">
+      <input id="pinned-input" type="text" placeholder="Ex: B2C-10186, B2C-10929"
+        style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;"
+        onkeydown="if(event.key==='Enter')addPinnedKeys()">
+      <button onclick="addPinnedKeys()" style="padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;font-weight:600">+ Adicionar</button>
+    </div>
+
+    <!-- Lista de pinados -->
+    <div id="pinned-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closePinnedModal()" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer">Cancelar</button>
+      <button onclick="savePinnedIssues()" style="padding:7px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer;font-weight:600">Salvar e sincronizar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MANAGE PROJ PERSONS MODAL -->
 <div id="manage-proj-overlay" onclick="closeManageProjModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;">
   <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:24px;width:420px;max-width:90vw;max-height:80vh;overflow-y:auto;">
@@ -849,6 +883,7 @@ async function loadFromAPI() {
   // Carrega inativos e filtros antes de renderizar
   await loadInactive();
   await loadJiraFilters();
+  await loadPinnedIssues();
 
   try {
     const r = await fetch(API + '/api/issues');
@@ -2278,6 +2313,81 @@ function renderOverview() {
     </tr></tbody>`;
     matrixEl.innerHTML = html;
   }
+}
+
+// ── ISSUES PINADOS ────────────────────────────────────────────────────────────
+let pinnedIssues = [];
+
+async function loadPinnedIssues() {
+  try {
+    const r = await fetch('/api/pinned-issues');
+    const d = await r.json();
+    pinnedIssues = d.pinned || [];
+  } catch {}
+}
+
+function openPinnedModal() {
+  renderPinnedList();
+  const ov = document.getElementById('pinned-overlay');
+  if (ov) ov.style.display = 'flex';
+}
+function closePinnedModal() {
+  const ov = document.getElementById('pinned-overlay');
+  if (ov) ov.style.display = 'none';
+  document.getElementById('pinned-input').value = '';
+}
+
+function addPinnedKeys() {
+  const input = document.getElementById('pinned-input');
+  if (!input) return;
+  const raw = input.value.trim();
+  if (!raw) return;
+  // Aceita vírgula ou espaço como separador
+  const keys = raw.split(/[,\s]+/).map(k => k.trim().toUpperCase()).filter(k => /^[A-Z]+-\d+$/.test(k));
+  if (keys.length === 0) { toast('Chave inválida — use formato B2C-10186', 'err'); return; }
+  keys.forEach(k => { if (!pinnedIssues.includes(k)) pinnedIssues.push(k); });
+  input.value = '';
+  renderPinnedList();
+}
+
+function removePinnedKey(key) {
+  pinnedIssues = pinnedIssues.filter(k => k !== key);
+  renderPinnedList();
+}
+
+function renderPinnedList() {
+  const list = document.getElementById('pinned-list');
+  if (!list) return;
+  if (pinnedIssues.length === 0) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Nenhum issue fixo. Adicione chaves acima.</div>';
+    return;
+  }
+  list.innerHTML = pinnedIssues.map(key => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px">📌</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--accent2)">${key}</span>
+      </div>
+      <button onclick="removePinnedKey('${key}')" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>`).join('');
+}
+
+async function savePinnedIssues() {
+  const btn = document.querySelector('#pinned-overlay button[onclick="savePinnedIssues()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  try {
+    await fetch('/api/pinned-issues', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ pinned: pinnedIssues })
+    });
+    closePinnedModal();
+    toast('✓ Issues fixos salvos — sincronizando Projetos...', 'ok');
+    await syncProjIssues(true);
+  } catch(e) {
+    toast('Erro ao salvar: ' + e.message, 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Salvar e sincronizar'; }
 }
 
 // ── AUTO INIT ─────────────────────────────────────────────────────────────────

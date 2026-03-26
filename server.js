@@ -52,6 +52,24 @@ function isCacheValid(entry) {
          (Date.now() - new Date(entry.syncedAt).getTime()) < CACHE_TTL;
 }
 
+// Busca issues específicos por chave (pinados) e retorna no formato padrão
+async function fetchPinnedIssues(cfg, keys) {
+  if (!keys || keys.length === 0) return [];
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,created,updated';
+  const jql    = encodeURIComponent(`key in (${keys.join(',')}) ORDER BY key ASC`);
+  try {
+    let r = await jiraGet(cfg, `/rest/api/3/search/jql?jql=${jql}&maxResults=50&fields=${fields}`);
+    if (r.status !== 200) {
+      r = await jiraGet(cfg, `/rest/api/3/search?jql=${jql}&maxResults=50&fields=${fields}`);
+    }
+    const items = r.data?.issues || r.data?.values || [];
+    return items.map(i => parseIssue(i, cfg.domain, cfg.statusFn || mapProjStatus));
+  } catch(e) {
+    log('[pinados] erro ao buscar:', e.message);
+    return [];
+  }
+}
+
 function buildJqlExtra(baseExtra, filters) {
   // filters: { assignees: ['João'], statuses: ['Cancelado'], types: ['Sub-tarefa'] }
   const parts = [];
@@ -105,7 +123,17 @@ async function refreshCache(key, cfg, jqlExtra = '', incremental = false) {
     } else {
       // ── Sync completo (primeira vez ou force) ─────────────────────────────
       log(`[cache] ${key} completo: buscando todos os issues...`);
-      const issues = await fetchAllIssues(cfg, jqlExtra);
+      let issues = await fetchAllIssues(cfg, jqlExtra);
+      // Mescla issues pinados (buscados individualmente, ignoram filtro de data)
+      if (key === 'b2b1' && cfg.pinnedIssues?.length) {
+        const pinned = await fetchPinnedIssues(cfg, cfg.pinnedIssues);
+        if (pinned.length > 0) {
+          const map = new Map(issues.map(i => [i.key, i]));
+          pinned.forEach(i => map.set(i.key, i)); // sobrescreve ou adiciona
+          issues = [...map.values()];
+          log(`[pinados] mesclados: ${pinned.length} issues pinados → total ${issues.length}`);
+        }
+      }
       cache[key] = { issues, syncedAt: new Date().toISOString(), updating: false };
       log(`[cache] ${key} completo: ${issues.length} issues`);
     }
@@ -141,10 +169,12 @@ function loadConfig() {
     cfg.inactivePersons     = state.inactivePersons     || [];
     cfg.inactiveProjPersons = state.inactiveProjPersons || [];
     cfg.jiraFilters         = state.jiraFilters         || { odyjs: {}, b2b1: {} };
+    cfg.pinnedIssues        = state.pinnedIssues        || [];
   } catch {
     cfg.inactivePersons     = cfg.inactivePersons     || [];
     cfg.inactiveProjPersons = cfg.inactiveProjPersons || [];
     cfg.jiraFilters         = cfg.jiraFilters         || { odyjs: {}, b2b1: {} };
+    cfg.pinnedIssues        = cfg.pinnedIssues        || [];
   }
   return cfg;
 }
@@ -631,6 +661,38 @@ async function handleRequest(req, res) {
       log('[filtros] erro ao salvar:', e.message);
     }
     json(res, 200, { ok: true });
+    return;
+  }
+
+  // GET /api/pinned-issues — retorna lista de issues pinados
+  if (pathname === '/api/pinned-issues' && req.method === 'GET') {
+    const cfg = loadConfig();
+    json(res, 200, { pinned: cfg.pinnedIssues || [] });
+    return;
+  }
+
+  // POST /api/pinned-issues — salva lista de issues pinados e invalida cache B2B1
+  if (pathname === '/api/pinned-issues' && req.method === 'POST') {
+    const b = await readBody(req);
+    if (!Array.isArray(b.pinned)) {
+      json(res, 400, { error: 'Campo "pinned" deve ser um array.' }); return;
+    }
+    // Normaliza as chaves (uppercase, sem espaços)
+    const keys = b.pinned.map(k => k.trim().toUpperCase()).filter(Boolean);
+    const stateFile = path.join(__dirname, 'state.json');
+    try {
+      let state = {};
+      try { state = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch {}
+      state.pinnedIssues = keys;
+      fs.writeFileSync(stateFile, JSON.stringify(state, null, 2), 'utf8');
+      // Invalida cache B2B1 para forçar refetch com os novos pinados
+      cache.b2b1 = null;
+      saveCacheToDisk();
+      log('[pinados] salvos:', keys);
+    } catch(e) {
+      log('[pinados] erro ao salvar:', e.message);
+    }
+    json(res, 200, { ok: true, pinned: keys });
     return;
   }
 
