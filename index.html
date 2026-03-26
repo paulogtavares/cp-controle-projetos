@@ -2822,7 +2822,7 @@ function renderMonthly() {
   const projectionEl = document.getElementById('monthly-projection');
   if (projectionEl) {
     // Pegar TODOS os issues em andamento de cada responsável (com ou sem data)
-    const STATUS_ATIVOS_NORM = ['backlog','iniciacao','planejamento','desenvolvimento','sign off','homologacao','operacao assistida','aguardando cliente'];
+    const STATUS_ATIVOS_NORM = ['backlog','iniciacao','planejamento','desenvolvimento','em andamento','sign off','homologacao','homologacao e preparacao para go live','operacao assistida','aguardando cliente'];
     const allActive = projIssues.filter(i =>
       isProjActive(i.assignee) &&
       STATUS_ATIVOS_NORM.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
