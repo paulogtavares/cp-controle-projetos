@@ -1332,7 +1332,33 @@ function renderAnalytics() {
       </div>`).join('');
   };
   bars('ch-client', Object.entries(bC).sort((a,b)=>b[1]-a[1]), ()=>'var(--accent)');
-  bars('ch-status', Object.entries(bS).sort((a,b)=>b[1]-a[1]), s=>(STATUS_CFG[s]||{color:'#888'}).color);
+  // Separar status ativos de encerrados
+  const STATUS_ENCERRADOS_ORC = ['Concluído','Cancelado','Recusado / Cancelado','Finalizado'];
+  const bS_ativos     = Object.entries(bS).filter(([s])=>!STATUS_ENCERRADOS_ORC.includes(s)).sort((a,b)=>b[1]-a[1]);
+  const bS_encerrados = Object.entries(bS).filter(([s])=> STATUS_ENCERRADOS_ORC.includes(s)).sort((a,b)=>b[1]-a[1]);
+  const el_status = document.getElementById('ch-status');
+  if (el_status) {
+    const renderGroup = (entries, label, collapsed=false) => {
+      if (!entries.length) return '';
+      const key = 'analytics_' + label;
+      let saved = false; try { saved = sessionStorage.getItem(key)==='1'; } catch(e){}
+      const isCollapsed = collapsed ? saved : false;
+      const mx = Math.max(...Object.values(bS), 1);
+      return `<div style="margin-bottom:4px;">
+        <div onclick="(function(el){const b=el.nextElementSibling;const arr=el.querySelector('.grp-arr');const c=b.style.display==='none';b.style.display=c?'':'none';arr.textContent=c?'▼':'▶';try{sessionStorage.setItem('${key}',c?'0':'1');}catch(e){}})(this)" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 0;font-size:10px;font-weight:500;color:var(--muted);user-select:none;border-bottom:1px solid var(--border);margin-bottom:6px;">
+          <span class="grp-arr">${isCollapsed?'▶':'▼'}</span> ${label} <span style="opacity:.6">(${entries.reduce((a,[,n])=>a+n,0)})</span>
+        </div>
+        <div style="${isCollapsed?'display:none':''}">
+          ${entries.map(([l,n])=>`<div class="bar-row">
+            <div class="bar-label" title="${l}">${l}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/mx*100)}%;background:${(STATUS_CFG[l]||{color:'#888'}).color}"></div></div>
+            <div class="bar-count">${n}</div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    };
+    el_status.innerHTML = renderGroup(bS_ativos,'Em andamento') + renderGroup(bS_encerrados,'Encerrados',true);
+  }
   bars('ch-person', Object.entries(bP).sort((a,b)=>b[1]-a[1]), p=>(personMap[p]||{color:'#888'}).color);
 }
 
@@ -1460,8 +1486,9 @@ function renderSP() {
         <span style="font-size:16px;flex-shrink:0">${farol.emoji}</span>
         <div style="font-size:12px;font-weight:600;min-width:120px;color:${pc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${short}</div>
         <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/maxSP*100)}%;background:rgba(22,163,74,0.08);border-right:1px dashed rgba(22,163,74,0.3)"></div>
-          <div style="height:100%;width:${pct}%;background:${farol.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'};transition:width .5s">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/Math.max(maxSP,200)*100)}%;background:rgba(22,163,74,0.06);border-right:1.5px dashed rgba(22,163,74,0.45)"></div>
+          <div style="position:absolute;left:${Math.round(125/Math.max(maxSP,200)*100)}%;top:0;bottom:0;width:${Math.round((150-125)/Math.max(maxSP,200)*100)}%;background:rgba(217,119,6,0.04);border-right:1.5px dashed rgba(217,119,6,0.45)"></div>
+          <div style="height:100%;width:${Math.round(p.total/Math.max(maxSP,200)*100)}%;background:${farol.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'};transition:width .5s">
             ${p.total > 0 ? p.total+'pt' : ''}
           </div>
         </div>
@@ -1473,17 +1500,35 @@ function renderSP() {
   // ── SP by status chart ────────────────────────────────────────────────────
   const statusChartEl = document.getElementById('sp-by-status-chart');
   const maxSpStatus = Math.max(...Object.values(spByStatus), 1);
-  if (statusChartEl) statusChartEl.innerHTML = STATUSES.map(s => {
-    const val = spByStatus[s] || 0;
-    const pct = Math.round(val / maxSpStatus * 100);
-    return `<div class="bar-row">
-      <div class="bar-label" title="${s}" style="min-width:130px">${s}</div>
-      <div class="bar-track" style="flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;">
-        <div class="bar-fill" style="width:${pct}%;background:${S_COLOR[s]};height:100%;border-radius:99px;"></div>
-      </div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;min-width:34px;text-align:right;color:${val>0?S_COLOR[s]:'var(--muted)'};font-weight:${val>0?'600':'400'}">${val||'—'}</div>
-    </div>`;
-  }).join('');
+  if (statusChartEl) {
+    const STATUS_ATIVOS_ORC    = ['Backlog','Em Andamento','Proposta Enviada','Aguardando Cliente','Aguardando Execução','Em Execução'];
+    const STATUS_ENCERRADOS_ORC = ['Concluído','Recusado / Cancelado'];
+    const renderOrcGroup = (statuses, label, defaultCollapsed=false) => {
+      const key = 'orc_st_' + label.replace(/\s/g,'_');
+      let collapsed = defaultCollapsed;
+      try { const sv = sessionStorage.getItem(key); if (sv!==null) collapsed = sv==='1'; } catch(e) {}
+      const rows = statuses.map(s => {
+        const val = spByStatus[s] || 0;
+        const pct = Math.round(val / maxSpStatus * 100);
+        return `<div class="bar-row">
+          <div class="bar-label" title="${s}" style="min-width:130px">${s}</div>
+          <div class="bar-track" style="flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;">
+            <div class="bar-fill" style="width:${pct}%;background:${S_COLOR[s]};height:100%;border-radius:99px;"></div>
+          </div>
+          <div style="font-size:11px;font-family:'DM Mono',monospace;min-width:34px;text-align:right;color:${val>0?S_COLOR[s]:'var(--muted)'};font-weight:${val>0?'600':'400'}">${val||'—'}</div>
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:6px;">
+        <div onclick="(function(el){const b=el.nextElementSibling;const c=b.style.display!='none';b.style.display=c?'none':'';el.querySelector('.g-arr').textContent=c?'▶':'▼';try{sessionStorage.setItem('${key}',c?'1':'0')}catch(e){};})(this)" style="font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:6px;user-select:none;">
+          <span class="g-arr">${collapsed?'▶':'▼'}</span> ${label}
+        </div>
+        <div style="${collapsed?'display:none':''}">${rows}</div>
+      </div>`;
+    };
+    statusChartEl.innerHTML =
+      renderOrcGroup(STATUS_ATIVOS_ORC, 'Em andamento') +
+      renderOrcGroup(STATUS_ENCERRADOS_ORC, 'Encerrados', true);
+  }
 
   // ── Matrix table colaborador × status ─────────────────────────────────────
   const matrixEl = document.getElementById('sp-matrix-table');
@@ -1910,15 +1955,25 @@ function renderProjBoard() {
     <div class="stat-sub">${new Set(f.map(i=>i.assignee)).size} responsáveis</div>
   </div>`;
 
-  boardEl.innerHTML = PROJ_S_ORDER.map(s => {
-    const cols = f.filter(i=>i.status===s);
-    const col  = PROJ_S_COLOR[s];
-    return `<div class="col">
-      <div class="col-head">
-        <div class="col-name"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block"></span>${s}</div>
-        <span class="col-count">${cols.length}</span>
+  const ARCHIVE_PROJ = ['Concluído','Cancelado','Recusado / Cancelado'];
+  boardEl.innerHTML = '';
+  PROJ_S_ORDER.forEach(s => {
+    const cols    = f.filter(i=>i.status===s);
+    const col     = PROJ_S_COLOR[s];
+    const isArc   = ARCHIVE_PROJ.includes(s);
+    const colKey  = 'pj_col_' + s.replace(/\W/g,'_');
+    let collapsed = isArc;
+    try { const sv = sessionStorage.getItem(colKey); if (sv!==null) collapsed = sv==='1'; } catch(e) {}
+    const el = document.createElement('div');
+    el.className = 'col';
+    const sLabel = s.replace('Homologação e preparação para Go Live','Homologação GL').replace('Recusado / Cancelado','Recusado');
+    el.innerHTML =
+      `<div class="col-head" onclick="toggleBoardCol(this,'${colKey}')" style="cursor:pointer" title="${isArc?'Clique para expandir':'Clique para colapsar'}">
+        <div class="col-name"><span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block;margin-right:6px"></span>${sLabel}${isArc?` <span style="font-size:9px;opacity:.4">(arquivado)</span>`:''}</div>
+        <div style="display:flex;align-items:center;gap:5px"><span class="col-count">${cols.length}</span><span class="col-toggle-arrow" style="font-size:9px;color:var(--muted)">${collapsed?'▶':'▼'}</span></div>
       </div>
-      <div class="col-cards">${cols.map(i => {
+      <div class="col-cards" style="${collapsed?'display:none':''}">` +
+      cols.map(i => {
         const pm = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#222',color:'#888'};
         return `<div class="card" onclick="openIssue('${i.key}')">
           <div class="card-key">${i.key}</div>
@@ -1929,9 +1984,10 @@ function renderProjBoard() {
             <span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${i.sp==null?'rgba(107,114,128,0.08)':i.sp>=21?'rgba(220,38,38,0.1)':i.sp>=13?'rgba(217,119,6,0.1)':'rgba(22,101,52,0.1)'};color:${i.sp==null?'var(--muted)':i.sp>=21?'#dc2626':i.sp>=13?'#d97706':'#166534'};font-family:'DM Mono',monospace;font-weight:600">${i.sp!=null?i.sp+'pt':'—'}</span>
           </div>
         </div>`;
-      }).join('')}</div>
-    </div>`;
-  }).join('');
+      }).join('') +
+      `</div>`;
+    boardEl.appendChild(el);
+  });
 }
 
 function renderProjTable() {
@@ -1957,6 +2013,7 @@ function renderProjTable() {
       <td style="padding:10px 15px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:${pm.bg};color:${pm.color};width:22px;height:22px;font-size:9px">${pm.initials}</div><span style="font-size:12px">${i.assignee.split(' ')[0]}</span></div></td>
       <td style="padding:10px 15px;text-align:center;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${i.sp!=null?'#166534':'var(--muted)'}">${i.sp!=null?i.sp:'—'}</td>
       <td style="padding:10px 15px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border)">${i.updated}</td>
+      <td style="padding:10px 15px;border-bottom:1px solid var(--border)">${prazoBadge(i.goLivePlanejado)}</td>
     </tr>`;
   }).join('');
 }
@@ -2020,35 +2077,64 @@ function renderProjSP() {
     </div>`;
   }).join('');
 
-  if (chartEl) chartEl.innerHTML =
-    `<div style="margin-bottom:10px;font-size:11px;color:var(--muted);display:flex;gap:16px">🟢 0–125 &nbsp; 🟡 126–150 &nbsp; 🔴 151+</div>` +
-    sorted.map(([name,p],idx)=>{
-      const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
-      const f = farol(p.total);
-      const pct = Math.round(p.total/maxSP*100);
-      return `<div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:16px">${f.emoji}</span>
-        <div style="font-size:12px;font-weight:600;min-width:120px;color:${P_COLORS[idx%P_COLORS.length]}">${short}</div>
-        <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/maxSP*100)}%;background:rgba(22,163,74,0.08);border-right:1px dashed rgba(22,163,74,0.3)"></div>
-          <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'}">${p.total>0?p.total+'pt':''}</div>
-        </div>
-        <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;font-weight:700;min-width:36px;text-align:right">${totalSP?Math.round(p.total/totalSP*100):0}%</div>
-      </div>`;
-    }).join('');
+  if (chartEl) {
+    const refMax = Math.max(maxSP, 200); // garantir que 150 caiba sempre
+    const pct125 = Math.round(125/refMax*100);
+    const pct150 = Math.round(150/refMax*100);
+    chartEl.innerHTML =
+      `<div style="position:relative;margin-bottom:10px;font-size:10px;color:var(--muted);display:flex;gap:16px;align-items:center;">
+        🟢 ≤125pt &nbsp; 🟡 126–150pt &nbsp; 🔴 >150pt
+      </div>` +
+      sorted.map(([name,p],idx)=>{
+        const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
+        const f   = farol(p.total);
+        const pct = Math.round(p.total/refMax*100);
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-size:14px">${f.emoji}</span>
+          <div style="font-size:12px;font-weight:600;min-width:110px;color:${P_COLORS[idx%P_COLORS.length]}">${short}</div>
+          <div style="flex:1;height:22px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(22,163,74,0.06);border-right:1px dashed rgba(22,163,74,0.4)"></div>
+            <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(217,119,6,0.05);border-right:1px dashed rgba(217,119,6,0.4)"></div>
+            <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'}">${p.total>0?p.total+'pt':''}</div>
+          </div>
+          <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;font-weight:700;min-width:36px;text-align:right">${totalSP?Math.round(p.total/totalSP*100):0}%</div>
+        </div>`;
+      }).join('');
+  }
 
   const spByStatus = {};
   PROJ_S_ORDER.forEach(s=>spByStatus[s]=0);
   applyJiraFilters(projIssues, 'b2b1').forEach(i=>{if(i.sp)spByStatus[i.status]=(spByStatus[i.status]||0)+i.sp;});
   const maxSt = Math.max(...Object.values(spByStatus),1);
-  if (stChartEl) stChartEl.innerHTML = PROJ_S_ORDER.map(s=>{
-    const val=spByStatus[s]||0, pct=Math.round(val/maxSt*100), col=PROJ_S_COLOR[s];
-    return `<div class="bar-row">
-      <div class="bar-label" style="min-width:130px">${s}</div>
-      <div class="bar-track" style="flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="width:${pct}%;background:${col};height:100%;border-radius:99px"></div></div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;min-width:34px;text-align:right;color:${val>0?col:'var(--muted)'};font-weight:${val>0?'600':'400'}">${val||'—'}</div>
-    </div>`;
-  }).join('');
+  if (stChartEl) {
+    const STATUS_ATIVOS_PROJ    = ['Backlog','Iniciação','Planejamento','Desenvolvimento','Em Andamento','Sign Off','Homologação','Homologação e preparação para Go Live','Operação Assistida','Aguardando Cliente','Bloqueado'];
+    const STATUS_ENCERRADOS_PROJ = ['Cancelado','Concluído','Recusado / Cancelado','Finalizado'];
+    const renderProjGroup = (statuses, label, collapsed=false) => {
+      const entries = statuses.filter(s => (spByStatus[s]||0) > 0 || STATUS_ATIVOS_PROJ.includes(s));
+      if (!entries.length) return '';
+      const key = 'proj_status_' + label;
+      let saved = false; try { saved = sessionStorage.getItem(key)==='1'; } catch(e){}
+      const isCollapsed = collapsed ? saved : false;
+      return `<div style="margin-bottom:8px;">
+        <div onclick="(function(el){const b=el.nextElementSibling;const arr=el.querySelector('.grp-arr');const c=b.style.display==='none';b.style.display=c?'':'none';arr.textContent=c?'▼':'▶';try{sessionStorage.setItem('${key}',c?'0':'1');}catch(e){}})(this)" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 0;font-size:10px;font-weight:500;color:var(--muted);user-select:none;border-bottom:1px solid var(--border);margin-bottom:8px;">
+          <span class="grp-arr">${isCollapsed?'▶':'▼'}</span> ${label} <span style="opacity:.6">(${entries.reduce((a,s)=>a+(spByStatus[s]||0),0)}pt)</span>
+        </div>
+        <div style="${isCollapsed?'display:none':''}">
+          ${entries.map(s=>{
+            const val=spByStatus[s]||0, pct=Math.round(val/maxSt*100), col=PROJ_S_COLOR[s]||'#888';
+            return `<div class="bar-row">
+              <div class="bar-label" style="min-width:130px">${s.replace('Homologação e preparação para Go Live','Homologação GL')}</div>
+              <div class="bar-track" style="flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="width:${pct}%;background:${col};height:100%;border-radius:99px"></div></div>
+              <div style="font-size:11px;font-family:'DM Mono',monospace;min-width:34px;text-align:right;color:${val>0?col:'var(--muted)'};font-weight:${val>0?'600':'400'}">${val||'—'}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    };
+    stChartEl.innerHTML =
+      renderProjGroup(STATUS_ATIVOS_PROJ, 'Em andamento') +
+      renderProjGroup(STATUS_ENCERRADOS_PROJ, 'Encerrados', true);
+  }
 
   if (matrixEl) {
     const stCols = PROJ_S_ORDER.filter(s=>sorted.some(([,p])=>(p.byStatus[s]||0)>0));
