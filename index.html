@@ -48,6 +48,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .logo small{color:var(--muted);font-weight:400;font-size:11px;display:block;font-family:'DM Mono',monospace;}
 .nav{padding:10px 10px;flex:1;overflow-y:auto;}
 .nav-section{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);padding:12px 12px 5px;letter-spacing:.08em;text-transform:uppercase;}
+.nav-section-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);padding:16px 12px 5px;letter-spacing:.07em;text-transform:uppercase;opacity:.5;display:block;}
+.nav-count{font-size:10px;font-family:'DM Mono',monospace;background:rgba(99,102,241,0.12);border-radius:99px;padding:0 6px;color:#818cf8;font-weight:600;margin-left:3px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;}
 .nav-item:hover{background:var(--surface2);color:var(--text);}
 .nav-item.active{background:rgba(124,92,252,0.15);color:var(--accent2);border-left:3px solid var(--accent2);padding-left:9px;}
@@ -98,7 +100,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .chip{padding:5px 12px;border-radius:99px;font-size:12px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
 .chip:hover{color:var(--text);}
 .chip.active{background:rgba(124,92,252,0.15);border-color:rgba(124,92,252,0.3);color:var(--accent2);}
-.board-wrap{overflow-x:auto;padding-bottom:16px;position:relative;}.board-wrap::after{content:'';position:absolute;top:0;right:0;width:56px;height:calc(100% - 16px);background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;z-index:2;}
+.board-wrap{overflow-x:auto;padding-bottom:16px;position:relative;}@keyframes spin{to{transform:rotate(360deg)}}
+.board-wrap::after{content:'';position:absolute;top:0;right:0;width:56px;height:calc(100% - 16px);background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;z-index:2;}
 .board{display:flex;gap:12px;min-width:max-content;}
 .col{width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .col-head{padding:11px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
@@ -108,11 +111,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .col-cards{padding:8px;display:flex;flex-direction:column;gap:7px;max-height:68vh;overflow-y:auto;}
 .col-cards::-webkit-scrollbar{width:3px;}
 .col-cards::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
-.card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 11px;cursor:pointer;transition:all .15s;}
-.card:hover{border-color:var(--border2);transform:translateY(-1px);}
-.card-key{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);opacity:.65;margin-bottom:3px;}
-.card-title{font-size:13px;font-weight:500;line-height:1.45;margin-bottom:7px;color:var(--text);}
-.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 12px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:0;}
+.card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.18);}
+.card-key{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);opacity:.5;margin-bottom:4px;letter-spacing:.03em;}
+.card-title{font-size:13px;font-weight:500;line-height:1.5;margin-bottom:8px;color:var(--text);}
+.card-footer{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.card-client{font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(99,102,241,0.08);color:#818cf8;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px;}
+.card-sp{font-size:10px;padding:2px 7px;border-radius:99px;font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0;}
+.card-sp.sp-ok{background:rgba(22,163,74,0.1);color:#166534;}
+.card-sp.sp-warn{background:rgba(217,119,6,0.1);color:#d97706;}
+.card-sp.sp-over{background:rgba(220,38,38,0.1);color:#dc2626;}
+.card-sp.sp-none{background:rgba(107,114,128,0.08);color:var(--muted);}
 .client-tag{font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,0.05);color:var(--muted);}
 
 /* ── TABLE ── */
@@ -275,7 +284,14 @@ td{padding:10px 15px;font-size:12px;}
     </div>
   </div>
   <nav class="nav">
-    <!-- Grupo colapsável: Visão Geral -->
+
+    <!-- ─ HOME ──────────────────────────────────────────── -->
+    <div class="nav-item nav-view-item" onclick="switchView('home',this)" id="nav-home">
+      <span class="nav-icon">⌂</span><span>Dashboard</span>
+    </div>
+
+    <!-- ─ GERAL ─────────────────────────────────────────── -->
+    <span class="nav-section-label">Geral</span>
     <div class="nav-group-header" id="nav-group-visaogeral" onclick="toggleNavGroup('visaogeral')">
       <span class="nav-icon">◈</span>
       <span>Visão Geral</span>
@@ -285,28 +301,26 @@ td{padding:10px 15px;font-size:12px;}
       <div class="nav-item nav-view-item" onclick="switchView('overview',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points Total</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('monthly',this)" style="padding-left:20px"><span class="nav-icon">📅</span><span>Story Points Mensal</span></div>
     </div>
-    <!-- Grupo colapsável: Orçamento (contém visões + responsáveis) -->
+
+    <!-- ─ ORÇAMENTO ──────────────────────────────────────── -->
+    <span class="nav-section-label">Orçamento</span>
     <div class="nav-group-header" id="nav-group-orcamento" onclick="toggleNavGroup('orcamento')">
       <span class="nav-icon">◧</span>
-      <span>Orçamento</span>
+      <span>Orçamento <span id="nav-orc-count" class="nav-count"></span></span>
       <span class="nav-group-arrow" id="arrow-orcamento">▸</span>
     </div>
     <div class="nav-group-body" id="group-body-orcamento">
-
-      <!-- Visões -->
-      <div class="nav-section" style="padding-left:20px">Visões</div>
-      <div class="nav-item nav-view-item active" onclick="switchView('board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('table',this)" style="padding-left:20px"><span class="nav-icon">☰</span><span>Lista</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('analytics',this)" style="padding-left:20px"><span class="nav-icon">◑</span><span>Analytics</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
-
-
     </div>
 
-    <!-- Grupo colapsável: Projetos (independente do Orçamento) -->
+    <!-- ─ PROJETOS ───────────────────────────────────────── -->
+    <span class="nav-section-label">Projetos · B2B & B2C</span>
     <div class="nav-group-header" id="nav-group-projetos" onclick="toggleNavGroup('projetos')">
       <span class="nav-icon">◉</span>
-      <span>Projetos</span>
+      <span>Projetos <span id="nav-proj-count" class="nav-count"></span></span>
       <span class="nav-group-arrow" id="arrow-projetos">▸</span>
     </div>
     <div class="nav-group-body" id="group-body-projetos">
@@ -503,6 +517,34 @@ td{padding:10px 15px;font-size:12px;}
     </div>
 
     <!-- ═══ VISÃO GERAL — Story Points unificado ═══ -->
+    <!-- ── DASHBOARD EXECUTIVO ─────────────────────────────── -->
+    <div class="view" id="view-home">
+      <div style="margin-bottom:24px;">
+        <h2 style="font-size:18px;font-weight:600;color:var(--text);margin:0 0 4px">Dashboard</h2>
+        <div style="font-size:12px;color:var(--muted)">Visão executiva consolidada · Orçamento + Projetos</div>
+      </div>
+      <div id="home-kpi-row" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px;"></div>
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="chart-title" style="margin:0">⚠️ Alertas e atrasos</div>
+          <span id="home-alert-count" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div id="home-alerts" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;"></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="chart-title" style="margin:0">🗓 Próximas entregas <span style="font-size:11px;font-weight:400;color:var(--muted)">(próximos 30 dias)</span></div>
+          <span id="home-upcoming-count" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div id="home-upcoming" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;"></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="chart-title" style="margin-bottom:14px">👥 Capacity do time · Projetos</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">🟢 ≤125pt &nbsp; 🟡 ≤150pt &nbsp; 🔴 >150pt</div>
+        <div id="home-capacity" style="display:flex;flex-direction:column;gap:5px;"></div>
+      </div>
+    </div>
+
     <div class="view" id="view-overview">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
@@ -1108,6 +1150,18 @@ function loadIssues(data, filename) {
   if (setupEl) setupEl.style.display = 'none';
   if (appEl)   appEl.style.display = 'block';
   toast('✓ ' + issues.length + ' issues carregados!', 'ok');
+  updateNavCounts();
+  // Abrir Dashboard como tela inicial na primeira carga
+  const hasActiveView = document.querySelector('.view.active');
+  const isBoard = hasActiveView && hasActiveView.id === 'view-board';
+  if (!hasActiveView || isBoard) {
+    const navHome = document.getElementById('nav-home');
+    switchView('home', navHome);
+  } else {
+    // Se home já está ativo, re-renderizar com os novos dados
+    const homeView = document.getElementById('view-home');
+    if (homeView && homeView.classList.contains('active')) renderHome();
+  }
   // Exibe versão na sidebar
   fetch('/api/status').then(r=>r.json()).then(d=>{
     const el = document.getElementById('app-version');
@@ -1297,8 +1351,12 @@ function renderBoard() {
       <div class="col-cards" style="${collapsed ? 'display:none' : ''}">${items.map(i=>`
         <div class="card" onclick="openIssue('${i.key}')">
           <div class="card-key">${i.key}</div>
-          <div class="card-title" title="${i.summary}">${i.summary.replace(/ODY-\d+ - /,'').slice(0,75)}</div>
-          <div class="card-footer">${av(i.assignee)}<span class="client-tag">${i.client}</span><span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${i.sp==null?'rgba(107,114,128,0.08)':i.sp>=21?'rgba(220,38,38,0.1)':i.sp>=13?'rgba(217,119,6,0.1)':'rgba(22,101,52,0.1)'};color:${i.sp==null?'var(--muted)':i.sp>=21?'#dc2626':i.sp>=13?'#d97706':'#166534'};font-family:'DM Mono',monospace;font-weight:600">${i.sp!=null?i.sp+'pt':'—'}</span></div>
+          <div class="card-title" title="${i.summary}">${i.summary.replace(/ODY-\d+ - /,'').slice(0,80)}</div>
+          <div class="card-footer">
+            ${av(i.assignee)}
+            <span class="card-client" title="${i.client}">${i.client}</span>
+            <span class="card-sp ${i.sp==null?'sp-none':i.sp>=21?'sp-over':i.sp>=13?'sp-warn':'sp-ok'}">${i.sp!=null?i.sp+'pt':'—'}</span>
+          </div>
         </div>`).join('')}
       </div>`;
     el.appendChild(col);
@@ -1706,9 +1764,9 @@ function switchView(v, el) {
   // Remove active apenas dos itens de visão (não dos filtros de responsável)
   document.querySelectorAll('.nav-view-item').forEach(n=>n.classList.remove('active'));
   if (el) el.classList.add('active');
+  if (v === 'home')       setTimeout(renderHome, 0);
   if (v === 'sp')         setTimeout(renderSP, 0);
   if (v === 'overview')   setTimeout(renderOverview, 0);
-  if (v === 'monthly')    setTimeout(renderMonthly, 0);
   if (v === 'monthly')    setTimeout(renderMonthly, 0);
   if (v === 'proj-board') setTimeout(renderProjBoard, 0);
   if (v === 'proj-table') setTimeout(renderProjTable, 0);
@@ -1886,6 +1944,10 @@ async function syncProjIssues(force = false) {
     renderProjSP();
     renderOverview();
     renderMonthly();
+    updateNavCounts();
+    // Atualizar dashboard se estiver visível
+    const homeView = document.getElementById('view-home');
+    if (homeView && homeView.classList.contains('active')) renderHome();
     const src = d.fromCache ? '📦 cache' : (d.incremental ? '⚡ delta' : '🔄 completo');
     toast('✓ Projetos: ' + projIssues.length + ' issues · ' + src, 'ok');
     updateCacheIndicator('b2b1', d);
@@ -1977,11 +2039,11 @@ function renderProjBoard() {
         const pm = projPersonMap[i.assignee] || personMap[i.assignee] || {initials:'?',bg:'#222',color:'#888'};
         return `<div class="card" onclick="openIssue('${i.key}')">
           <div class="card-key">${i.key}</div>
-          <div class="card-title" title="${i.summary}">${i.summary.slice(0,70)}</div>
+          <div class="card-title" title="${i.summary}">${i.summary.slice(0,75)}</div>
           <div class="card-footer">
             <div class="av" style="background:${pm.bg};color:${pm.color}" title="${i.assignee}">${pm.initials}</div>
             ${prazoBadge(i.goLivePlanejado)}
-            <span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${i.sp==null?'rgba(107,114,128,0.08)':i.sp>=21?'rgba(220,38,38,0.1)':i.sp>=13?'rgba(217,119,6,0.1)':'rgba(22,101,52,0.1)'};color:${i.sp==null?'var(--muted)':i.sp>=21?'#dc2626':i.sp>=13?'#d97706':'#166534'};font-family:'DM Mono',monospace;font-weight:600">${i.sp!=null?i.sp+'pt':'—'}</span>
+            <span class="card-sp ${i.sp==null?'sp-none':i.sp>=21?'sp-over':i.sp>=13?'sp-warn':'sp-ok'}">${i.sp!=null?i.sp+'pt':'—'}</span>
           </div>
         </div>`;
       }).join('') +
@@ -3318,6 +3380,179 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('search-input').blur();
   }
 });
+
+// ── DASHBOARD EXECUTIVO ──────────────────────────────────────────────────────
+function renderHome() {
+  const kpiEl      = document.getElementById('home-kpi-row');
+  const alertEl    = document.getElementById('home-alerts');
+  const alertCntEl = document.getElementById('home-alert-count');
+  const upcomEl    = document.getElementById('home-upcoming');
+  const upcomCntEl = document.getElementById('home-upcoming-count');
+  const capEl      = document.getElementById('home-capacity');
+  if (!kpiEl) return;
+
+  // Se nenhum dado carregou ainda, mostrar loading e aguardar
+  if ((!projIssues || projIssues.length === 0) && (!issues || issues.length === 0)) {
+    const loadingHtml = `<div style="display:flex;align-items:center;gap:10px;padding:16px;color:var(--muted);font-size:12px;">
+      <span style="display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0"></span>
+      Carregando dados de Projetos...
+    </div>`;
+    kpiEl.innerHTML = loadingHtml;
+    if (alertEl)  alertEl.innerHTML  = loadingHtml;
+    if (upcomEl)  upcomEl.innerHTML  = loadingHtml;
+    if (capEl)    capEl.innerHTML    = loadingHtml;
+    // Verificar novamente em 500ms
+    setTimeout(() => {
+      const homeView = document.getElementById('view-home');
+      if (homeView && homeView.classList.contains('active')) renderHome();
+    }, 500);
+    return;
+  }
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const STATUS_ATIVOS_PROJ = ['Backlog','Iniciação','Planejamento','Desenvolvimento',
+    'Em Andamento','Sign Off','Homologação','Homologação e preparação para Go Live',
+    'Operação Assistida','Aguardando Cliente'];
+  const STATUS_ATIVOS_ORC  = ['Backlog','Em Andamento','Proposta Enviada',
+    'Aguardando Cliente','Aguardando Execução','Em Execução'];
+
+  // Todos os issues ativos
+  const ativosProj = projIssues.filter(i => STATUS_ATIVOS_PROJ.includes(i.status) && isProjActive(i.assignee));
+  const ativosOrc  = issues.filter(i => STATUS_ATIVOS_ORC.includes(i.status));
+
+  // ── KPIs ──────────────────────────────────────────────────────────────────
+  const totalSPProj = ativosProj.filter(i=>i.sp>0).reduce((a,i)=>a+i.sp,0);
+  const totalSPOrc  = ativosOrc.filter(i=>i.sp>0).reduce((a,i)=>a+i.sp,0);
+  const atrasados   = ativosProj.filter(i=>{
+    if (!i.goLivePlanejado) return false;
+    const d = new Date(i.goLivePlanejado); return !isNaN(d) && d < hoje && d.getFullYear()>=2020;
+  });
+  const semData = ativosProj.filter(i=>!i.goLivePlanejado||new Date(i.goLivePlanejado).getFullYear()<2020);
+
+  const kpis = [
+    { label:'Issues ativos',   value: ativosProj.length + ativosOrc.length, sub:'Orçamento + Projetos', color:'#6366f1' },
+    { label:'SP total Projetos', value: totalSPProj+'pt', sub: ativosProj.filter(i=>i.sp>0).length+' estimados', color:'#0891b2' },
+    { label:'SP total Orçamento', value: totalSPOrc+'pt', sub: ativosOrc.filter(i=>i.sp>0).length+' estimados', color:'#7c3aed' },
+    { label:'Em atraso',        value: atrasados.length, sub:'Go Live vencido', color: atrasados.length>0?'#dc2626':'#16a34a' },
+    { label:'Sem data',         value: semData.length,   sub:'Sem Go Live', color: semData.length>0?'#d97706':'#16a34a' },
+  ];
+  kpiEl.innerHTML = kpis.map(k=>`
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">${k.label}</div>
+      <div style="font-size:24px;font-weight:700;color:${k.color};font-family:'Syne',sans-serif;line-height:1;margin-bottom:4px">${k.value}</div>
+      <div style="font-size:11px;color:var(--muted)">${k.sub}</div>
+    </div>`).join('');
+
+  // ── ALERTAS (atrasos + prazo < 7 dias) ────────────────────────────────────
+  const alertItems = ativosProj
+    .filter(i=>i.goLivePlanejado && new Date(i.goLivePlanejado).getFullYear()>=2020)
+    .map(i=>{ const d=new Date(i.goLivePlanejado); return {...i, diff:Math.ceil((d-hoje)/86400000)}; })
+    .filter(i=>i.diff<=7)
+    .sort((a,b)=>a.diff-b.diff);
+
+  alertCntEl.textContent = alertItems.length ? alertItems.length+' item(s)' : 'Nenhum';
+  if (alertItems.length===0) {
+    alertEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">✓ Nenhum projeto em atraso ou com prazo crítico</div>';
+  } else {
+    alertEl.innerHTML = alertItems.map(i=>{
+      const pm = projPersonMap[i.assignee]||{initials:'?',bg:'#333',color:'#888'};
+      const isOver = i.diff < 0;
+      const tagColor = isOver ? '#dc2626' : '#d97706';
+      const tagBg    = isOver ? 'rgba(220,38,38,0.1)' : 'rgba(217,119,6,0.1)';
+      const tagLabel = isOver ? `⚠ ${Math.abs(i.diff)}d atraso` : `⏱ ${i.diff}d`;
+      const short = i.assignee.split(' ').slice(0,2).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+      return `<div onclick="openIssue('${i.key}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid ${isOver?'rgba(220,38,38,0.2)':'rgba(217,119,6,0.2)'};background:${isOver?'rgba(220,38,38,0.04)':'rgba(217,119,6,0.04)'};cursor:pointer;">
+        <span style="font-size:9px;padding:2px 7px;border-radius:99px;background:${tagBg};color:${tagColor};font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0">${tagLabel}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${i.key}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.slice(0,60)}</div>
+        </div>
+        <div style="width:26px;height:26px;border-radius:50%;background:${pm.bg};color:${pm.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0" title="${i.assignee}">${pm.initials}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── PRÓXIMAS ENTREGAS (próximos 30 dias, excluindo atrasos) ───────────────
+  const em30 = new Date(hoje); em30.setDate(hoje.getDate()+30);
+  const upcoming = ativosProj
+    .filter(i=>{ if(!i.goLivePlanejado) return false; const d=new Date(i.goLivePlanejado); return !isNaN(d)&&d>=hoje&&d<=em30&&d.getFullYear()>=2020; })
+    .map(i=>({...i,diff:Math.ceil((new Date(i.goLivePlanejado)-hoje)/86400000)}))
+    .sort((a,b)=>a.diff-b.diff);
+
+  upcomCntEl.textContent = upcoming.length ? upcoming.length+' entrega(s)' : 'Nenhuma';
+  const MESES_PT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  if (upcoming.length===0) {
+    upcomEl.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Nenhuma entrega prevista nos próximos 30 dias</div>';
+  } else {
+    upcomEl.innerHTML = upcoming.map(i=>{
+      const pm=projPersonMap[i.assignee]||{initials:'?',bg:'#333',color:'#888'};
+      const d=new Date(i.goLivePlanejado);
+      const dateLabel=MESES_PT[d.getMonth()]+' '+d.getDate();
+      const urgency=i.diff<=7?'rgba(217,119,6,0.12)':'rgba(22,163,74,0.08)';
+      const urgencyBorder=i.diff<=7?'rgba(217,119,6,0.2)':'rgba(22,163,74,0.15)';
+      return `<div onclick="openIssue('${i.key}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid ${urgencyBorder};background:${urgency};cursor:pointer;">
+        <div style="text-align:center;min-width:38px;flex-shrink:0">
+          <div style="font-size:16px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text);line-height:1">${d.getDate()}</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase">${MESES_PT[d.getMonth()]}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${i.key}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.slice(0,60)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          ${i.sp?`<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(99,102,241,0.1);color:#6366f1;font-family:'DM Mono',monospace;font-weight:700">${i.sp}pt</span>`:''}
+          <div style="width:26px;height:26px;border-radius:50%;background:${pm.bg};color:${pm.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700" title="${i.assignee}">${pm.initials}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── CAPACITY GERAL DO TIME ────────────────────────────────────────────────
+  const capByPerson = {};
+  ativosProj.filter(i=>i.sp>0).forEach(i=>{
+    if (!isProjActive(i.assignee)) return;
+    capByPerson[i.assignee]=(capByPerson[i.assignee]||0)+i.sp;
+  });
+  const capSorted = Object.entries(capByPerson).sort((a,b)=>b[1]-a[1]);
+  const capMax = Math.max(...capSorted.map(([,v])=>v), 200);
+  if (capSorted.length===0) {
+    capEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Nenhum dado de capacity disponível</div>';
+  } else {
+    capEl.innerHTML = capSorted.map(([name,sp])=>{
+      const f = sp<=125?{color:'#16a34a',emoji:'🟢'}:sp<=150?{color:'#d97706',emoji:'🟡'}:{color:'#dc2626',emoji:'🔴'};
+      const pct = Math.round(sp/capMax*100);
+      const pct125 = Math.round(125/capMax*100);
+      const pct150 = Math.round(150/capMax*100);
+      const short = name.split(' ').slice(0,2).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+      const pm = projPersonMap[name]||{initials:'?',bg:'#333',color:'#888'};
+      return `<div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:14px;flex-shrink:0">${f.emoji}</span>
+        <div style="font-size:12px;font-weight:600;min-width:110px;color:var(--text)">${short}</div>
+        <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(22,163,74,0.06);border-right:1.5px dashed rgba(22,163,74,0.4)"></div>
+          <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(217,119,6,0.04);border-right:1.5px dashed rgba(217,119,6,0.4)"></div>
+          <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${sp>0?'32px':'0'};transition:width .5s">${sp>0?sp+'pt':''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── ATUALIZAR CONTADORES DA SIDEBAR ─────────────────────────────────────────
+function updateNavCounts() {
+  const orcEl  = document.getElementById('nav-orc-count');
+  const projEl = document.getElementById('nav-proj-count');
+  const STATUS_ATIVOS_ORC = ['Backlog','Em Andamento','Proposta Enviada','Aguardando Cliente','Aguardando Execução','Em Execução'];
+  const STATUS_ATIVOS_PROJ_NAV = ['Backlog','Iniciação','Planejamento','Desenvolvimento','Em Andamento','Sign Off','Homologação','Homologação e preparação para Go Live','Operação Assistida','Aguardando Cliente'];
+  if (orcEl) {
+    const n = issues.filter(i => STATUS_ATIVOS_ORC.includes(i.status)).length;
+    orcEl.textContent = n > 0 ? n : '';
+  }
+  if (projEl) {
+    const n = projIssues.filter(i => STATUS_ATIVOS_PROJ_NAV.includes(i.status)).length;
+    projEl.textContent = n > 0 ? n : '';
+  }
+}
 
 // ── AUTO INIT ─────────────────────────────────────────────────────────────────
 (async function init() {
