@@ -7,11 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0d0d10; --surface:#16161a; --surface2:#1e1e24;
+  --bg:#0a0910; --surface:#13111a; --surface2:#1c1924;
   --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
-  --text:#e8e8f0; --muted:#6b6b7d;
-  --accent:#7c5cfc; --accent2:#c084fc;
-  --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --blue:#3b82f6; --pink:#ec4899;
+  --text:#F0EFF5; --muted:#7A7488;
+  --accent:#3F3354; --accent2:#7A6CFF;
+  --green:#32CC7E; --amber:#FFAC48; --red:#E52862; --blue:#43BDDE; --pink:#E52862;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
@@ -20,7 +20,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .upload-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:24px;}
 .upload-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;width:520px;max-width:95vw;}
 .upload-logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;margin-bottom:4px;display:flex;align-items:center;gap:10px;}
-.upload-logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;}
+.upload-logo-dot{width:8px;height:8px;background:#3F3354;border-radius:50%;}
 .upload-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
 .drop-zone{border:2px dashed var(--border2);border-radius:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px;position:relative;}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(124,92,252,0.05);}
@@ -39,21 +39,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .upload-or::before{left:0;} .upload-or::after{right:0;}
 .demo-btn{width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .demo-btn:hover{border-color:var(--border2);color:var(--text);}
-.upload-error{margin-top:12px;padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:12px;color:#fca5a5;display:none;}
+.upload-error{margin-top:12px;padding:10px 14px;background:rgba(229,40,98,0.1);border:1px solid rgba(229,40,98,0.2);border-radius:8px;font-size:12px;color:#fca5a5;display:none;}
 
 /* ── SIDEBAR ── */
 .sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;}
 .logo{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;display:flex;align-items:center;gap:10px;}
-.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;}
+.logo-dot{width:8px;height:8px;background:#3F3354;border-radius:50%;flex-shrink:0;}
 .logo small{color:var(--muted);font-weight:400;font-size:11px;display:block;font-family:'DM Mono',monospace;}
 .nav{padding:10px 10px;flex:1;overflow-y:auto;}
 .nav-section{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);padding:12px 12px 5px;letter-spacing:.08em;text-transform:uppercase;}
 .nav-section-label{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);padding:16px 12px 5px;letter-spacing:.07em;text-transform:uppercase;opacity:.5;display:block;}
-.nav-count{font-size:10px;font-family:'DM Mono',monospace;background:rgba(99,102,241,0.12);border-radius:99px;padding:0 6px;color:#818cf8;font-weight:600;margin-left:3px;}
+.nav-count{font-size:10px;font-family:'DM Mono',monospace;background:rgba(122,108,255,0.15);border-radius:99px;padding:0 6px;color:#a99bff;font-weight:600;margin-left:3px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;}
 .nav-item:hover{background:var(--surface2);color:var(--text);}
-.nav-item.active{background:rgba(124,92,252,0.15);color:var(--accent2);border-left:3px solid var(--accent2);padding-left:9px;}
-.nav-filter-item.active{background:rgba(124,92,252,0.15)!important;border-color:rgba(124,92,252,0.4)!important;color:var(--accent2)!important;}
+.nav-item.active{background:rgba(63,51,84,0.35);color:var(--accent2);border-left:3px solid #7A6CFF;padding-left:9px;}
+.nav-filter-item.active{background:rgba(63,51,84,0.35)!important;border-color:rgba(124,92,252,0.4)!important;color:var(--accent2)!important;}
 .nav-group-header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none;}
 .nav-group-header:hover{background:var(--surface2);}
 .nav-group-arrow{margin-left:auto;font-size:10px;color:var(--muted);transition:transform .2s;}
@@ -67,12 +67,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .config-menu.open{display:flex;}
 .config-menu-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;}
 .config-menu-item:hover{background:var(--surface2);color:var(--text);}
-.config-menu-item.danger{color:#ef4444;}
-.config-menu-item.danger:hover{background:rgba(239,68,68,0.08);}
+.config-menu-item.danger{color:#E52862;}
+.config-menu-item.danger:hover{background:rgba(229,40,98,0.08);}
 .footer-info{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;}
 .footer-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 10px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;width:100%;}
 .footer-btn:hover{border-color:var(--border2);color:var(--text);}
-.footer-btn.primary{background:rgba(124,92,252,0.1);border-color:rgba(124,92,252,0.2);color:var(--accent2);}
+.footer-btn.primary{background:rgba(63,51,84,0.25);border-color:rgba(124,92,252,0.2);color:var(--accent2);}
 .footer-btn.primary:hover{background:rgba(124,92,252,0.2);}
 
 /* ── MAIN ── */
@@ -99,7 +99,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .filters-bar{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;}
 .chip{padding:5px 12px;border-radius:99px;font-size:12px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif;}
 .chip:hover{color:var(--text);}
-.chip.active{background:rgba(124,92,252,0.15);border-color:rgba(124,92,252,0.3);color:var(--accent2);}
+.chip.active{background:rgba(63,51,84,0.35);border-color:rgba(124,92,252,0.3);color:var(--accent2);}
 .board-wrap{overflow-x:auto;padding-bottom:16px;position:relative;}@keyframes spin{to{transform:rotate(360deg)}}
 .board-wrap::after{content:'';position:absolute;top:0;right:0;width:56px;height:calc(100% - 16px);background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;z-index:2;}
 .board{display:flex;gap:12px;min-width:max-content;}
@@ -116,11 +116,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .card-key{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);opacity:.5;margin-bottom:4px;letter-spacing:.03em;}
 .card-title{font-size:13px;font-weight:500;line-height:1.5;margin-bottom:8px;color:var(--text);}
 .card-footer{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.card-client{font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(99,102,241,0.08);color:#818cf8;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px;}
+.card-client{font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(122,108,255,0.1);color:#a99bff;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px;}
 .card-sp{font-size:10px;padding:2px 7px;border-radius:99px;font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0;}
-.card-sp.sp-ok{background:rgba(22,163,74,0.1);color:#166534;}
-.card-sp.sp-warn{background:rgba(217,119,6,0.1);color:#d97706;}
-.card-sp.sp-over{background:rgba(220,38,38,0.1);color:#dc2626;}
+.card-sp.sp-ok{background:rgba(50,204,126,0.1);color:#0e7a3e;}
+.card-sp.sp-warn{background:rgba(255,172,72,0.1);color:#e69020;}
+.card-sp.sp-over{background:rgba(229,40,98,0.1);color:#E52862;}
 .card-sp.sp-none{background:rgba(107,114,128,0.08);color:var(--muted);}
 .client-tag{font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,0.05);color:var(--muted);}
 
@@ -172,7 +172,7 @@ td{padding:10px 15px;font-size:12px;}
 .ai-btn{padding:9px 16px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .ai-btn:hover{background:#6a4de0;}
 .ai-btn:disabled{opacity:.5;cursor:not-allowed;}
-.ai-resp{margin-top:11px;padding:13px;background:rgba(124,92,252,0.07);border:1px solid rgba(124,92,252,0.15);border-radius:10px;font-size:13px;line-height:1.65;display:none;white-space:pre-wrap;}
+.ai-resp{margin-top:11px;padding:13px;background:rgba(124,92,252,0.07);border:1px solid rgba(63,51,84,0.35);border-radius:10px;font-size:13px;line-height:1.65;display:none;white-space:pre-wrap;}
 .ai-spin{display:none;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-top:10px;}
 .dots span{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--accent);animation:dk 1s infinite;}
 .dots span:nth-child(2){animation-delay:.2s;} .dots span:nth-child(3){animation-delay:.4s;}
@@ -207,7 +207,7 @@ td{padding:10px 15px;font-size:12px;}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-color:rgba(34,197,94,.3);}
-.toast.err{border-color:rgba(239,68,68,.3);}
+.toast.err{border-color:rgba(229,40,98,.3);}
 
 @media(max-width:900px){
   .sidebar{width:58px;}
@@ -223,7 +223,7 @@ td{padding:10px 15px;font-size:12px;}
 <!-- SETUP SCREEN -->
 <div id="splash-screen" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:16px;">
   <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:10px;height:10px;background:var(--accent);border-radius:50%;animation:splashPulse 1.2s ease-in-out infinite"></div>
+    <div style="width:10px;height:10px;background:#3F3354;border-radius:50%;animation:splashPulse 1.2s ease-in-out infinite"></div>
     <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--text)">C.P · Controle Projetos</span>
   </div>
   <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Carregando...</div>
@@ -267,7 +267,7 @@ td{padding:10px 15px;font-size:12px;}
       style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer">
       Conectar e carregar issues
     </button>
-    <div id="setup-error" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:12px;color:#fca5a5"></div>
+    <div id="setup-error" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(229,40,98,0.1);border:1px solid rgba(229,40,98,0.2);border-radius:8px;font-size:12px;color:#fca5a5"></div>
     <div id="setup-progress" style="display:none;margin-top:10px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center"></div>
   </div>
 </div>
@@ -276,7 +276,7 @@ td{padding:10px 15px;font-size:12px;}
 <div id="app" style="display:none">
 <div class="sidebar">
   <div class="logo">
-    <div class="logo-dot" style="width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;"></div>
+    <div class="logo-dot" style="width:8px;height:8px;background:#3F3354;border-radius:50%;flex-shrink:0;"></div>
     <div>
       <strong>C.P</strong>
       <small>infracommerce</small>
@@ -402,7 +402,7 @@ td{padding:10px 15px;font-size:12px;}
           <div class="stat-value" id="s-backlog">0</div>
           <div class="stat-sub" id="s-backlog-pct"></div>
         </div>
-        <div class="stat-card" style="--c:#3b82f6">
+        <div class="stat-card" style="--c:#43BDDE">
           <div class="stat-label">Em Andamento</div>
           <div class="stat-value" id="s-andamento">0</div>
           <div class="stat-sub" id="s-andamento-pct"></div>
@@ -417,22 +417,22 @@ td{padding:10px 15px;font-size:12px;}
           <div class="stat-value" id="s-agcliente">0</div>
           <div class="stat-sub" id="s-agcliente-pct"></div>
         </div>
-        <div class="stat-card" style="--c:#f59e0b">
+        <div class="stat-card" style="--c:#FFAC48">
           <div class="stat-label">Ag. Execução</div>
           <div class="stat-value" id="s-agexec">0</div>
           <div class="stat-sub" id="s-agexec-pct"></div>
         </div>
-        <div class="stat-card" style="--c:#ec4899">
+        <div class="stat-card" style="--c:#E52862">
           <div class="stat-label">Em Execução</div>
           <div class="stat-value" id="s-execucao">0</div>
           <div class="stat-sub" id="s-execucao-pct"></div>
         </div>
-        <div class="stat-card" style="--c:#22c55e">
+        <div class="stat-card" style="--c:#32CC7E">
           <div class="stat-label">Concluído</div>
           <div class="stat-value" id="s-concluido">0</div>
           <div class="stat-sub" id="s-concluido-pct"></div>
         </div>
-        <div class="stat-card" style="--c:#ef4444">
+        <div class="stat-card" style="--c:#E52862">
           <div class="stat-label">Cancelado</div>
           <div class="stat-value" id="s-cancelado">0</div>
           <div class="stat-sub" id="s-cancelado-pct"></div>
@@ -471,14 +471,14 @@ td{padding:10px 15px;font-size:12px;}
     <div class="view" id="view-sp">
 
       <!-- Info banner: SP not filled -->
-      <div id="sp-info-banner" style="display:none;align-items:center;gap:14px;padding:14px 18px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:12px;margin-bottom:16px;">
+      <div id="sp-info-banner" style="display:none;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,172,72,0.08);border:1px solid rgba(255,172,72,0.25);border-radius:12px;margin-bottom:16px;">
         <span style="font-size:20px;flex-shrink:0">⚠</span>
         <div style="flex:1">
           <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">Story Points não preenchidos no Jira</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.5">Para ativar esta tela, abra cada issue no Jira e preencha o campo <strong style="color:var(--text)">Story Points</strong>. Após preencher, clique em <strong style="color:var(--text)">↻ Sincronizar</strong> na sidebar para atualizar.</div>
         </div>
         <a href="https://infracommerce.atlassian.net/jira/software/c/projects/ODYJS/boards/5135" target="_blank" style="text-decoration:none;flex-shrink:0">
-          <button class="act-btn" style="font-size:12px;border-color:rgba(245,158,11,0.4);color:#92400E">↗ Abrir Jira</button>
+          <button class="act-btn" style="font-size:12px;border-color:rgba(255,172,72,0.4);color:#92400E">↗ Abrir Jira</button>
         </a>
       </div>
 
@@ -656,7 +656,7 @@ td{padding:10px 15px;font-size:12px;}
 
     <!-- ═══ PROJETOS — Story Points ═══ -->
     <div class="view" id="view-proj-sp">
-      <div id="proj-sp-banner" style="display:none;align-items:center;gap:14px;padding:14px 18px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:12px;margin-bottom:16px;">
+      <div id="proj-sp-banner" style="display:none;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,172,72,0.08);border:1px solid rgba(255,172,72,0.25);border-radius:12px;margin-bottom:16px;">
         <span style="font-size:20px">⚠</span>
         <div style="flex:1">
           <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px">Story Points não preenchidos</div>
@@ -697,7 +697,7 @@ td{padding:10px 15px;font-size:12px;}
     <!-- Tabs Orçamento / Projetos -->
     <div style="display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px;">
       <button id="ftab-odyjs" onclick="switchFilterTab('odyjs')"
-        style="padding:5px 16px;border-radius:20px;border:1px solid var(--accent);background:rgba(124,92,252,0.15);color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace">◧ Orçamento</button>
+        style="padding:5px 16px;border-radius:20px;border:1px solid var(--accent);background:rgba(63,51,84,0.35);color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace">◧ Orçamento</button>
       <button id="ftab-b2b1" onclick="switchFilterTab('b2b1')"
         style="padding:5px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace">◉ Projetos</button>
     </div>
@@ -794,7 +794,7 @@ td{padding:10px 15px;font-size:12px;}
       <div class="meta-item"><label>Status</label><div id="m-status"></div></div>
       <div class="meta-item"><label>Cliente</label><div id="m-client" style="font-size:13px"></div></div>
       <div class="meta-item"><label>Responsável</label><div id="m-assignee" style="font-size:13px"></div></div>
-      <div class="meta-item"><label>Story Points</label><div id="m-sp" style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:#166534"></div></div>
+      <div class="meta-item"><label>Story Points</label><div id="m-sp" style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:#0e7a3e"></div></div>
     </div>
     <div class="modal-actions">
       <a id="m-link" href="#" target="_blank"><button class="act-btn">↗ Abrir no Jira</button></a>
@@ -819,13 +819,13 @@ const API = (location.protocol === 'file:') ? 'http://localhost:3131' : '';
 
 const STATUS_CFG = {
   'Backlog':               {color:'#6b7280',bg:'rgba(107,114,128,0.12)'},
-  'Em Andamento':          {color:'#3b82f6',bg:'rgba(59,130,246,0.12)'},
+  'Em Andamento':          {color:'#43BDDE',bg:'rgba(67,189,222,0.12)'},
   'Proposta Enviada':      {color:'#a78bfa',bg:'rgba(167,139,250,0.12)'},
   'Aguardando Cliente':    {color:'#f97316',bg:'rgba(249,115,22,0.12)'},
-  'Aguardando Execução':   {color:'#f59e0b',bg:'rgba(245,158,11,0.12)'},
-  'Em Execução':           {color:'#ec4899',bg:'rgba(236,72,153,0.12)'},
-  'Concluído':             {color:'#22c55e',bg:'rgba(34,197,94,0.12)'},
-  'Recusado / Cancelado':  {color:'#ef4444',bg:'rgba(239,68,68,0.12)'},
+  'Aguardando Execução':   {color:'#FFAC48',bg:'rgba(255,172,72,0.12)'},
+  'Em Execução':           {color:'#E52862',bg:'rgba(236,72,153,0.12)'},
+  'Concluído':             {color:'#32CC7E',bg:'rgba(34,197,94,0.12)'},
+  'Recusado / Cancelado':  {color:'#E52862',bg:'rgba(229,40,98,0.12)'},
 };
 const STATUS_ORDER = Object.keys(STATUS_CFG);
 
@@ -858,7 +858,7 @@ function mapStatus(raw) {
 }
 
 const PERSON_COLORS = [
-  {bg:'#1a1a3e',color:'#818cf8'},{bg:'#1e2e1e',color:'#4ade80'},
+  {bg:'#1a1a3e',color:'#a99bff'},{bg:'#1e2e1e',color:'#4ade80'},
   {bg:'#2e1e2e',color:'#f472b6'},{bg:'#2e2a1e',color:'#fbbf24'},
   {bg:'#1e2e2e',color:'#2dd4bf'},{bg:'#2e1e1e',color:'#f87171'},
   {bg:'#1e1e2e',color:'#a78bfa'},{bg:'#2a2e1e',color:'#86efac'},
@@ -1372,7 +1372,7 @@ function renderTable() {
       <td>${i.client}</td>
       <td>${pill(i.status)}</td>
       <td>${av(i.assignee)}</td>
-      <td style="text-align:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:#166534"><span style="color:${i.sp != null ? '#166534' : 'var(--muted)'};font-weight:${i.sp != null ? '700' : '400'}">${i.sp != null ? i.sp : '—'}</span></td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:#0e7a3e"><span style="color:${i.sp != null ? '#0e7a3e' : 'var(--muted)'};font-weight:${i.sp != null ? '700' : '400'}">${i.sp != null ? i.sp : '—'}</span></td>
     </tr>`).join('');
 }
 
@@ -1434,26 +1434,26 @@ function renderSP() {
   const STATUSES = ['Backlog','Em Andamento','Proposta Enviada','Aguardando Cliente',
                     'Aguardando Execução','Em Execução','Concluído','Recusado / Cancelado'];
   const S_COLOR = {
-    'Backlog':'#6b7280','Em Andamento':'#3b82f6','Proposta Enviada':'#a78bfa',
-    'Aguardando Cliente':'#f97316','Aguardando Execução':'#f59e0b',
-    'Em Execução':'#ec4899','Concluído':'#22c55e','Recusado / Cancelado':'#ef4444',
+    'Backlog':'#6b7280','Em Andamento':'#43BDDE','Proposta Enviada':'#a78bfa',
+    'Aguardando Cliente':'#f97316','Aguardando Execução':'#FFAC48',
+    'Em Execução':'#E52862','Concluído':'#32CC7E','Recusado / Cancelado':'#E52862',
   };
   const S_BG = {
-    'Backlog':'rgba(107,114,128,0.1)','Em Andamento':'rgba(59,130,246,0.1)',
+    'Backlog':'rgba(107,114,128,0.1)','Em Andamento':'rgba(67,189,222,0.1)',
     'Proposta Enviada':'rgba(167,139,250,0.1)','Aguardando Cliente':'rgba(249,115,22,0.1)',
-    'Aguardando Execução':'rgba(245,158,11,0.1)','Em Execução':'rgba(236,72,153,0.1)',
-    'Concluído':'rgba(34,197,94,0.1)','Recusado / Cancelado':'rgba(239,68,68,0.1)',
+    'Aguardando Execução':'rgba(255,172,72,0.1)','Em Execução':'rgba(236,72,153,0.1)',
+    'Concluído':'rgba(34,197,94,0.1)','Recusado / Cancelado':'rgba(229,40,98,0.1)',
   };
-  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
 
   // ── Capacity rules ────────────────────────────────────────────────────────
   // 0–125   → Verde  🟢
   // 126–150 → Amarelo 🟡
   // 151+    → Vermelho 🔴
   function capacityFarol(sp) {
-    if (sp <= 125) return { emoji:'🟢', label:'Verde',    color:'#16a34a', bg:'rgba(22,163,74,0.1)',   border:'rgba(22,163,74,0.3)',   text:'Capacity OK' };
-    if (sp <= 150) return { emoji:'🟡', label:'Amarelo',  color:'#d97706', bg:'rgba(217,119,6,0.1)',   border:'rgba(217,119,6,0.3)',   text:'Atenção' };
-    return             { emoji:'🔴', label:'Vermelho',  color:'#dc2626', bg:'rgba(220,38,38,0.1)',   border:'rgba(220,38,38,0.3)',   text:'Sobrecarga' };
+    if (sp <= 125) return { emoji:'🟢', label:'Verde',    color:'#32CC7E', bg:'rgba(50,204,126,0.1)',   border:'rgba(50,204,126,0.3)',   text:'Capacity OK' };
+    if (sp <= 150) return { emoji:'🟡', label:'Amarelo',  color:'#e69020', bg:'rgba(255,172,72,0.1)',   border:'rgba(255,172,72,0.3)',   text:'Atenção' };
+    return             { emoji:'🔴', label:'Vermelho',  color:'#E52862', bg:'rgba(229,40,98,0.1)',   border:'rgba(229,40,98,0.3)',   text:'Sobrecarga' };
   }
 
   const f = getFiltered();
@@ -1515,7 +1515,7 @@ function renderSP() {
       <div style="font-size:10px;font-weight:600;color:${farol.color};margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">${farol.text}</div>
       <!-- Progress bar: 0-125 green zone -->
       <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;position:relative;">
-        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(22,163,74,0.15);border-right:1px dashed rgba(22,163,74,0.4)"></div>
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(50,204,126,0.15);border-right:1px dashed rgba(50,204,126,0.4)"></div>
         <div style="height:100%;width:${pct}%;background:${farol.color};border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);min-width:${p.total>0?'4px':'0'}"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">
@@ -1544,8 +1544,8 @@ function renderSP() {
         <span style="font-size:16px;flex-shrink:0">${farol.emoji}</span>
         <div style="font-size:12px;font-weight:600;min-width:120px;color:${pc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${short}</div>
         <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/Math.max(maxSP,200)*100)}%;background:rgba(22,163,74,0.06);border-right:1.5px dashed rgba(22,163,74,0.45)"></div>
-          <div style="position:absolute;left:${Math.round(125/Math.max(maxSP,200)*100)}%;top:0;bottom:0;width:${Math.round((150-125)/Math.max(maxSP,200)*100)}%;background:rgba(217,119,6,0.04);border-right:1.5px dashed rgba(217,119,6,0.45)"></div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/Math.max(maxSP,200)*100)}%;background:rgba(50,204,126,0.06);border-right:1.5px dashed rgba(50,204,126,0.45)"></div>
+          <div style="position:absolute;left:${Math.round(125/Math.max(maxSP,200)*100)}%;top:0;bottom:0;width:${Math.round((150-125)/Math.max(maxSP,200)*100)}%;background:rgba(255,172,72,0.04);border-right:1.5px dashed rgba(255,172,72,0.45)"></div>
           <div style="height:100%;width:${Math.round(p.total/Math.max(maxSP,200)*100)}%;background:${farol.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'};transition:width .5s">
             ${p.total > 0 ? p.total+'pt' : ''}
           </div>
@@ -1596,7 +1596,7 @@ function renderSP() {
       <th class="sp-matrix-th left" style="min-width:130px">Colaborador</th>
       <th class="sp-matrix-th">Capacity</th>
       <th class="sp-matrix-th">Issues</th>
-      <th class="sp-matrix-th" style="color:#166534">SP Total</th>
+      <th class="sp-matrix-th" style="color:#0e7a3e">SP Total</th>
       ${statusCols.map(s=>`<th class="sp-matrix-th" style="color:${S_COLOR[s]}">${s.replace('Recusado / Cancelado','Cancelado').replace('Aguardando ','Ag.')}</th>`).join('')}
       <th class="sp-matrix-th">Estimados</th>
     </tr></thead><tbody>`;
@@ -1629,7 +1629,7 @@ function renderSP() {
       <td class="sp-matrix-td name" style="font-weight:700">Total</td>
       <td class="sp-matrix-td"></td>
       <td class="sp-matrix-td total">${f.length}</td>
-      <td class="sp-matrix-td total" style="color:#166534">${totalSP}</td>
+      <td class="sp-matrix-td total" style="color:#0e7a3e">${totalSP}</td>
       ${statusCols.map(s=>`<td class="sp-matrix-td total" style="color:${S_COLOR[s]}">${spByStatus[s]||0}</td>`).join('')}
       <td class="sp-matrix-td" style="font-size:11px;color:var(--muted)">${hasSP.length}/${f.length}</td>
     </tr></tbody>`;
@@ -1685,14 +1685,14 @@ function renderManageModal() {
     const total    = issues.filter(i => i.assignee === name).length;
     const ativos   = issues.filter(i => i.assignee === name && !['Concluído','Recusado / Cancelado'].includes(i.status)).length;
     const inativos = total - ativos;
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:var(--surface2);border:1px solid ${active ? 'var(--border)' : 'rgba(239,68,68,0.2)'};">
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:var(--surface2);border:1px solid ${active ? 'var(--border)' : 'rgba(229,40,98,0.2)'};">
       <div class="av" style="background:${p.bg};color:${p.color};width:36px;height:36px;font-size:13px;flex-shrink:0;opacity:${active?1:0.4}">${p.initials}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500;color:${active?'var(--text)':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ')}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${total} issues · ${ativos} ativos · ${inativos} concluídos/cancelados</div>
       </div>
       <button onclick="this.disabled=true;this.textContent='...';togglePerson('${name.replace(/'/g,"\'")}')"
-        style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(239,68,68,0.3)'};background:${active?'var(--surface)':'rgba(239,68,68,0.08)'};color:${active?'var(--text)':'#ef4444'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
+        style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(229,40,98,0.3)'};background:${active?'var(--surface)':'rgba(229,40,98,0.08)'};color:${active?'var(--text)':'#E52862'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
         ${active ? '● Ativo' : '○ Inativo'}
       </button>
     </div>`;
@@ -1722,14 +1722,14 @@ function renderManageProjModal() {
     const total    = projIssues.filter(i=>i.assignee===name).length;
     const ativos   = projIssues.filter(i=>i.assignee===name && !['Concluído','Cancelado'].includes(i.status)).length;
     const inativos = total - ativos;
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:var(--surface2);border:1px solid ${active?'var(--border)':'rgba(239,68,68,0.2)'};">
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:var(--surface2);border:1px solid ${active?'var(--border)':'rgba(229,40,98,0.2)'};">
       <div class="av" style="background:${pm.bg};color:${pm.color};width:36px;height:36px;font-size:13px;flex-shrink:0;opacity:${active?1:0.4}">${pm.initials}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500;color:${active?'var(--text)':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ')}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${total} issues · ${ativos} ativos · ${inativos} concluídos/cancelados</div>
       </div>
       <button onclick="this.disabled=true;this.textContent='...';toggleProjPerson('${name.replace(/'/g,"\'")}')"
-        style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(239,68,68,0.3)'};background:${active?'var(--surface)':'rgba(239,68,68,0.08)'};color:${active?'var(--text)':'#ef4444'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
+        style="padding:6px 14px;border-radius:8px;border:1px solid ${active?'var(--border2)':'rgba(229,40,98,0.3)'};background:${active?'var(--surface)':'rgba(229,40,98,0.08)'};color:${active?'var(--text)':'#E52862'};font-size:12px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace">
         ${active ? '● Ativo' : '○ Inativo'}
       </button>
     </div>`;
@@ -1794,7 +1794,7 @@ function openIssue(key) {
   const mSpEl = document.getElementById('m-sp');
   if (mSpEl) {
     mSpEl.textContent = currentIssue.sp != null ? currentIssue.sp + ' pontos' : '— não informado';
-    mSpEl.style.color = currentIssue.sp != null ? '#166534' : 'var(--muted)';
+    mSpEl.style.color = currentIssue.sp != null ? '#0e7a3e' : 'var(--muted)';
     mSpEl.style.fontSize = currentIssue.sp != null ? '20px' : '13px';
   }
   document.getElementById('m-link').href = currentIssue.url;
@@ -1929,7 +1929,7 @@ async function syncProjIssues(force = false) {
     projIssues = d.issues || [];
     // Monta projPersonMap reaproveitando cores do personMap existente
     projPersonMap = {};
-    const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+    const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
     const names = [...new Set(projIssues.map(i=>i.assignee))].filter(n=>n&&n!=='Sem responsável');
     names.forEach((name, idx) => {
       projPersonMap[name] = personMap[name] || {
@@ -1961,27 +1961,27 @@ async function syncProjIssues(force = false) {
 const PROJ_S_COLOR = {
   'Backlog':             '#6b7280',
   'Iniciação':           '#8b5cf6',
-  'Planejamento':        '#3b82f6',
+  'Planejamento':        '#43BDDE',
   'Desenvolvimento':     '#06b6d4',
-  'Sign Off':            '#f59e0b',
+  'Sign Off':            '#FFAC48',
   'Homologação':         '#f97316',
-  'Operação Assistida':  '#ec4899',
+  'Operação Assistida':  '#E52862',
   'Aguardando Cliente':  '#eab308',
-  'Bloqueado':           '#ef4444',
-  'Cancelado':           '#dc2626',
-  'Concluído':           '#22c55e',
+  'Bloqueado':           '#E52862',
+  'Cancelado':           '#E52862',
+  'Concluído':           '#32CC7E',
 };
 const PROJ_S_BG = {
   'Backlog':             'rgba(107,114,128,0.1)',
   'Iniciação':           'rgba(139,92,246,0.1)',
-  'Planejamento':        'rgba(59,130,246,0.1)',
+  'Planejamento':        'rgba(67,189,222,0.1)',
   'Desenvolvimento':     'rgba(6,182,212,0.1)',
-  'Sign Off':            'rgba(245,158,11,0.1)',
+  'Sign Off':            'rgba(255,172,72,0.1)',
   'Homologação':         'rgba(249,115,22,0.1)',
   'Operação Assistida':  'rgba(236,72,153,0.1)',
   'Aguardando Cliente':  'rgba(234,179,8,0.1)',
-  'Bloqueado':           'rgba(239,68,68,0.12)',
-  'Cancelado':           'rgba(220,38,38,0.1)',
+  'Bloqueado':           'rgba(229,40,98,0.12)',
+  'Cancelado':           'rgba(229,40,98,0.1)',
   'Concluído':           'rgba(34,197,94,0.1)',
 };
 const PROJ_S_ORDER = Object.keys(PROJ_S_COLOR);
@@ -2073,7 +2073,7 @@ function renderProjTable() {
       <td style="padding:10px 15px;font-size:12px;max-width:300px;border-bottom:1px solid var(--border)">${i.summary.slice(0,80)}</td>
       <td style="padding:10px 15px;border-bottom:1px solid var(--border)"><span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${bg};color:${col};font-weight:500">${i.status}</span></td>
       <td style="padding:10px 15px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:${pm.bg};color:${pm.color};width:22px;height:22px;font-size:9px">${pm.initials}</div><span style="font-size:12px">${i.assignee.split(' ')[0]}</span></div></td>
-      <td style="padding:10px 15px;text-align:center;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${i.sp!=null?'#166534':'var(--muted)'}">${i.sp!=null?i.sp:'—'}</td>
+      <td style="padding:10px 15px;text-align:center;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${i.sp!=null?'#0e7a3e':'var(--muted)'}">${i.sp!=null?i.sp:'—'}</td>
       <td style="padding:10px 15px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border)">${i.updated}</td>
       <td style="padding:10px 15px;border-bottom:1px solid var(--border)">${prazoBadge(i.goLivePlanejado)}</td>
     </tr>`;
@@ -2088,7 +2088,7 @@ function renderProjSP() {
   const matrixEl  = document.getElementById('proj-sp-matrix');
   if (!cardsEl) return;
 
-  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
   const hasSP = projIssues.filter(i=>i.sp!=null&&i.sp>0);
   if (bannerEl) bannerEl.style.display = hasSP.length===0?'flex':'none';
 
@@ -2110,9 +2110,9 @@ function renderProjSP() {
   const maxSP   = Math.max(...sorted.map(([,p])=>p.total),1);
 
   function farol(sp) {
-    if (sp<=125) return {emoji:'🟢',label:'Verde',  color:'#16a34a',bg:'rgba(22,163,74,0.1)', border:'rgba(22,163,74,0.3)', text:'Capacity OK'};
-    if (sp<=150) return {emoji:'🟡',label:'Amarelo',color:'#d97706',bg:'rgba(217,119,6,0.1)', border:'rgba(217,119,6,0.3)', text:'Atenção'};
-    return           {emoji:'🔴',label:'Vermelho',color:'#dc2626',bg:'rgba(220,38,38,0.1)', border:'rgba(220,38,38,0.3)', text:'Sobrecarga'};
+    if (sp<=125) return {emoji:'🟢',label:'Verde',  color:'#32CC7E',bg:'rgba(50,204,126,0.1)', border:'rgba(50,204,126,0.3)', text:'Capacity OK'};
+    if (sp<=150) return {emoji:'🟡',label:'Amarelo',color:'#e69020',bg:'rgba(255,172,72,0.1)', border:'rgba(255,172,72,0.3)', text:'Atenção'};
+    return           {emoji:'🔴',label:'Vermelho',color:'#E52862',bg:'rgba(229,40,98,0.1)', border:'rgba(229,40,98,0.3)', text:'Sobrecarga'};
   }
 
   cardsEl.innerHTML = sorted.map(([name,p],idx) => {
@@ -2130,7 +2130,7 @@ function renderProjSP() {
       <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:32px;font-weight:800;color:${f.color};line-height:1;margin-bottom:4px">${p.total}</div>
       <div style="font-size:10px;font-weight:600;color:${f.color};margin-bottom:10px;text-transform:uppercase">${f.text}</div>
       <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;position:relative;">
-        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(22,163,74,0.15);border-right:1px dashed rgba(22,163,74,0.4)"></div>
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(50,204,126,0.15);border-right:1px dashed rgba(50,204,126,0.4)"></div>
         <div style="height:100%;width:${pct}%;background:${f.color};border-radius:99px;min-width:${p.total>0?'4px':'0'}"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">
@@ -2155,8 +2155,8 @@ function renderProjSP() {
           <span style="font-size:14px">${f.emoji}</span>
           <div style="font-size:12px;font-weight:600;min-width:110px;color:${P_COLORS[idx%P_COLORS.length]}">${short}</div>
           <div style="flex:1;height:22px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
-            <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(22,163,74,0.06);border-right:1px dashed rgba(22,163,74,0.4)"></div>
-            <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(217,119,6,0.05);border-right:1px dashed rgba(217,119,6,0.4)"></div>
+            <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(50,204,126,0.06);border-right:1px dashed rgba(50,204,126,0.4)"></div>
+            <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(255,172,72,0.05);border-right:1px dashed rgba(255,172,72,0.4)"></div>
             <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'}">${p.total>0?p.total+'pt':''}</div>
           </div>
           <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;font-weight:700;min-width:36px;text-align:right">${totalSP?Math.round(p.total/totalSP*100):0}%</div>
@@ -2204,7 +2204,7 @@ function renderProjSP() {
       <th class="sp-matrix-th left">Responsável</th>
       <th class="sp-matrix-th">Capacity</th>
       <th class="sp-matrix-th">Issues</th>
-      <th class="sp-matrix-th" style="color:#166534">SP Total</th>
+      <th class="sp-matrix-th" style="color:#0e7a3e">SP Total</th>
       ${stCols.map(s=>`<th class="sp-matrix-th" style="color:${PROJ_S_COLOR[s]}">${s.replace('Recusado / Cancelado','Cancelado').replace('Aguardando ','Ag.')}</th>`).join('')}
     </tr></thead><tbody>`;
     sorted.forEach(([name,p],idx)=>{
@@ -2223,7 +2223,7 @@ function renderProjSP() {
       <td class="sp-matrix-td name" style="font-weight:700">Total</td>
       <td class="sp-matrix-td"></td>
       <td class="sp-matrix-td total">${projIssues.length}</td>
-      <td class="sp-matrix-td total" style="color:#166534">${totalSP}</td>
+      <td class="sp-matrix-td total" style="color:#0e7a3e">${totalSP}</td>
       ${stCols.map(s=>`<td class="sp-matrix-td total" style="color:${PROJ_S_COLOR[s]}">${spByStatus[s]||0}</td>`).join('')}
     </tr></tbody>`;
     matrixEl.innerHTML = html;
@@ -2308,7 +2308,7 @@ function switchFilterTab(tab) {
     const btn = document.getElementById('ftab-' + t);
     if (!btn) return;
     const active = t === tab;
-    btn.style.background = active ? 'rgba(124,92,252,0.15)' : 'transparent';
+    btn.style.background = active ? 'rgba(63,51,84,0.35)' : 'transparent';
     btn.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
     btn.style.color = active ? 'var(--accent2)' : 'var(--muted)';
   });
@@ -2323,7 +2323,7 @@ function renderFilterSection(module, field, label, allValues) {
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       ${allValues.map(v => {
         const ignored = current.includes(v);
-        return `<div onclick="toggleFilterItem('${module}','${field}','${v.replace(/'/g,"\'")}',this)" data-value="${v.replace(/"/g,'&quot;')}" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid ${ignored?'rgba(239,68,68,0.4)':'var(--border)'};background:${ignored?'rgba(239,68,68,0.08)':'var(--surface2)'};color:${ignored?'#ef4444':'var(--text)'};transition:all .15s">${ignored?'✕ ':''}${v}</div>`;
+        return `<div onclick="toggleFilterItem('${module}','${field}','${v.replace(/'/g,"\'")}',this)" data-value="${v.replace(/"/g,'&quot;')}" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid ${ignored?'rgba(229,40,98,0.4)':'var(--border)'};background:${ignored?'rgba(229,40,98,0.08)':'var(--surface2)'};color:${ignored?'#E52862':'var(--text)'};transition:all .15s">${ignored?'✕ ':''}${v}</div>`;
       }).join('')}
     </div>`;
 }
@@ -2407,12 +2407,12 @@ function renderOverview() {
   if (!cardsEl) return;
 
   const STATUS_EXCLUIR = ['Concluído', 'Recusado / Cancelado', 'Cancelado'];
-  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
 
   function farol(sp) {
-    if (sp <= 125) return { emoji:'🟢', label:'Verde',   color:'#16a34a', bg:'rgba(22,163,74,0.1)',  border:'rgba(22,163,74,0.3)',  text:'Capacity OK' };
-    if (sp <= 150) return { emoji:'🟡', label:'Amarelo', color:'#d97706', bg:'rgba(217,119,6,0.1)',  border:'rgba(217,119,6,0.3)',  text:'Atenção' };
-    return           { emoji:'🔴', label:'Vermelho', color:'#dc2626', bg:'rgba(220,38,38,0.1)', border:'rgba(220,38,38,0.3)', text:'Sobrecarga' };
+    if (sp <= 125) return { emoji:'🟢', label:'Verde',   color:'#32CC7E', bg:'rgba(50,204,126,0.1)',  border:'rgba(50,204,126,0.3)',  text:'Capacity OK' };
+    if (sp <= 150) return { emoji:'🟡', label:'Amarelo', color:'#e69020', bg:'rgba(255,172,72,0.1)',  border:'rgba(255,172,72,0.3)',  text:'Atenção' };
+    return           { emoji:'🔴', label:'Vermelho', color:'#E52862', bg:'rgba(229,40,98,0.1)', border:'rgba(229,40,98,0.3)', text:'Sobrecarga' };
   }
 
   // ── Agregar SP por responsável (Orçamento + Projetos) ─────────────────────
@@ -2464,12 +2464,12 @@ function renderOverview() {
       <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:34px;font-weight:800;color:${f.color};line-height:1;margin-bottom:6px">${p.total}</div>
       <div style="font-size:10px;color:${f.color};font-weight:600;text-transform:uppercase;margin-bottom:10px">${f.text}</div>
       <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;position:relative;">
-        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(22,163,74,0.15);border-right:1px dashed rgba(22,163,74,0.4)"></div>
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(50,204,126,0.15);border-right:1px dashed rgba(50,204,126,0.4)"></div>
         <div style="height:100%;width:${pct}%;background:${f.color};border-radius:99px;min-width:${p.total>0?'4px':'0'}"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">
-        <span style="color:#6366f1">◧ ${p.odyjs}pt</span>
-        <span style="color:#0891B2">◉ ${p.b2b1}pt</span>
+        <span style="color:#7A6CFF">◧ ${p.odyjs}pt</span>
+        <span style="color:#43BDDE">◉ ${p.b2b1}pt</span>
         <span>${totalGeral ? Math.round(p.total/totalGeral*100) : 0}% do time</span>
       </div>
     </div>`;
@@ -2487,15 +2487,15 @@ function renderOverview() {
         <span style="font-size:16px;flex-shrink:0">${f.emoji}</span>
         <div style="font-size:12px;font-weight:600;min-width:130px;color:${pc};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${short}</div>
         <div style="flex:1;height:22px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;display:flex;">
-          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/maxSP*100)}%;background:rgba(22,163,74,0.08);border-right:1px dashed rgba(22,163,74,0.3);pointer-events:none;z-index:1"></div>
-          <div title="Orçamento: ${p.odyjs}pt" style="height:100%;width:${pctOdyjs}%;background:#6366f1;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;min-width:${p.odyjs>0?'8px':'0'};box-sizing:border-box">${p.odyjs>0?p.odyjs+'pt':''}</div>
-          <div title="Projetos: ${p.b2b1}pt"  style="height:100%;width:${pctB2b1}%;background:#0891B2;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;min-width:${p.b2b1>0?'8px':'0'};box-sizing:border-box">${p.b2b1>0?p.b2b1+'pt':''}</div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/maxSP*100)}%;background:rgba(50,204,126,0.08);border-right:1px dashed rgba(50,204,126,0.3);pointer-events:none;z-index:1"></div>
+          <div title="Orçamento: ${p.odyjs}pt" style="height:100%;width:${pctOdyjs}%;background:#7A6CFF;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;min-width:${p.odyjs>0?'8px':'0'};box-sizing:border-box">${p.odyjs>0?p.odyjs+'pt':''}</div>
+          <div title="Projetos: ${p.b2b1}pt"  style="height:100%;width:${pctB2b1}%;background:#43BDDE;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;min-width:${p.b2b1>0?'8px':'0'};box-sizing:border-box">${p.b2b1>0?p.b2b1+'pt':''}</div>
         </div>
         <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:${f.color};min-width:44px;text-align:right">${p.total}pt</div>
       </div>`;
     }).join('') + `<div style="display:flex;gap:16px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:10px;background:#6366f1;border-radius:2px;display:inline-block"></span>◧ Orçamento</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:10px;background:#0891B2;border-radius:2px;display:inline-block"></span>◉ Projetos</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:10px;background:#7A6CFF;border-radius:2px;display:inline-block"></span>◧ Orçamento</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:10px;background:#43BDDE;border-radius:2px;display:inline-block"></span>◉ Projetos</span>
       <span style="margin-left:auto">Total geral: ${totalGeral}pt</span>
     </div>`;
   }
@@ -2505,9 +2505,9 @@ function renderOverview() {
     let html = `<thead><tr>
       <th class="sp-matrix-th left">Responsável</th>
       <th class="sp-matrix-th">Capacity</th>
-      <th class="sp-matrix-th" style="color:#6366f1">◧ Orçamento</th>
-      <th class="sp-matrix-th" style="color:#0891B2">◉ Projetos</th>
-      <th class="sp-matrix-th" style="color:#166534">Total SP</th>
+      <th class="sp-matrix-th" style="color:#7A6CFF">◧ Orçamento</th>
+      <th class="sp-matrix-th" style="color:#43BDDE">◉ Projetos</th>
+      <th class="sp-matrix-th" style="color:#0e7a3e">Total SP</th>
       <th class="sp-matrix-th">% do time</th>
     </tr></thead><tbody>`;
     sorted.forEach(([name, p], idx) => {
@@ -2518,8 +2518,8 @@ function renderOverview() {
       html += `<tr style="${alt}">
         <td class="sp-matrix-td name" style="color:${P_COLORS[idx%P_COLORS.length]}">${short}</td>
         <td class="sp-matrix-td"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;background:${f.bg};color:${f.color};font-size:11px;font-weight:600;border:1px solid ${f.border}">${f.emoji} ${f.label}</span></td>
-        <td class="sp-matrix-td" style="color:${p.odyjs>0?'#6366f1':'var(--muted)'};">${p.odyjs || '—'}</td>
-        <td class="sp-matrix-td" style="color:${p.b2b1>0?'#0891B2':'var(--muted)'};">${p.b2b1  || '—'}</td>
+        <td class="sp-matrix-td" style="color:${p.odyjs>0?'#7A6CFF':'var(--muted)'};">${p.odyjs || '—'}</td>
+        <td class="sp-matrix-td" style="color:${p.b2b1>0?'#43BDDE':'var(--muted)'};">${p.b2b1  || '—'}</td>
         <td class="sp-matrix-td total" style="color:${f.color}">${p.total}</td>
         <td class="sp-matrix-td" style="color:var(--muted)">${pct}%</td>
       </tr>`;
@@ -2527,9 +2527,9 @@ function renderOverview() {
     html += `<tr style="border-top:2px solid var(--border2);font-weight:700">
       <td class="sp-matrix-td name">Total</td>
       <td class="sp-matrix-td"></td>
-      <td class="sp-matrix-td total" style="color:#6366f1">${sorted.reduce((a,[,p])=>a+p.odyjs,0)}</td>
-      <td class="sp-matrix-td total" style="color:#0891B2">${sorted.reduce((a,[,p])=>a+p.b2b1,0)}</td>
-      <td class="sp-matrix-td total" style="color:#166534">${totalGeral}</td>
+      <td class="sp-matrix-td total" style="color:#7A6CFF">${sorted.reduce((a,[,p])=>a+p.odyjs,0)}</td>
+      <td class="sp-matrix-td total" style="color:#43BDDE">${sorted.reduce((a,[,p])=>a+p.b2b1,0)}</td>
+      <td class="sp-matrix-td total" style="color:#0e7a3e">${totalGeral}</td>
       <td class="sp-matrix-td" style="color:var(--muted)">100%</td>
     </tr></tbody>`;
     matrixEl.innerHTML = html;
@@ -2639,7 +2639,7 @@ function renderMonthly() {
   if (!summaryEl) return;
 
   const STATUS_ENTREGUE = ['Concluído'];
-  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
 
   // Gera lista dos N últimos meses
   const now = new Date();
@@ -2691,8 +2691,8 @@ function renderMonthly() {
   // ── Cards de resumo ───────────────────────────────────────────────────────
   const bestMonth = monthTotals.reduce((a,b)=>b.total>a.total?b:a, monthTotals[0]);
   summaryEl.innerHTML = [
-    { label:'Total no período', value: grandTotal+'pt', sub: monthlyPeriod+' meses', color:'#4F46E5' },
-    { label:'Média mensal',     value: avgPerMonth+'pt', sub: 'por mês', color:'#0891B2' },
+    { label:'Total no período', value: grandTotal+'pt', sub: monthlyPeriod+' meses', color:'#3F3354' },
+    { label:'Média mensal',     value: avgPerMonth+'pt', sub: 'por mês', color:'#43BDDE' },
     { label:'Melhor mês',       value: bestMonth?.total+'pt', sub: bestMonth?.label || '—', color:'#16A34A' },
     { label:'Responsáveis',     value: persons.length, sub: 'com entregas', color:'#D97706' },
   ].map(c => `<div class="stat-card" style="--c:${c.color}">
@@ -2712,7 +2712,7 @@ function renderMonthly() {
         return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
           <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);min-width:52px;text-align:right">${m.label}</div>
           <div style="flex:1;height:${barH}px;background:var(--surface2);border-radius:6px;overflow:hidden;">
-            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4F46E5,#0891B2);border-radius:6px;display:flex;align-items:center;padding:0 10px;box-sizing:border-box;min-width:${m.total>0?'40px':'0'}">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#3F3354,#7A6CFF);border-radius:6px;display:flex;align-items:center;padding:0 10px;box-sizing:border-box;min-width:${m.total>0?'40px':'0'}">
               ${m.total>0?`<span style="font-size:11px;font-weight:700;color:#fff">${m.total}pt</span>`:''}
             </div>
           </div>
@@ -2760,7 +2760,7 @@ function renderMonthly() {
     let t = `<thead><tr>
       <th class="sp-matrix-th left">Responsável</th>
       ${months.map(m=>`<th class="sp-matrix-th">${m.label}</th>`).join('')}
-      <th class="sp-matrix-th" style="color:#166534">Total</th>
+      <th class="sp-matrix-th" style="color:#0e7a3e">Total</th>
     </tr></thead><tbody>`;
     persons.forEach((name, idx) => {
       const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
@@ -2770,15 +2770,15 @@ function renderMonthly() {
         <td class="sp-matrix-td name" style="color:${P_COLORS[idx%P_COLORS.length]}">${short}</td>
         ${months.map(m=>{
           const v=monthData[m.key]?.[name]||0;
-          return `<td class="sp-matrix-td" style="color:${v>0?'#166534':'var(--muted)'};font-weight:${v>0?'600':'400'}">${v||'—'}</td>`;
+          return `<td class="sp-matrix-td" style="color:${v>0?'#0e7a3e':'var(--muted)'};font-weight:${v>0?'600':'400'}">${v||'—'}</td>`;
         }).join('')}
-        <td class="sp-matrix-td total" style="color:#166534">${personTotal}</td>
+        <td class="sp-matrix-td total" style="color:#0e7a3e">${personTotal}</td>
       </tr>`;
     });
     t += `<tr style="border-top:2px solid var(--border2)">
       <td class="sp-matrix-td name" style="font-weight:700">Total</td>
-      ${monthTotals.map(m=>`<td class="sp-matrix-td total" style="color:#4F46E5">${m.total||'—'}</td>`).join('')}
-      <td class="sp-matrix-td total" style="color:#166534">${grandTotal}</td>
+      ${monthTotals.map(m=>`<td class="sp-matrix-td total" style="color:#3F3354">${m.total||'—'}</td>`).join('')}
+      <td class="sp-matrix-td total" style="color:#0e7a3e">${grandTotal}</td>
     </tr></tbody>`;
     matrixEl.innerHTML = t;
   }
@@ -2796,7 +2796,7 @@ function renderMonthly() {
     'em andamento', 'sign off', 'homologacao', 'homologacao e preparacao para go live',
     'operacao assistida', 'aguardando cliente'
   ];
-  const P_COLORS = ['#4F46E5','#0891B2','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
+  const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
   const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
   // Filtrar issues em andamento com Go Live Planejado válido e preenchido
@@ -2915,11 +2915,11 @@ function renderMonthly() {
   ).length;
 
   summaryEl.innerHTML = [
-    { label: 'Total SP', val: totalGeral,  sub: `${totalIssues} issues`,   color:'#6366f1', emoji:'◈' },
-    { label: monthLabel(prevKey) + ' (ant)', val: byMonth[prevKey]?.total||0, sub: `${byMonth[prevKey]?.issues?.length||0} issues`, color:'#0891B2', emoji:'◁' },
-    { label: monthLabel(thisKey) + ' (atual)', val: byMonth[thisKey]?.total||0, sub: `${byMonth[thisKey]?.issues?.length||0} issues`, color:'#16a34a', emoji:'◈' },
-    { label: monthLabel(nextKey) + ' (próx)', val: byMonth[nextKey]?.total||0, sub: `${byMonth[nextKey]?.issues?.length||0} issues`, color:'#d97706', emoji:'▷' },
-    { label: 'Sem SP',  val: semSP, sub: 'issues sem estimativa', color:'#ef4444', emoji:'⚠' },
+    { label: 'Total SP', val: totalGeral,  sub: `${totalIssues} issues`,   color:'#7A6CFF', emoji:'◈' },
+    { label: monthLabel(prevKey) + ' (ant)', val: byMonth[prevKey]?.total||0, sub: `${byMonth[prevKey]?.issues?.length||0} issues`, color:'#43BDDE', emoji:'◁' },
+    { label: monthLabel(thisKey) + ' (atual)', val: byMonth[thisKey]?.total||0, sub: `${byMonth[thisKey]?.issues?.length||0} issues`, color:'#32CC7E', emoji:'◈' },
+    { label: monthLabel(nextKey) + ' (próx)', val: byMonth[nextKey]?.total||0, sub: `${byMonth[nextKey]?.issues?.length||0} issues`, color:'#e69020', emoji:'▷' },
+    { label: 'Sem SP',  val: semSP, sub: 'issues sem estimativa', color:'#E52862', emoji:'⚠' },
   ].map(c => `<div style="border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:14px;">
     <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:6px">${c.emoji} ${c.label}</div>
     <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;color:${c.color}">${c.val}</div>
@@ -2936,13 +2936,13 @@ function renderMonthly() {
       const pct = Math.round(d.total / maxMonthSP * 100);
       const barH = Math.max(Math.round(pct / 100 * maxH), d.total > 0 ? 8 : 0);
       const isThis = mKey === thisKey;
-      const color  = isThis ? '#6366f1' : '#0891B2';
+      const color  = isThis ? '#7A6CFF' : '#43BDDE';
       var colDiv = '<div data-mkey="' + mKey + '" onclick="showMonthDetail(this.dataset.mkey)" style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px;flex:1;cursor:pointer;border-radius:8px;padding:6px 4px;">';
       return colDiv
         + '<div style="font-size:11px;font-family:DM Mono,monospace;font-weight:700;color:' + color + '">' + (d.total>0?d.total+'pt':'') + '</div>'
         + '<div style="width:100%;background:var(--surface2);border-radius:6px 6px 0 0;display:flex;align-items:flex-end;height:' + maxH + 'px;overflow:hidden;">'
         + '<div style="width:100%;height:' + barH + 'px;background:' + color + ';border-radius:6px 6px 0 0;"></div></div>'
-        + '<div style="font-size:11px;font-family:DM Mono,monospace;color:' + (isThis?'#6366f1':'var(--muted)') + ';font-weight:' + (isThis?'700':'400') + ';text-align:center">' + monthLabel(mKey) + '</div>'
+        + '<div style="font-size:11px;font-family:DM Mono,monospace;color:' + (isThis?'#7A6CFF':'var(--muted)') + ';font-weight:' + (isThis?'700':'400') + ';text-align:center">' + monthLabel(mKey) + '</div>'
         + '<div style="font-size:10px;color:var(--muted);text-align:center">' + d.issues.length + ' iss.</div>'
         + '</div>';
     }).join('');
@@ -2978,7 +2978,7 @@ function renderMonthly() {
             <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.slice(0,70)}</div>
           </div>
           <span style="font-size:10px;padding:2px 8px;border-radius:99px;background:${sbg};color:${sc};white-space:nowrap;flex-shrink:0;margin-right:6px">${i.status}</span>
-          <span style="font-size:11px;font-family:'DM Mono',monospace;color:${i.sp?'#6366f1':'var(--muted)'};white-space:nowrap;flex-shrink:0">${i.sp?i.sp+'pt':'— sp'}</span>
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:${i.sp?'#7A6CFF':'var(--muted)'};white-space:nowrap;flex-shrink:0">${i.sp?i.sp+'pt':'— sp'}</span>
         </div>`;
       }).join('') + (issuesSemData.length > 100 ? `<div style="text-align:center;font-size:12px;color:var(--muted);padding:8px">+ ${issuesSemData.length-100} issues adicionais</div>` : '');
     }
@@ -3023,9 +3023,9 @@ function renderMonthly() {
 
     // Regra de farol
     function farolSP(sp) {
-      if (sp <= 125) return { color:'#16a34a', bg:'rgba(22,163,74,0.12)', label:'🟢' };
-      if (sp <= 150) return { color:'#d97706', bg:'rgba(217,119,6,0.12)',  label:'🟡' };
-      return             { color:'#dc2626', bg:'rgba(220,38,38,0.12)',   label:'🔴' };
+      if (sp <= 125) return { color:'#32CC7E', bg:'rgba(50,204,126,0.12)', label:'🟢' };
+      if (sp <= 150) return { color:'#e69020', bg:'rgba(255,172,72,0.12)',  label:'🟡' };
+      return             { color:'#E52862', bg:'rgba(229,40,98,0.12)',   label:'🔴' };
     }
 
     const projPersons = Object.keys(spAtual).sort();
@@ -3038,7 +3038,7 @@ function renderMonthly() {
         + '<th class="sp-matrix-th">SP Atual</th>'
         + projMonths.map(m => {
             const isThis = m === todayKey;
-            return '<th class="sp-matrix-th" style="color:' + (isThis?'#6366f1':'var(--muted)') + '">' + monthLabel(m) + '</th>';
+            return '<th class="sp-matrix-th" style="color:' + (isThis?'#7A6CFF':'var(--muted)') + '">' + monthLabel(m) + '</th>';
           }).join('')
         + '</tr></thead><tbody>';
 
@@ -3052,7 +3052,7 @@ function renderMonthly() {
           return n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
         }).join(' ');
         var pm      = projPersonMap[name] || personMap[name] || {};
-        var color   = pm.color || '#6366f1';
+        var color   = pm.color || '#7A6CFF';
         var spTotal = spAtual[name];
         var farolAt = farolSP(spTotal);
         var altBg   = idx%2===0 ? 'var(--surface2)' : 'transparent';
@@ -3115,7 +3115,7 @@ function renderMonthly() {
     let tbl = `<thead><tr>
       <th class="sp-matrix-th left">Responsável</th>
       <th class="sp-matrix-th">Total SP</th>
-      ${months.map(m => `<th class="sp-matrix-th" style="color:${m===thisKey?'#6366f1':'var(--muted)'}">${monthLabel(m)}</th>`).join('')}
+      ${months.map(m => `<th class="sp-matrix-th" style="color:${m===thisKey?'#7A6CFF':'var(--muted)'}">${monthLabel(m)}</th>`).join('')}
     </tr></thead><tbody>`;
 
     personList.forEach((name, idx) => {
@@ -3124,11 +3124,11 @@ function renderMonthly() {
       const alt = idx%2===0?'background:var(--surface2)':'';
       tbl += `<tr style="${alt}">
         <td class="sp-matrix-td name" style="color:${P_COLORS[idx%P_COLORS.length]}">${short}</td>
-        <td class="sp-matrix-td total" style="color:#6366f1">${totalPerson}</td>
+        <td class="sp-matrix-td total" style="color:#7A6CFF">${totalPerson}</td>
         ${months.map(m => {
           const v = byMonth[m].byPerson[name] || 0;
           const isThis = m === thisKey;
-          return `<td class="sp-matrix-td" style="color:${v>0?(isThis?'#6366f1':'#0891B2'):'var(--muted)'};font-weight:${v>0?'600':'400'}${isThis&&v>0?';background:rgba(99,102,241,0.06)':''}">${v||'—'}</td>`;
+          return `<td class="sp-matrix-td" style="color:${v>0?(isThis?'#7A6CFF':'#43BDDE'):'var(--muted)'};font-weight:${v>0?'600':'400'}${isThis&&v>0?';background:rgba(122,108,255,0.08)':''}">${v||'—'}</td>`;
         }).join('')}
       </tr>`;
     });
@@ -3136,10 +3136,10 @@ function renderMonthly() {
     // Linha de total
     tbl += `<tr style="border-top:2px solid var(--border2);font-weight:700">
       <td class="sp-matrix-td name">Total time</td>
-      <td class="sp-matrix-td total" style="color:#6366f1">${issuesFiltrados.reduce((a,i)=>a+(i.sp||0),0)}</td>
+      <td class="sp-matrix-td total" style="color:#7A6CFF">${issuesFiltrados.reduce((a,i)=>a+(i.sp||0),0)}</td>
       ${months.map(m => {
         const isThis = m === thisKey;
-        return `<td class="sp-matrix-td total" style="color:${isThis?'#6366f1':'#0891B2'}${isThis?';background:rgba(99,102,241,0.06)':''}">${byMonth[m].total||'—'}</td>`;
+        return `<td class="sp-matrix-td total" style="color:${isThis?'#7A6CFF':'#43BDDE'}${isThis?';background:rgba(122,108,255,0.08)':''}">${byMonth[m].total||'—'}</td>`;
       }).join('')}
     </tr></tbody>`;
     matrixEl.innerHTML = tbl;
@@ -3216,7 +3216,7 @@ function showMonthDetail(mKey) {
       badge.textContent = i.status;
 
       var sp = document.createElement('span');
-      sp.style.cssText = 'font-size:12px;font-family:DM Mono,monospace;font-weight:700;color:#6366f1;white-space:nowrap;flex-shrink:0';
+      sp.style.cssText = 'font-size:12px;font-family:DM Mono,monospace;font-weight:700;color:#7A6CFF;white-space:nowrap;flex-shrink:0';
       sp.textContent = i.sp ? i.sp+'pt' : '—';
 
       row.appendChild(avatar);
@@ -3297,7 +3297,7 @@ function showProjPersonDetail(name) {
 
       // SP badge
       var spBadge = document.createElement('span');
-      spBadge.style.cssText = 'font-size:13px;font-family:DM Mono,monospace;font-weight:800;color:#6366f1;min-width:38px;text-align:right;flex-shrink:0;';
+      spBadge.style.cssText = 'font-size:13px;font-family:DM Mono,monospace;font-weight:800;color:#7A6CFF;min-width:38px;text-align:right;flex-shrink:0;';
       spBadge.textContent = (i.sp||0) + 'pt';
 
       // Info
@@ -3321,7 +3321,7 @@ function showProjPersonDetail(name) {
       var glBadge = document.createElement('span');
       var hasGoLive = goLiveLabel !== '—';
       glBadge.style.cssText = 'font-size:11px;font-family:DM Mono,monospace;padding:2px 8px;border-radius:6px;'
-        + (hasGoLive ? 'background:rgba(99,102,241,.12);color:#6366f1;' : 'background:rgba(239,68,68,.1);color:#ef4444;')
+        + (hasGoLive ? 'background:rgba(122,108,255,.12);color:#7A6CFF;' : 'background:rgba(229,40,98,.1);color:#E52862;')
         + 'white-space:nowrap;flex-shrink:0;font-weight:600;';
       glBadge.textContent = hasGoLive ? ('🗓 ' + goLiveLabel) : '⚠ sem data';
 
@@ -3354,8 +3354,8 @@ function prazoBadge(goLive) {
   const d = new Date(goLive); const hoje = new Date(); hoje.setHours(0,0,0,0);
   if (isNaN(d.getTime()) || d.getFullYear() < 2020) return '';
   const diff = Math.ceil((d - hoje) / 86400000);
-  if (diff < 0)   return `<span style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(220,38,38,0.12);color:#dc2626;font-family:'DM Mono',monospace;margin-left:3px;">⚠ ${Math.abs(diff)}d atraso</span>`;
-  if (diff <= 15) return `<span style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(217,119,6,0.12);color:#d97706;font-family:'DM Mono',monospace;margin-left:3px;">⏱ ${diff}d</span>`;
+  if (diff < 0)   return `<span style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(229,40,98,0.12);color:#E52862;font-family:'DM Mono',monospace;margin-left:3px;">⚠ ${Math.abs(diff)}d atraso</span>`;
+  if (diff <= 15) return `<span style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(255,172,72,0.12);color:#e69020;font-family:'DM Mono',monospace;margin-left:3px;">⏱ ${diff}d</span>`;
   return '';
 }
 
@@ -3430,11 +3430,11 @@ function renderHome() {
   const semData = ativosProj.filter(i=>!i.goLivePlanejado||new Date(i.goLivePlanejado).getFullYear()<2020);
 
   const kpis = [
-    { label:'Issues ativos',   value: ativosProj.length + ativosOrc.length, sub:'Orçamento + Projetos', color:'#6366f1' },
-    { label:'SP total Projetos', value: totalSPProj+'pt', sub: ativosProj.filter(i=>i.sp>0).length+' estimados', color:'#0891b2' },
+    { label:'Issues ativos',   value: ativosProj.length + ativosOrc.length, sub:'Orçamento + Projetos', color:'#7A6CFF' },
+    { label:'SP total Projetos', value: totalSPProj+'pt', sub: ativosProj.filter(i=>i.sp>0).length+' estimados', color:'#43BDDE' },
     { label:'SP total Orçamento', value: totalSPOrc+'pt', sub: ativosOrc.filter(i=>i.sp>0).length+' estimados', color:'#7c3aed' },
-    { label:'Em atraso',        value: atrasados.length, sub:'Go Live vencido', color: atrasados.length>0?'#dc2626':'#16a34a' },
-    { label:'Sem data',         value: semData.length,   sub:'Sem Go Live', color: semData.length>0?'#d97706':'#16a34a' },
+    { label:'Em atraso',        value: atrasados.length, sub:'Go Live vencido', color: atrasados.length>0?'#E52862':'#32CC7E' },
+    { label:'Sem data',         value: semData.length,   sub:'Sem Go Live', color: semData.length>0?'#e69020':'#32CC7E' },
   ];
   kpiEl.innerHTML = kpis.map(k=>`
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
@@ -3457,11 +3457,11 @@ function renderHome() {
     alertEl.innerHTML = alertItems.map(i=>{
       const pm = projPersonMap[i.assignee]||{initials:'?',bg:'#333',color:'#888'};
       const isOver = i.diff < 0;
-      const tagColor = isOver ? '#dc2626' : '#d97706';
-      const tagBg    = isOver ? 'rgba(220,38,38,0.1)' : 'rgba(217,119,6,0.1)';
+      const tagColor = isOver ? '#E52862' : '#e69020';
+      const tagBg    = isOver ? 'rgba(229,40,98,0.1)' : 'rgba(255,172,72,0.1)';
       const tagLabel = isOver ? `⚠ ${Math.abs(i.diff)}d atraso` : `⏱ ${i.diff}d`;
       const short = i.assignee.split(' ').slice(0,2).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
-      return `<div onclick="openIssue('${i.key}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid ${isOver?'rgba(220,38,38,0.2)':'rgba(217,119,6,0.2)'};background:${isOver?'rgba(220,38,38,0.04)':'rgba(217,119,6,0.04)'};cursor:pointer;">
+      return `<div onclick="openIssue('${i.key}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid ${isOver?'rgba(229,40,98,0.2)':'rgba(255,172,72,0.2)'};background:${isOver?'rgba(229,40,98,0.04)':'rgba(255,172,72,0.04)'};cursor:pointer;">
         <span style="font-size:9px;padding:2px 7px;border-radius:99px;background:${tagBg};color:${tagColor};font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0">${tagLabel}</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">${i.key}</div>
@@ -3488,8 +3488,8 @@ function renderHome() {
       const pm=projPersonMap[i.assignee]||{initials:'?',bg:'#333',color:'#888'};
       const d=new Date(i.goLivePlanejado);
       const dateLabel=MESES_PT[d.getMonth()]+' '+d.getDate();
-      const urgency=i.diff<=7?'rgba(217,119,6,0.12)':'rgba(22,163,74,0.08)';
-      const urgencyBorder=i.diff<=7?'rgba(217,119,6,0.2)':'rgba(22,163,74,0.15)';
+      const urgency=i.diff<=7?'rgba(255,172,72,0.12)':'rgba(50,204,126,0.08)';
+      const urgencyBorder=i.diff<=7?'rgba(255,172,72,0.2)':'rgba(50,204,126,0.15)';
       return `<div onclick="openIssue('${i.key}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid ${urgencyBorder};background:${urgency};cursor:pointer;">
         <div style="text-align:center;min-width:38px;flex-shrink:0">
           <div style="font-size:16px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);line-height:1">${d.getDate()}</div>
@@ -3500,7 +3500,7 @@ function renderHome() {
           <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.summary.slice(0,60)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          ${i.sp?`<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(99,102,241,0.1);color:#6366f1;font-family:'DM Mono',monospace;font-weight:700">${i.sp}pt</span>`:''}
+          ${i.sp?`<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(122,108,255,0.12);color:#7A6CFF;font-family:'DM Mono',monospace;font-weight:700">${i.sp}pt</span>`:''}
           <div style="width:26px;height:26px;border-radius:50%;background:${pm.bg};color:${pm.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700" title="${i.assignee}">${pm.initials}</div>
         </div>
       </div>`;
@@ -3519,7 +3519,7 @@ function renderHome() {
     capEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Nenhum dado de capacity disponível</div>';
   } else {
     capEl.innerHTML = capSorted.map(([name,sp])=>{
-      const f = sp<=125?{color:'#16a34a',emoji:'🟢'}:sp<=150?{color:'#d97706',emoji:'🟡'}:{color:'#dc2626',emoji:'🔴'};
+      const f = sp<=125?{color:'#32CC7E',emoji:'🟢'}:sp<=150?{color:'#e69020',emoji:'🟡'}:{color:'#E52862',emoji:'🔴'};
       const pct = Math.round(sp/capMax*100);
       const pct125 = Math.round(125/capMax*100);
       const pct150 = Math.round(150/capMax*100);
@@ -3529,8 +3529,8 @@ function renderHome() {
         <span style="font-size:14px;flex-shrink:0">${f.emoji}</span>
         <div style="font-size:12px;font-weight:600;min-width:110px;color:var(--text)">${short}</div>
         <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(22,163,74,0.06);border-right:1.5px dashed rgba(22,163,74,0.4)"></div>
-          <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(217,119,6,0.04);border-right:1.5px dashed rgba(217,119,6,0.4)"></div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(50,204,126,0.06);border-right:1.5px dashed rgba(50,204,126,0.4)"></div>
+          <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(255,172,72,0.04);border-right:1.5px dashed rgba(255,172,72,0.4)"></div>
           <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${sp>0?'32px':'0'};transition:width .5s">${sp>0?sp+'pt':''}</div>
         </div>
       </div>`;
