@@ -3818,7 +3818,12 @@ function renderStatusProjeto() {
     html_out +=     '<span style="width:7px;height:7px;border-radius:50%;background:' + col.color + ';display:inline-block"></span>';
     html_out +=     col.label;
     html_out +=   '</div>';
-    html_out +=   '<textarea data-srkey="' + key + '" data-srfield="' + col.field + '" onblur="saveSRField(this.dataset.srkey, this.dataset.srfield, this.value)" style="width:100%;min-height:100px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5" placeholder="' + col.placeholder + '">' + (d[col.field] || '') + '</textarea>';
+    // Prioridade: localStorage (editado manualmente) > campo do Jira > vazio
+    var jiraValMap = {concluidas: issue.entregasRealizadas, andamento: issue.emAndamento, proximos: issue.proximosPassos};
+    var taVal = d[col.field] || jiraValMap[col.field] || '';
+    var jiraHint = (!d[col.field] && jiraValMap[col.field]) ? ' (Jira)' : '';
+    html_out +=   '<textarea data-srkey="' + key + '" data-srfield="' + col.field + '" onblur="saveSRField(this.dataset.srkey, this.dataset.srfield, this.value)" style="width:100%;min-height:100px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5" placeholder="' + col.placeholder + '">' + taVal + '</textarea>';
+    if (jiraHint) html_out += '<div style="font-size:9px;color:#7A6CFF;margin-top:3px;opacity:.7">● carregado do Jira</div>';
     html_out += '</div>';
   });
   html_out += '</div>';
