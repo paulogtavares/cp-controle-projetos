@@ -2016,8 +2016,6 @@ const PROJ_S_COLOR = {
   'Iniciação':                              '#8b5cf6',
   'Planejamento':                           '#43BDDE',
   'Desenvolvimento':                        '#06b6d4',
-  'Em Andamento':                           '#3b82f6',
-  'Sign Off':                               '#FFAC48',
   'Homologação':                            '#f97316',
   'Operação Assistida':                     '#E52862',
   'Aguardando Cliente':                     '#eab308',
@@ -2030,8 +2028,6 @@ const PROJ_S_BG = {
   'Iniciação':                              'rgba(139,92,246,0.1)',
   'Planejamento':                           'rgba(67,189,222,0.1)',
   'Desenvolvimento':                        'rgba(6,182,212,0.1)',
-  'Em Andamento':                           'rgba(59,130,246,0.1)',
-  'Sign Off':                               'rgba(255,172,72,0.1)',
   'Homologação':                            'rgba(249,115,22,0.1)',
   'Operação Assistida':                     'rgba(236,72,153,0.1)',
   'Aguardando Cliente':                     'rgba(234,179,8,0.1)',
@@ -2045,7 +2041,9 @@ function normalizeProjStatus(status) {
   var MAP = {
     'Homologação e preparação para Go Live': 'Homologação',
     'HOMOLOGAÇÃO E PREPARAÇÃO PARA GO LIVE': 'Homologação',
-    'OPERAÇÃO ASSISTIDA': 'Operação Assistida',
+    'OPERAÇÃO ASSISTIDA':                    'Operação Assistida',
+    'Em Andamento':                          'Desenvolvimento',
+    'Sign Off':                              'Desenvolvimento',
   };
   return MAP[status] || status;
 }
