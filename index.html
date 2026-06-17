@@ -3654,14 +3654,23 @@ function healthLabel(h) {
 var MESES_SR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function fmtDate(s) {
   if (!s) return '—';
-  var d = new Date(s); if (isNaN(d.getTime()) || d.getFullYear() < 2020) return '—';
-  return d.getDate() + ' ' + MESES_SR[d.getMonth()] + '/' + String(d.getFullYear()).slice(2);
+  // Parsear YYYY-MM-DD manualmente para evitar conversão UTC→local (bug de timezone)
+  var parts = String(s).slice(0, 10).split('-');
+  if (parts.length < 3) return '—';
+  var y = parseInt(parts[0]), m = parseInt(parts[1]) - 1, d = parseInt(parts[2]);
+  if (isNaN(y) || isNaN(m) || isNaN(d) || y < 2020) return '—';
+  return d + ' ' + MESES_SR[m] + '/' + String(y).slice(2);
 }
 function diffDays(s) {
   if (!s) return null;
-  var d = new Date(s); var hoje = new Date(); hoje.setHours(0,0,0,0);
-  if (isNaN(d.getTime()) || d.getFullYear() < 2020) return null;
-  return Math.ceil((d - hoje) / 86400000);
+  // Parsear YYYY-MM-DD manualmente para evitar conversão UTC→local
+  var parts = String(s).slice(0, 10).split('-');
+  if (parts.length < 3) return null;
+  var y = parseInt(parts[0]), mo = parseInt(parts[1]) - 1, d = parseInt(parts[2]);
+  if (isNaN(y) || isNaN(mo) || isNaN(d) || y < 2020) return null;
+  var dt = new Date(y, mo, d);
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  return Math.ceil((dt - hoje) / 86400000);
 }
 function shortName(n) {
   if (!n) return '—';
