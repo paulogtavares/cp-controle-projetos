@@ -3806,24 +3806,44 @@ function renderStatusProjeto() {
   html_out +=   '</div>';
   html_out += '</div>';
 
-  // ── Atividades (3 colunas) ───────────────────────────────────────────────
+  // ── Atividades (3 colunas) — lista estruturada do Jira ─────────────────────
   html_out += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">';
   [
-    {field:'concluidas', label:'Atividades concluídas', color:'#32CC7E', placeholder:'Ex: Contrato assinado&#10;Setup técnico finalizado'},
-    {field:'andamento',  label:'Em andamento',          color:'#FFAC48', placeholder:'Ex: Integração com API em teste&#10;Treinamento da equipe'},
-    {field:'proximos',   label:'Próximos passos',        color:'#7A6CFF', placeholder:'Ex: Go-live previsto para 28/04&#10;Reunião de validação com cliente'},
+    {field:'concluidas', label:'Atividades concluídas', color:'#32CC7E', structKey:'entregasStruct',  placeholder:'Ex: Contrato assinado&#10;Setup técnico finalizado'},
+    {field:'andamento',  label:'Em andamento',          color:'#FFAC48', structKey:'andamentoStruct', placeholder:'Ex: Integração com API em teste&#10;Treinamento da equipe'},
+    {field:'proximos',   label:'Próximos passos',       color:'#7A6CFF', structKey:'proximosStruct',  placeholder:'Ex: Go-live previsto para 28/04&#10;Reunião de validação com cliente'},
   ].forEach(function(col) {
-    html_out += '<div class="chart-card" style="padding:14px;">';
-    html_out +=   '<div style="font-size:11px;font-weight:600;color:' + col.color + ';margin-bottom:8px;display:flex;align-items:center;gap:6px;">';
-    html_out +=     '<span style="width:7px;height:7px;border-radius:50%;background:' + col.color + ';display:inline-block"></span>';
-    html_out +=     col.label;
-    html_out +=   '</div>';
-    // Prioridade: localStorage (editado manualmente) > campo do Jira > vazio
-    var jiraValMap = {concluidas: issue.entregasRealizadas, andamento: issue.emAndamento, proximos: issue.proximosPassos};
-    var taVal = d[col.field] || jiraValMap[col.field] || '';
-    var jiraHint = (!d[col.field] && jiraValMap[col.field]) ? ' (Jira)' : '';
-    html_out +=   '<textarea data-srkey="' + key + '" data-srfield="' + col.field + '" onblur="saveSRField(this.dataset.srkey, this.dataset.srfield, this.value)" style="width:100%;min-height:100px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5" placeholder="' + col.placeholder + '">' + taVal + '</textarea>';
-    if (jiraHint) html_out += '<div style="font-size:9px;color:#7A6CFF;margin-top:3px;opacity:.7">● carregado do Jira</div>';
+    var struct    = (issue && issue[col.structKey]) || {refDate:'', items:[]};
+    var hasJira   = struct.items && struct.items.length > 0;
+    var manualVal = d[col.field] || '';
+    var editMode  = !!manualVal || !hasJira;
+    html_out += '<div class="chart-card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">';
+    html_out += '<div style="display:flex;align-items:center;gap:7px;">';
+    html_out +=   '<span style="width:7px;height:7px;border-radius:50%;background:' + col.color + ';flex-shrink:0;display:inline-block"></span>';
+    html_out +=   '<span style="font-size:11px;font-weight:600;color:' + col.color + '">' + col.label + '</span>';
+    if (hasJira && struct.refDate) {
+      html_out += '<span style="font-size:9px;font-family:DM Mono,monospace;color:var(--muted);padding:2px 7px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);margin-left:auto">' + struct.refDate + '</span>';
+    }
+    html_out += '</div>';
+    if (editMode) {
+      html_out += '<textarea data-srkey="' + key + '" data-srfield="' + col.field + '" onblur="saveSRField(this.dataset.srkey, this.dataset.srfield, this.value)" style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5" placeholder="' + col.placeholder + '">' + manualVal + '</textarea>';
+      if (hasJira && manualVal) {
+        html_out += '<button data-srkey="' + key + '" data-srfield="' + col.field + '" onclick="restoreSRFromJira(this.dataset.srkey, this.dataset.srfield)" style="font-size:9px;color:#7A6CFF;background:transparent;border:0.5px solid rgba(122,108,255,0.3);border-radius:6px;padding:3px 8px;cursor:pointer;align-self:flex-start;font-family:inherit">&#8634; restaurar do Jira</button>';
+      }
+    } else {
+      html_out += '<div style="display:flex;flex-direction:column;gap:5px;">';
+      struct.items.forEach(function(item) {
+        html_out += '<div style="display:flex;align-items:flex-start;gap:7px;font-size:11px;color:var(--text);line-height:1.5">';
+        html_out +=   '<span style="width:5px;height:5px;border-radius:50%;background:' + col.color + ';flex-shrink:0;margin-top:5px;display:inline-block"></span>';
+        html_out +=   '<span>' + String(item).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+        html_out += '</div>';
+      });
+      html_out += '</div>';
+      html_out += '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">';
+      html_out +=   '<span style="font-size:9px;color:#7A6CFF;display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#7A6CFF;display:inline-block"></span> carregado do Jira</span>';
+      html_out +=   '<button data-srkey="' + key + '" data-srfield="' + col.field + '" onclick="editSRField(this.dataset.srkey, this.dataset.srfield)" style="font-size:9px;color:var(--muted);background:transparent;border:0.5px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit">&#9998; editar</button>';
+      html_out += '</div>';
+    }
     html_out += '</div>';
   });
   html_out += '</div>';
@@ -3842,6 +3862,25 @@ function renderStatusProjeto() {
   container.innerHTML = html_out;
 }
 
+
+function editSRField(key, field) {
+  // Entra em modo edição: copia texto do Jira para o localStorage e re-renderiza
+  var issue = projIssues.find(function(i){ return i.key === key; });
+  var d = getStatusData(key);
+  var jiraMap = {concluidas: issue ? issue.entregasRealizadas : '', andamento: issue ? issue.emAndamento : '', proximos: issue ? issue.proximosPassos : ''};
+  if (!d[field] && jiraMap[field]) d[field] = jiraMap[field];
+  saveStatusReportData();
+  renderStatusProjeto();
+}
+
+function restoreSRFromJira(key, field) {
+  var issue = projIssues.find(function(i){ return i.key === key; });
+  var d = getStatusData(key);
+  var jiraMap = {concluidas: issue ? issue.entregasRealizadas : '', andamento: issue ? issue.emAndamento : '', proximos: issue ? issue.proximosPassos : ''};
+  d[field] = '';
+  saveStatusReportData();
+  renderStatusProjeto();
+}
 
 function setSRMode(key, mode) {
   var d = getStatusData(key);

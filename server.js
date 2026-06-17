@@ -433,6 +433,37 @@ function adfToText(adf) {
   return lines.join('').trim();
 }
 
+function adfToStructured(adf) {
+  if (!adf || !adf.content) return { refDate: '', items: [] };
+  let refDate = '';
+  const items = [];
+  for (const block of adf.content) {
+    if (block.type === 'paragraph') {
+      const txt = (block.content || []).map(n => n.text || '').join('').trim();
+      if (!refDate && txt.length <= 10 && /\d/.test(txt)) { refDate = txt; continue; }
+      if (txt) items.push(txt);
+    } else if (block.type === 'bulletList') {
+      for (const li of block.content || []) {
+        const parts = [];
+        function walkLi(nodes) {
+          for (const n of (nodes || [])) {
+            if (n.type === 'text' && n.text) parts.push(n.text);
+            if (n.type === 'inlineCard' && n.attrs && n.attrs.url) {
+              const m = n.attrs.url.match(/\/browse\/([A-Z]+-\d+)/);
+              if (m) parts.push(m[1]);
+            }
+            if (n.content) walkLi(n.content);
+          }
+        }
+        walkLi(li.content || []);
+        const txt = parts.join('').trim();
+        if (txt) items.push(txt);
+      }
+    }
+  }
+  return { refDate, items };
+}
+
 function parseIssue(i, domain, statusFn = mapStatus) {
   const f = i.fields || {};
   const sp = f.customfield_10016 ?? f.customfield_10028 ?? null;
@@ -449,6 +480,9 @@ function parseIssue(i, domain, statusFn = mapStatus) {
     entregasRealizadas: adfToText(f.customfield_11969),
     emAndamento:        adfToText(f.customfield_13056),
     proximosPassos:     adfToText(f.customfield_13719),
+    entregasStruct:     adfToStructured(f.customfield_11969),
+    andamentoStruct:    adfToStructured(f.customfield_13056),
+    proximosStruct:     adfToStructured(f.customfield_13719),
     url: `https://${domain}/browse/${i.key}`,
   };
 }
