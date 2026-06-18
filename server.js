@@ -64,7 +64,7 @@ function isCacheValid(entry) {
 // Busca issues específicos por chave (pinados) e retorna no formato padrão
 async function fetchPinnedIssues(cfg, keys) {
   if (!keys || keys.length === 0) return [];
-  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_13936,customfield_14050,customfield_11969,customfield_13056,customfield_13719,created,updated';
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_14050,customfield_11969,customfield_13056,customfield_13719,created,updated';
   const jql    = encodeURIComponent(`key in (${keys.join(',')}) ORDER BY key ASC`);
   try {
     let r = await jiraGet(cfg, `/rest/api/3/search/jql?jql=${jql}&maxResults=50&fields=${fields}`);
@@ -475,7 +475,7 @@ function parseIssue(i, domain, statusFn = mapStatus) {
     sp: sp != null ? Number(sp) : null, client: detectClient(f.summary),
     created: (f.created || '').slice(0, 10), updated: (f.updated || '').slice(0, 10),
     dataInicio:        (f.customfield_12143 || null),  // Data Início Planejada — sem fallback para created
-    goLivePlanejado:   (f.customfield_13936 || null),  // Planned Golive Date
+    goLivePlanejado:   (f.customfield_12152 || null),  // Data Fim (Planejada)
     goLiveRealizado:   (f.customfield_14050 || null),  // Golive Date
     entregasRealizadas: adfToText(f.customfield_11969),
     emAndamento:        adfToText(f.customfield_13056),
@@ -489,7 +489,7 @@ function parseIssue(i, domain, statusFn = mapStatus) {
 
 // ── Busca paginada com fallback ───────────────────────────────────────────────
 async function fetchAllIssues(cfg, jqlExtra = '') {
-  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_13936,customfield_14050,customfield_11969,customfield_13056,customfield_13719,created,updated';
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_14050,customfield_11969,customfield_13056,customfield_13719,created,updated';
   // Suporta múltiplos projetos: cfg.projects = ['B2B1','B2C'] ou cfg.project = 'B2B1'
   const projectClause = Array.isArray(cfg.projects) && cfg.projects.length > 1
     ? `project in (${cfg.projects.map(p => `"${p}"`).join(',')})`
