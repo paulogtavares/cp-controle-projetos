@@ -3051,10 +3051,11 @@ function renderMonthly() {
   const projectionEl = document.getElementById('monthly-projection');
   if (projectionEl) {
     // Pegar TODOS os issues em andamento de cada responsável (com ou sem data)
-    const STATUS_ATIVOS_NORM = ['backlog','iniciacao','planejamento','desenvolvimento','em andamento','sign off','homologacao','homologacao e preparacao para go live','operacao assistida','aguardando cliente'];
-    const allActive = projIssues.filter(i =>
+    // Mesma lógica de renderProjSP: excluir apenas Concluído/Cancelado
+    const STATUS_EXCLUIR_PROJ = ['Concluído','Cancelado','Recusado / Cancelado'];
+    const allActive = applyJiraFilters(projIssues, 'b2b1').filter(i =>
       isProjActive(i.assignee) &&
-      STATUS_ATIVOS_NORM.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
+      !STATUS_EXCLUIR_PROJ.includes(i.status) &&
       i.sp != null && i.sp > 0
     );
 
@@ -3218,17 +3219,19 @@ function showMonthDetail(mKey) {
   if (!card || !listEl) return;
 
   var MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  var STATUS_ATIVOS_NORM = ['backlog','iniciacao','planejamento','desenvolvimento','em andamento','sign off','homologacao','homologacao e preparacao para go live','operacao assistida','aguardando cliente'];
+  var STATUS_EXCLUIR_NORM = ['concluido','cancelado','recusado / cancelado'];
 
   var issues = (projIssues || []).filter(function(i) {
     if (!isProjActive(i.assignee)) return false; // ignorar inativos
+    var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if (STATUS_EXCLUIR_NORM.includes(sNorm)) return false;
     if (!i.goLivePlanejado) return false;
     var d = new Date(i.goLivePlanejado);
     if (isNaN(d.getTime()) || d.getFullYear() < 2020) return false;
     var iMKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
     if (iMKey !== mKey) return false;
     var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    return STATUS_ATIVOS_NORM.includes(sNorm);
+    return !STATUS_EXCLUIR_NORM2.includes(sNorm);
   }).sort(function(a,b){ return (b.sp||0)-(a.sp||0); });
 
   var parts = mKey.split('-');
@@ -3307,11 +3310,7 @@ function showProjPersonDetail(name) {
   var listEl  = document.getElementById('proj-person-detail-list');
   if (!card || !listEl) return;
 
-  var STATUS_ATIVOS_NORM = [
-    'backlog','iniciacao','planejamento','desenvolvimento','em andamento',
-    'sign off','homologacao','homologacao e preparacao para go live',
-    'operacao assistida','aguardando cliente'
-  ];
+  var STATUS_EXCLUIR_NORM2 = ['concluido','cancelado','recusado / cancelado'];
 
   // Buscar todos os issues em andamento do responsável
   var issues = (projIssues || []).filter(function(i) {
@@ -3319,7 +3318,7 @@ function showProjPersonDetail(name) {
     if (!isProjActive(i.assignee)) return false; // ignorar inativos
     if (!i.sp || i.sp <= 0) return false;
     var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    return STATUS_ATIVOS_NORM.includes(sNorm);
+    return !STATUS_EXCLUIR_NORM2.includes(sNorm);
   }).sort(function(a,b){ return (b.sp||0)-(a.sp||0); });
 
   var short = name.split(' ').slice(0,2).map(function(n){
