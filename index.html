@@ -2736,10 +2736,16 @@ function renderMonthly() {
     monthData[key][i.assignee] += (i.sp || 0);
   });
 
-  // Pessoas com pelo menos 1 entrega no período
-  const persons = [...new Set(
-    months.flatMap(m => Object.keys(monthData[m.key] || {}))
-  )].filter(n => n && n !== 'Sem responsável').sort();
+  // Pessoas: todos os ativos (Orçamento + Projetos) independente de entrega
+  const allActivePersons = new Set([
+    ...applyJiraFilters(issues, 'odyjs').filter(i => isActive(i.assignee)).map(i => i.assignee),
+    ...applyJiraFilters(projIssues, 'b2b1').filter(i => isProjActive(i.assignee)).map(i => i.assignee),
+  ]);
+  // Também inclui quem teve entrega no período (caso não esteja nas issues ativas)
+  months.flatMap(m => Object.keys(monthData[m.key] || {})).forEach(n => {
+    if (n && n !== 'Sem responsável' && (isActive(n) || isProjActive(n))) allActivePersons.add(n);
+  });
+  const persons = [...allActivePersons].filter(n => n && n !== 'Sem responsável').sort();
 
   // Totais por mês
   const monthTotals = months.map(m => ({
@@ -2853,11 +2859,7 @@ function renderMonthly() {
   const matrixEl  = document.getElementById('monthly-matrix');
   if (!summaryEl) return;
 
-  const STATUS_ATIVOS = [
-    'backlog', 'iniciacao', 'planejamento', 'desenvolvimento',
-    'em andamento', 'sign off', 'homologacao', 'homologacao e preparacao para go live',
-    'operacao assistida', 'aguardando cliente'
-  ];
+  const STATUS_EXCLUIR = ['concluido', 'cancelado', 'recusado / cancelado'];
   const P_COLORS = ['#3F3354','#43BDDE','#16A34A','#D97706','#DC2626','#7C3AED','#0D9488','#EA580C'];
   const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
@@ -2865,11 +2867,13 @@ function renderMonthly() {
   // Exclui data placeholder 1999-12-31, datas inválidas e issues sem SP
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
-  // Sem applyJiraFilters — tela mensal mostra todos os cards ativos
-  // independente dos filtros de board (tipo, responsável etc.)
-  const issuesFiltrados = projIssues
+  // Aplica filtros de responsáveis ignorados (jiraFilters) mas não filtros de tipo/status do board
+  const issuesFiltrados = applyJiraFilters(projIssues, 'b2b1')
     .filter(i => isProjActive(i.assignee))
-    .filter(i => STATUS_ATIVOS.includes((i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')))
+    .filter(i => {
+      const sNorm = (i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      return !STATUS_EXCLUIR.includes(sNorm);
+    })
     .filter(i => {
       if (!i.goLivePlanejado) return false;
       const d = new Date(i.goLivePlanejado);
@@ -2934,13 +2938,13 @@ function renderMonthly() {
   // não apenas os que têm issues com Go Live preenchido
   // Assim a matriz mostra todos, com — para quem não tem dado naquele mês
   const allProjPersons = [...new Set(
-    projIssues
+    applyJiraFilters(projIssues, 'b2b1')
       .filter(i => isProjActive(i.assignee) && i.assignee && i.assignee !== 'Sem responsável')
       .map(i => i.assignee)
   )].sort();
   // Mesclar: primeiro quem tem dados (com SP), depois os demais ativos
   const personList = [...new Set([...persons, ...allProjPersons])]
-    .filter(n => n && n !== 'Sem responsável')
+    .filter(n => n && n !== 'Sem responsável' && (isActive(n) || isProjActive(n)))
     .sort();
   const maxMonthSP  = Math.max(...months.map(m => byMonth[m].total), 1);
   _monthlyByMonth = byMonth; // salva para uso no showMonthDetail
@@ -2962,17 +2966,17 @@ function renderMonthly() {
   })();
 
   // Total SP real = todos os issues em andamento (com ou sem data de go live)
-  const STATUS_ATIVOS_ALL = STATUS_ATIVOS; // reutiliza
+  const STATUS_EXCLUIR_ALL = ['concluido', 'cancelado', 'recusado / cancelado'];
   const todosAtivos = projIssues.filter(i =>
     isProjActive(i.assignee) &&
-    STATUS_ATIVOS_ALL.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
+    !STATUS_EXCLUIR_ALL.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
     i.sp != null && i.sp > 0
   );
   const totalGeral  = todosAtivos.reduce((acc, i) => acc + (i.sp || 0), 0);
   const totalIssues = todosAtivos.length;
   const semSP = projIssues.filter(i =>
     isProjActive(i.assignee) &&
-    STATUS_ATIVOS_ALL.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
+    !STATUS_EXCLUIR_ALL.includes((i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')) &&
     (i.sp == null || i.sp === 0)
   ).length;
 
@@ -3017,7 +3021,7 @@ function renderMonthly() {
 
   const issuesSemData = projIssues
     .filter(i => isProjActive(i.assignee))
-    .filter(i => STATUS_ATIVOS.includes((i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')))
+    .filter(i => !STATUS_EXCLUIR.includes((i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')))
     .filter(i => {
       if (!i.goLivePlanejado) return true;
       const d = new Date(i.goLivePlanejado);
@@ -3232,7 +3236,7 @@ function showMonthDetail(mKey) {
     var iMKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
     if (iMKey !== mKey) return false;
     var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    return !STATUS_EXCLUIR_NORM2.includes(sNorm);
+    return !STATUS_EXCLUIR_NORM.includes(sNorm);
   }).sort(function(a,b){ return (b.sp||0)-(a.sp||0); });
 
   var parts = mKey.split('-');
