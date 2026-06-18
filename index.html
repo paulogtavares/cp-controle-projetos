@@ -3055,14 +3055,15 @@ function renderMonthly() {
     const STATUS_EXCLUIR_PROJ = ['Concluído','Cancelado','Recusado / Cancelado'];
     const allActive = applyJiraFilters(projIssues, 'b2b1').filter(i =>
       isProjActive(i.assignee) &&
-      !STATUS_EXCLUIR_PROJ.includes(i.status) &&
-      i.sp != null && i.sp > 0
+      !STATUS_EXCLUIR_PROJ.includes(i.status)
     );
 
-    // SP total atual por responsável
+    // SP total atual por responsável (mesmo cálculo de renderProjSP)
     const spAtual = {};
     allActive.forEach(i => {
-      spAtual[i.assignee] = (spAtual[i.assignee] || 0) + i.sp;
+      if (i.sp && i.sp > 0) {
+        spAtual[i.assignee] = (spAtual[i.assignee] || 0) + i.sp;
+      }
     });
 
     // Por mês e responsável: SP que vai ser entregue naquele mês
