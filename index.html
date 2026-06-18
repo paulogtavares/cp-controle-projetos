@@ -3570,9 +3570,12 @@ function renderHome() {
   }
 
   // ── CAPACITY GERAL DO TIME ────────────────────────────────────────────────
+  // Usa mesma base do renderProjSP: todos os projIssues exceto Concluído/Cancelado
+  const STATUS_EXCLUIR_CAP_HOME = ['Concluído','Cancelado','Recusado / Cancelado'];
   const capByPerson = {};
-  ativosProj.filter(i=>i.sp>0).forEach(i=>{
+  applyJiraFilters(projIssues, 'b2b1').filter(i=>i.sp>0).forEach(i=>{
     if (!isProjActive(i.assignee)) return;
+    if (STATUS_EXCLUIR_CAP_HOME.includes(i.status)) return;
     capByPerson[i.assignee]=(capByPerson[i.assignee]||0)+i.sp;
   });
   const capSorted = Object.entries(capByPerson).sort((a,b)=>b[1]-a[1]);
