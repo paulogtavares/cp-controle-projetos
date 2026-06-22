@@ -3980,7 +3980,7 @@ function renderStatusExecutivo() {
     + '<th style="'+TH+'">CS</th>'
     + '<th style="'+TH+'">SP</th>'
     + '<th style="'+TH+'">Responsável</th>'
-    + '<th style="'+TH+';min-width:180px;text-align:left;padding-left:12px">Observação</th>'
+    + '<th style="'+TH+';min-width:220px;max-width:480px;text-align:left;padding-left:12px">Observação</th>'
     + '<th style="'+TH+';min-width:80px">Progresso</th>'
     + '<th style="'+TH+'">Saúde</th>'
     + '</tr></thead>';
@@ -4058,13 +4058,13 @@ function renderStatusExecutivo() {
       + '</td>'
       + (i.notes && i.notes.length
         ? '<td style="padding:8px 12px;min-width:180px;">'
-          + (i.notes.slice(0,4).map(function(line) {
+          + (i.notes.map(function(line) {
+              var safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
               return '<div style="display:flex;align-items:flex-start;gap:5px;margin-bottom:3px">'
                 + '<span style="width:4px;height:4px;border-radius:50%;background:var(--muted);flex-shrink:0;margin-top:4px;display:inline-block"></span>'
-                + '<span style="font-size:10px;color:var(--muted);line-height:1.4;">' + line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').substring(0,90) + '</span>'
+                + '<span style="font-size:10px;color:var(--muted);line-height:1.5;max-width:490px;word-break:break-word;white-space:normal">' + safe + '</span>'
                 + '</div>';
             }).join(''))
-          + (i.notes.length > 4 ? '<div style="font-size:9px;color:var(--border2);margin-top:2px">+' + (i.notes.length-4) + ' mais...</div>' : '')
           + '</td>'
         : '<td style="text-align:center;padding:8px 12px;color:var(--border2)">—</td>')
       + '<td style="padding:10px 8px;">'
