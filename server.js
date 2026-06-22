@@ -64,7 +64,7 @@ function isCacheValid(entry) {
 // Busca issues específicos por chave (pinados) e retorna no formato padrão
 async function fetchPinnedIssues(cfg, keys) {
   if (!keys || keys.length === 0) return [];
-  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_14050,customfield_11969,customfield_13056,customfield_13719,customfield_12497,created,updated';
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_14050,customfield_11969,customfield_13056,customfield_13719,customfield_12497,customfield_12971,created,updated';
   const jql    = encodeURIComponent(`key in (${keys.join(',')}) ORDER BY key ASC`);
   try {
     let r = await jiraGet(cfg, `/rest/api/3/search/jql?jql=${jql}&maxResults=50&fields=${fields}`);
@@ -417,6 +417,31 @@ function detectClient(s) {
 }
 
 // Extrai texto plano de um campo ADF (Atlassian Document Format)
+function adfToLines(adf) {
+  if (!adf || !adf.content) return [];
+  var lines = [];
+  function extractText(nodes) {
+    var parts = [];
+    for (var n of (nodes || [])) {
+      if (n.type === 'text' && n.text) parts.push(n.text);
+      if (n.content) parts = parts.concat(extractText(n.content));
+    }
+    return parts;
+  }
+  for (var block of adf.content) {
+    if (block.type === 'paragraph') {
+      var txt = extractText(block.content).join('').trim();
+      if (txt) lines.push(txt);
+    } else if (block.type === 'bulletList' || block.type === 'orderedList') {
+      for (var li of (block.content || [])) {
+        var txt = extractText(li.content).join('').trim();
+        if (txt) lines.push(txt);
+      }
+    }
+  }
+  return lines;
+}
+
 function adfToText(adf) {
   if (!adf) return '';
   if (typeof adf === 'string') return adf.trim();
@@ -478,6 +503,7 @@ function parseIssue(i, domain, statusFn = mapStatus) {
     goLivePlanejado:   (f.customfield_12152 || null),  // Data Fim (Planejada)
     goLiveRealizado:   (f.customfield_14050 || null),  // Golive Date
     clientService:      (f.customfield_12497 && f.customfield_12497.displayName) ? f.customfield_12497.displayName : null,
+    notes:              adfToLines(f.customfield_12971),
     entregasRealizadas: adfToText(f.customfield_11969),
     emAndamento:        adfToText(f.customfield_13056),
     proximosPassos:     adfToText(f.customfield_13719),
@@ -490,7 +516,7 @@ function parseIssue(i, domain, statusFn = mapStatus) {
 
 // ── Busca paginada com fallback ───────────────────────────────────────────────
 async function fetchAllIssues(cfg, jqlExtra = '') {
-  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_14050,customfield_11969,customfield_13056,customfield_13719,customfield_12497,created,updated';
+  const fields = 'summary,status,assignee,issuetype,priority,customfield_10016,customfield_10028,customfield_12143,customfield_12152,customfield_14050,customfield_11969,customfield_13056,customfield_13719,customfield_12497,customfield_12971,created,updated';
   // Suporta múltiplos projetos: cfg.projects = ['B2B1','B2C'] ou cfg.project = 'B2B1'
   const projectClause = Array.isArray(cfg.projects) && cfg.projects.length > 1
     ? `project in (${cfg.projects.map(p => `"${p}"`).join(',')})`
