@@ -3970,22 +3970,24 @@ function renderStatusExecutivo() {
     'Em Andamento':50,'Sign Off':70,'Homologação':80,'Homologação e preparação para Go Live':85,
     'Operação Assistida':95,'OPERAÇÃO ASSISTIDA':95,'Aguardando Cliente':60,'Bloqueado':40};
 
+  var TH  = 'text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)';
+  var THL = 'text-align:left;padding:8px 12px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)';
   var thead = '<thead><tr>'
-    + '<th style="text-align:left;padding:8px 14px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)">Projeto</th>'
-    + '<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)">Status</th>'
-    + '<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)">Go Live</th>'
-    + '<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)">SP</th>'
-    + '<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)">Responsável</th>'
-    + '<th style="padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2);min-width:100px">Progresso</th>'
-    + '<th style="text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)">Saúde</th>'
+    + '<th style="'+THL+'">Projeto</th>'
+    + '<th style="'+TH+'">Etapa</th>'
+    + '<th style="'+TH+'">Status</th>'
+    + '<th style="'+TH+'">Go Live</th>'
+    + '<th style="'+TH+'">CS</th>'
+    + '<th style="'+TH+'">SP</th>'
+    + '<th style="'+TH+'">Responsável</th>'
+    + '<th style="'+TH+';min-width:80px">Progresso</th>'
+    + '<th style="'+TH+'">Saúde</th>'
     + '</tr></thead>';
 
   var tbody = '<tbody>' + sorted.map(function(i, idx){
     var h = getEffectiveHealth(i);
     var hl = healthLabel(h);
     var days = diffDays(i.goLivePlanejado);
-    var daysColor = days===null?'var(--muted)':days<0?'#E52862':days<=14?'#FFAC48':'var(--text)';
-    var daysLabel = days===null?'—':days<0?Math.abs(days)+'d atrasado':days+'d';
     var pm = projPersonMap[i.assignee]||{initials:'?',bg:'#333',color:'#888'};
     var pct = STATUS_PCT[i.status]||30;
     var alt = idx%2===0 ? 'background:var(--surface2)' : '';
@@ -3993,27 +3995,72 @@ function renderStatusExecutivo() {
     var d = getStatusData(i.key);
     var hasNotes = d.concluidas||d.andamento||d.proximos;
 
+    // Etapa — normaliza o status para nome canônico da coluna
+    var etapaMap = {
+      'Backlog':'Backlog','Iniciação':'Iniciação','Planejamento':'Planejamento',
+      'Desenvolvimento':'Desenvolvimento','Em Andamento':'Desenvolvimento',
+      'Sign Off':'Desenvolvimento','Homologação':'Homologação',
+      'Homologação e preparação para Go Live':'Homologação',
+      'HOMOLOGAÇÃO E PREPARAÇÃO PARA GO LIVE':'Homologação',
+      'Operação Assistida':'Op. Assistida','OPERAÇÃO ASSISTIDA':'Op. Assistida',
+      'Aguardando Cliente':'Ag. Cliente','Bloqueado':'Bloqueado'
+    };
+    var etapaCores = {
+      'Backlog':'#6b7280','Iniciação':'#8b5cf6','Planejamento':'#43BDDE',
+      'Desenvolvimento':'#06b6d4','Homologação':'#f97316',
+      'Op. Assistida':'#E52862','Ag. Cliente':'#eab308','Bloqueado':'#E52862'
+    };
+    var etapa = etapaMap[i.status] || i.status;
+    var etapaCor = etapaCores[etapa] || '#7A7488';
+
+    // Status — prazo: Atrasado / Em risco / Controlado
+    var statusPrazo, statusCor, statusBg;
+    if (days === null) {
+      statusPrazo = 'Sem data'; statusCor = '#7A7488'; statusBg = 'rgba(122,116,136,0.1)';
+    } else if (days < 0) {
+      statusPrazo = 'Atrasado'; statusCor = '#C0002E'; statusBg = 'rgba(229,40,98,0.12)';
+    } else if (days <= 30) {
+      statusPrazo = 'Em risco'; statusCor = '#B37000'; statusBg = 'rgba(255,172,72,0.12)';
+    } else {
+      statusPrazo = 'Controlado'; statusCor = '#0B6E3A'; statusBg = 'rgba(50,204,126,0.12)';
+    }
+
+    // Go Live — Data Fim Planejada formatada
+    var glLabel = fmtDate(i.goLivePlanejado) || '—';
+    var glColor = days===null?'var(--muted)':days<0?'#E52862':days<=14?'#FFAC48':'var(--text)';
+
+    // CS — Client Service
+    var csLabel = '—';
+    if (i.clientService) {
+      var csParts = String(i.clientService).split(' ');
+      csLabel = csParts.length > 1 ? csParts[0] + ' ' + csParts[csParts.length-1] : csParts[0];
+      csLabel = csLabel.charAt(0).toUpperCase() + csLabel.slice(1).toLowerCase()
+                .replace(/\b(\w)/g, function(c){ return c.toUpperCase(); });
+    }
+
     return '<tr style="'+alt+';cursor:pointer" data-issuekey="'+i.key+'" onclick="abrirStatusProjeto(this.dataset.issuekey)" title="Clique para ver detalhes">'
       + '<td style="padding:10px 14px;">'
-        + '<div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="'+i.summary+'">'+name+'</div>'
+        + '<div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="'+i.summary+'">'+name+'</div>'
         + '<div style="font-size:10px;color:var(--muted);font-family:DM Mono,monospace;margin-top:1px;display:flex;align-items:center;gap:6px">'+i.key+(hasNotes?'<span style="background:rgba(122,108,255,0.15);color:#7A6CFF;border-radius:99px;padding:0 5px;font-size:9px">notas</span>':'')+'</div>'
       + '</td>'
-      + '<td style="text-align:center;padding:10px 10px;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(122,108,255,0.1);color:#7A6CFF;white-space:nowrap">'+i.status.replace('Homologação e preparação para Go Live','Homolog. GL').replace('OPERAÇÃO ASSISTIDA','Op. Assistida')+'</span></td>'
-      + '<td style="text-align:center;padding:10px 10px;font-size:11px;font-family:DM Mono,monospace;color:'+daysColor+';font-weight:600">'+daysLabel+'</td>'
-      + '<td style="text-align:center;padding:10px 10px;font-size:12px;font-family:DM Mono,monospace;color:#7A6CFF;font-weight:700">'+(i.sp?i.sp+'pt':'—')+'</td>'
-      + '<td style="text-align:center;padding:10px 10px;">'
+      + '<td style="text-align:center;padding:10px 8px;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:'+etapaCor+'22;color:'+etapaCor+';font-weight:500;white-space:nowrap">'+etapa+'</span></td>'
+      + '<td style="text-align:center;padding:10px 8px;"><span style="font-size:10px;padding:2px 10px;border-radius:99px;background:'+statusBg+';color:'+statusCor+';font-weight:600">'+statusPrazo+'</span></td>'
+      + '<td style="text-align:center;padding:10px 8px;font-size:11px;font-family:DM Mono,monospace;color:'+glColor+';font-weight:600">'+glLabel+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;font-size:11px;color:var(--muted)">'+csLabel+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;font-size:12px;font-family:DM Mono,monospace;color:#7A6CFF;font-weight:700">'+(i.sp?i.sp+'pt':'—')+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;">'
         + '<div style="display:flex;align-items:center;justify-content:center;gap:5px">'
         + '<div style="width:22px;height:22px;border-radius:50%;background:'+pm.bg+';color:'+pm.color+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700">'+pm.initials+'</div>'
         + '<span style="font-size:11px;color:var(--text)">'+shortName(i.assignee)+'</span>'
         + '</div>'
       + '</td>'
-      + '<td style="padding:10px 10px;">'
+      + '<td style="padding:10px 8px;">'
         + '<div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:3px">'
           + '<div style="height:100%;width:'+pct+'%;background:'+hl.color+';border-radius:99px"></div>'
         + '</div>'
         + '<div style="font-size:9px;color:var(--muted);text-align:right">'+pct+'%</div>'
       + '</td>'
-      + '<td style="text-align:center;padding:10px 10px;">'
+      + '<td style="text-align:center;padding:10px 8px;">'
         + '<span data-issuekey2="'+i.key+'" onclick="event.stopPropagation();toggleExecHealth(this.dataset.issuekey2)" title="Clique para alterar" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+hl.color+';cursor:pointer;box-shadow:0 0 0 2px '+(h==='ok'?'rgba(50,204,126,0.3)':h==='warn'?'rgba(255,172,72,0.3)':'rgba(229,40,98,0.3)')+'"></span>'
       + '</td>'
       + '</tr>';
