@@ -4032,10 +4032,11 @@ function renderStatusExecutivo() {
     // CS — Client Service
     var csLabel = '—';
     if (i.clientService) {
-      var csParts = String(i.clientService).split(' ');
-      csLabel = csParts.length > 1 ? csParts[0] + ' ' + csParts[csParts.length-1] : csParts[0];
-      csLabel = csLabel.charAt(0).toUpperCase() + csLabel.slice(1).toLowerCase()
-                .replace(/\b(\w)/g, function(c){ return c.toUpperCase(); });
+      var csParts = String(i.clientService).trim().split(' ').filter(Boolean);
+      var first = csParts[0] || '';
+      var last  = csParts.length > 1 ? csParts[csParts.length-1] : '';
+      function titleCase(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }
+      csLabel = last ? titleCase(first) + ' ' + titleCase(last) : titleCase(first);
     }
 
     return '<tr style="'+alt+';cursor:pointer" data-issuekey="'+i.key+'" onclick="abrirStatusProjeto(this.dataset.issuekey)" title="Clique para ver detalhes">'
