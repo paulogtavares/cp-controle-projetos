@@ -3980,8 +3980,8 @@ function renderStatusExecutivo() {
     + '<th style="'+TH+'">CS</th>'
     + '<th style="'+TH+'">SP</th>'
     + '<th style="'+TH+'">Responsável</th>'
-    + '<th style="'+TH+';min-width:220px;max-width:480px;text-align:left;padding-left:12px">Observação</th>'
-    + '<th style="'+TH+';min-width:80px">Progresso</th>'
+    + '<th style="'+TH+';width:500px;min-width:500px;max-width:500px;text-align:left;padding-left:12px">Observação</th>'
+    + '<th style="'+TH+';width:240px;min-width:240px">Progresso</th>'
     + '<th style="'+TH+'">Saúde</th>'
     + '</tr></thead>';
 
@@ -4041,39 +4041,39 @@ function renderStatusExecutivo() {
     }
 
     return '<tr style="'+alt+';cursor:pointer" data-issuekey="'+i.key+'" onclick="abrirStatusProjeto(this.dataset.issuekey)" title="Clique para ver detalhes">'
-      + '<td style="padding:10px 14px;">'
+      + '<td style="padding:10px 14px;vertical-align:top;">'
         + '<div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="'+i.summary+'">'+name+'</div>'
         + '<div style="font-size:10px;color:var(--muted);font-family:DM Mono,monospace;margin-top:1px;display:flex;align-items:center;gap:6px">'+i.key+(hasNotes?'<span style="background:rgba(122,108,255,0.15);color:#7A6CFF;border-radius:99px;padding:0 5px;font-size:9px">notas</span>':'')+'</div>'
       + '</td>'
-      + '<td style="text-align:center;padding:10px 8px;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:'+etapaCor+'22;color:'+etapaCor+';font-weight:500;white-space:nowrap">'+etapa+'</span></td>'
-      + '<td style="text-align:center;padding:10px 8px;"><span style="font-size:10px;padding:2px 10px;border-radius:99px;background:'+statusBg+';color:'+statusCor+';font-weight:600">'+statusPrazo+'</span></td>'
-      + '<td style="text-align:center;padding:10px 8px;font-size:11px;font-family:DM Mono,monospace;color:'+glColor+';font-weight:600">'+glLabel+'</td>'
-      + '<td style="text-align:center;padding:10px 8px;font-size:11px;color:var(--muted)">'+csLabel+'</td>'
-      + '<td style="text-align:center;padding:10px 8px;font-size:12px;font-family:DM Mono,monospace;color:#7A6CFF;font-weight:700">'+(i.sp?i.sp+'pt':'—')+'</td>'
-      + '<td style="text-align:center;padding:10px 8px;">'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:'+etapaCor+'22;color:'+etapaCor+';font-weight:500;white-space:nowrap">'+etapa+'</span></td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;"><span style="font-size:10px;padding:2px 10px;border-radius:99px;background:'+statusBg+';color:'+statusCor+';font-weight:600">'+statusPrazo+'</span></td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:11px;font-family:DM Mono,monospace;color:'+glColor+';font-weight:600">'+glLabel+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:11px;color:var(--muted)">'+csLabel+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;font-family:DM Mono,monospace;color:#7A6CFF;font-weight:700">'+(i.sp?i.sp+'pt':'—')+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;">'
         + '<div style="display:flex;align-items:center;justify-content:center;gap:5px">'
         + '<div style="width:22px;height:22px;border-radius:50%;background:'+pm.bg+';color:'+pm.color+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700">'+pm.initials+'</div>'
         + '<span style="font-size:11px;color:var(--text)">'+shortName(i.assignee)+'</span>'
         + '</div>'
       + '</td>'
       + (i.notes && i.notes.length
-        ? '<td style="padding:8px 12px;min-width:180px;">'
-          + (i.notes.map(function(line) {
+        ? '<td style="padding:8px 12px;width:500px;min-width:500px;max-width:500px;vertical-align:top;">'
+          + ((['<div>'].concat(i.notes.map(function(line) {
               var safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
               return '<div style="display:flex;align-items:flex-start;gap:5px;margin-bottom:3px">'
                 + '<span style="width:4px;height:4px;border-radius:50%;background:var(--muted);flex-shrink:0;margin-top:4px;display:inline-block"></span>'
-                + '<span style="font-size:10px;color:var(--muted);line-height:1.5;max-width:490px;word-break:break-word;white-space:normal">' + safe + '</span>'
+                + '<span style="font-size:10px;color:var(--muted);line-height:1.5;max-width:460px;word-break:break-word;white-space:normal">' + safe + '</span>'
                 + '</div>';
-            }).join(''))
+            })).concat(['</div>'])).join(''))
           + '</td>'
         : '<td style="text-align:center;padding:8px 12px;color:var(--border2)">—</td>')
-      + '<td style="padding:10px 8px;">'
+      + '<td style="padding:10px 8px;vertical-align:top;width:240px;min-width:240px;">'
         + '<div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:3px">'
           + '<div style="height:100%;width:'+pct+'%;background:'+hl.color+';border-radius:99px"></div>'
         + '</div>'
         + '<div style="font-size:9px;color:var(--muted);text-align:right">'+pct+'%</div>'
       + '</td>'
-      + '<td style="text-align:center;padding:10px 8px;">'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;">'
         + '<span data-issuekey2="'+i.key+'" onclick="event.stopPropagation();toggleExecHealth(this.dataset.issuekey2)" title="Clique para alterar" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+hl.color+';cursor:pointer;box-shadow:0 0 0 2px '+(h==='ok'?'rgba(50,204,126,0.3)':h==='warn'?'rgba(255,172,72,0.3)':'rgba(229,40,98,0.3)')+'"></span>'
       + '</td>'
       + '</tr>';
