@@ -42,7 +42,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .upload-error{margin-top:12px;padding:10px 14px;background:rgba(229,40,98,0.1);border:1px solid rgba(229,40,98,0.2);border-radius:8px;font-size:12px;color:#fca5a5;display:none;}
 
 /* ── SIDEBAR ── */
-.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;}
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:width .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.sidebar.collapsed{width:0;border-right:none;}
+.sidebar.collapsed .logo,.sidebar.collapsed .nav,.sidebar.collapsed .sidebar-footer{opacity:0;pointer-events:none;transition:opacity .1s;}
 .logo{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;display:flex;align-items:center;gap:10px;}
 .logo-dot{width:8px;height:8px;background:#3F3354;border-radius:50%;flex-shrink:0;}
 .logo small{color:var(--muted);font-weight:400;font-size:11px;display:block;font-family:DM Mono,monospace;}
@@ -76,7 +78,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .footer-btn.primary:hover{background:rgba(124,92,252,0.2);}
 
 /* ── MAIN ── */
-.main{margin-left:220px;min-height:100vh;}
+.main{margin-left:220px;min-height:100vh;transition:margin-left .22s cubic-bezier(.4,0,.2,1);}
 .topbar{padding:14px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--surface);position:sticky;top:0;z-index:50;}
 .topbar-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;flex:1;}
 .search-box{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;width:220px;}
@@ -374,6 +376,7 @@ td{padding:10px 15px;font-size:12px;}
 
 <div class="main">
   <div class="topbar">
+    <button onclick="toggleSidebar()" id="sidebar-toggle-btn" title="Fechar menu" style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;color:var(--muted);font-size:18px;line-height:1;display:flex;align-items:center;transition:background .15s;flex-shrink:0" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">&#9776;</button>
     <div class="topbar-title">Controle de Projetos</div>
     <div class="search-box">
       <span style="font-size:13px;color:var(--muted)">⌕</span>
@@ -629,9 +632,12 @@ td{padding:10px 15px;font-size:12px;}
     <!-- ═══ STATUS REPORT — Por Projeto ═══ -->
     <div class="view" id="view-status-projeto">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-        <div>
-          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--text)">Status Report · Projeto</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">Acompanhamento detalhado por iniciativa</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button id="sr-back-btn" onclick="voltarParaExecutivo()" style="display:none;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--muted);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;font-weight:500;transition:all .15s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='var(--surface2)'">&#8592; Voltar</button>
+          <div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--text)">Status Report · Projeto</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Acompanhamento detalhado por iniciativa</div>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <select id="sr-proj-select" onchange="renderStatusProjeto()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;min-width:260px;">
@@ -3687,6 +3693,11 @@ function shortName(n) {
 // ── INIT STATUS PROJETO ───────────────────────────────────────────────────────
 function initStatusProjeto() {
   loadStatusReportData();
+  // Esconder botão voltar ao entrar diretamente pela sidebar
+  if (_srOrigin !== 'status-executivo') {
+    var btn = document.getElementById('sr-back-btn');
+    if (btn) btn.style.display = 'none';
+  }
   var sel = document.getElementById('sr-proj-select');
   if (!sel) return;
   // Limpar e repopular select
@@ -4091,11 +4102,26 @@ function toggleExecHealth(key) {
   renderStatusExecutivo();
 }
 
+var _srOrigin = null; // rastreia de onde veio o usuário
+
 function abrirStatusProjeto(key) {
   var sel = document.getElementById('sr-proj-select');
   if (sel) sel.value = key;
+  _srOrigin = 'status-executivo'; // veio da tela executiva
   switchView('status-projeto', document.querySelector('[onclick*="status-projeto"]'));
   renderStatusProjeto();
+  // Mostrar botão voltar
+  var btn = document.getElementById('sr-back-btn');
+  if (btn) btn.style.display = 'flex';
+}
+
+function voltarParaExecutivo() {
+  _srOrigin = null;
+  switchView('status-executivo', document.querySelector('[onclick*="status-executivo"]'));
+  renderStatusExecutivo();
+  // Esconder botão voltar
+  var btn = document.getElementById('sr-back-btn');
+  if (btn) btn.style.display = 'none';
 }
 
 function exportarStatusProjeto() {
@@ -4273,6 +4299,34 @@ function exportarStatusExecutivo() {
   a.download = 'status-executivo-' + hoje.toISOString().slice(0,10) + '.txt';
   a.click();
 }
+
+// ── TOGGLE SIDEBAR ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  var sidebar = document.querySelector('.sidebar');
+  var main    = document.querySelector('.main');
+  var btn     = document.getElementById('sidebar-toggle-btn');
+  var collapsed = sidebar.classList.toggle('collapsed');
+  main.style.marginLeft = collapsed ? '0' : '220px';
+  btn.title = collapsed ? 'Abrir menu' : 'Fechar menu';
+  btn.innerHTML = collapsed ? '&#9776;' : '&#9776;';
+  try { localStorage.setItem('cp_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
+}
+
+// Restaurar estado do sidebar ao carregar
+(function() {
+  try {
+    if (localStorage.getItem('cp_sidebar_collapsed') === '1') {
+      document.addEventListener('DOMContentLoaded', function() {
+        var sidebar = document.querySelector('.sidebar');
+        var main    = document.querySelector('.main');
+        if (sidebar && main) {
+          sidebar.classList.add('collapsed');
+          main.style.marginLeft = '0';
+        }
+      });
+    }
+  } catch(e) {}
+})();
 
 // ── ATUALIZAR CONTADORES DA SIDEBAR ─────────────────────────────────────────
 function updateNavCounts() {
