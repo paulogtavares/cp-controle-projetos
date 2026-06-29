@@ -658,7 +658,10 @@ td{padding:10px 15px;font-size:12px;}
           <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--text)">Status Report · Executivo</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">Visão consolidada de todos os projetos ativos</div>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <select id="sr-exec-filter-person" onchange="renderStatusExecutivo()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;min-width:200px;">
+            <option value="">Todos os responsáveis</option>
+          </select>
           <button onclick="renderStatusExecutivo()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">↻ Atualizar</button>
           <button onclick="exportarStatusExecutivo()" style="background:var(--accent);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit">↓ Exportar</button>
         </div>
@@ -3943,8 +3946,28 @@ function renderStatusExecutivo() {
   var hoje = new Date(); hoje.setHours(0,0,0,0);
   var em30 = new Date(hoje); em30.setDate(hoje.getDate()+30);
 
+  // Popular select de responsáveis
+  var selPerson = document.getElementById('sr-exec-filter-person');
+  var selectedPerson = selPerson ? selPerson.value : '';
+  if (selPerson) {
+    var prevVal = selPerson.value;
+    var pessoas = [...new Set(
+      projIssues
+        .filter(function(i){ return STATUS_ATIVOS.includes(i.status) && isProjActive(i.assignee); })
+        .map(function(i){ return i.assignee; })
+    )].sort();
+    selPerson.innerHTML = '<option value="">Todos os responsáveis</option>'
+      + pessoas.map(function(p){
+          return '<option value="'+p+'"'+(p===prevVal?' selected':'')+'>'+shortName(p)+'</option>';
+        }).join('');
+    selectedPerson = selPerson.value;
+  }
+
+  // Filtrar issues
   var ativos = projIssues.filter(function(i){
-    return STATUS_ATIVOS.includes(i.status) && isProjActive(i.assignee);
+    if (!STATUS_ATIVOS.includes(i.status) || !isProjActive(i.assignee)) return false;
+    if (selectedPerson && i.assignee !== selectedPerson) return false;
+    return true;
   });
 
   var totalSP  = ativos.filter(function(i){return i.sp>0;}).reduce(function(a,i){return a+i.sp;},0);
@@ -4278,29 +4301,177 @@ function exportarStatusProjeto() {
 function exportarStatusExecutivo() {
   var STATUS_ATIVOS = ['Backlog','Iniciação','Planejamento','Desenvolvimento','Em Andamento',
     'Sign Off','Homologação','Homologação e preparação para Go Live',
-    'Operação Assistida','OPERAÇÃO ASSISTIDA','Aguardando Cliente'];
-  var ativos = projIssues.filter(function(i){ return STATUS_ATIVOS.includes(i.status) && isProjActive(i.assignee); });
-  var hoje = new Date();
-  var txt = 'STATUS REPORT EXECUTIVO — Infracommerce\n';
-  txt += 'Gerado em: ' + hoje.toLocaleDateString('pt-BR') + '\n';
-  txt += '========================================\n\n';
-  ativos.sort(function(a,b){
-    var order={'risk':0,'warn':1,'ok':2};
+    'Operação Assistida','OPERAÇÃO ASSISTIDA','Aguardando Cliente','Bloqueado'];
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  var selPerson2 = document.getElementById('sr-exec-filter-person');
+  var filterPerson = selPerson2 ? selPerson2.value : '';
+  var ativos = projIssues.filter(function(i){
+    if (!STATUS_ATIVOS.includes(i.status) || !isProjActive(i.assignee)) return false;
+    if (filterPerson && i.assignee !== filterPerson) return false;
+    return true;
+  }).sort(function(a,b){
+    var order = {'risk':0,'warn':1,'ok':2};
     return order[getEffectiveHealth(a)] - order[getEffectiveHealth(b)];
-  }).forEach(function(i){
-    var h = getEffectiveHealth(i);
-    var hl = healthLabel(h);
-    txt += '[' + hl.label.toUpperCase() + '] ' + i.key + ' — ' + i.summary + '\n';
-    txt += '  Status: ' + i.status + ' | SP: ' + (i.sp||'—') + ' | Go Live: ' + fmtDate(i.goLivePlanejado) + ' | Responsável: ' + shortName(i.assignee) + '\n\n';
   });
-  var blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'status-executivo-' + hoje.toISOString().slice(0,10) + '.txt';
-  a.click();
+
+  var hColorMap = {'ok':'#0B6E3A','warn':'#8B5700','risk':'#B30022'};
+  var hBgMap    = {'ok':'#D6F5E3','warn':'#FFF3CC','risk':'#FDDDE3'};
+
+  var etapaMap = {
+    'Backlog':'Backlog','Iniciação':'Iniciação','Planejamento':'Planejamento',
+    'Desenvolvimento':'Desenvolvimento','Em Andamento':'Desenvolvimento',
+    'Sign Off':'Desenvolvimento','Homologação':'Homologação',
+    'Homologação e preparação para Go Live':'Homologação',
+    'Operação Assistida':'Op. Assistida','OPERAÇÃO ASSISTIDA':'Op. Assistida',
+    'Aguardando Cliente':'Ag. Cliente','Bloqueado':'Bloqueado'
+  };
+
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // KPIs
+  var hoje_d = new Date(); hoje_d.setHours(0,0,0,0);
+  var em30 = new Date(hoje_d); em30.setDate(hoje_d.getDate()+30);
+  var glProx    = ativos.filter(function(i){ var d=i.goLivePlanejado?new Date(i.goLivePlanejado):null; return d&&!isNaN(d)&&d>=hoje_d&&d<=em30; }).length;
+  var atrasados = ativos.filter(function(i){ var d=i.goLivePlanejado?new Date(i.goLivePlanejado):null; return d&&!isNaN(d)&&d<hoje_d&&d.getFullYear()>=2020; }).length;
+  var riscos    = ativos.filter(function(i){ return getEffectiveHealth(i)==='risk'; }).length;
+  var totalSP   = ativos.filter(function(i){ return i.sp>0; }).reduce(function(a,i){ return a+i.sp; },0);
+
+  // Linhas da tabela
+  var rows = ativos.map(function(i, idx) {
+    var h   = getEffectiveHealth(i);
+    var hc  = hColorMap[h]||'#555';
+    var hbg = hBgMap[h]||'#eee';
+    var hl  = healthLabel(h);
+    var days = diffDays(i.goLivePlanejado);
+    var daysColor = days===null?'#888':days<0?'#B30022':days<=14?'#8B5700':'#0B6E3A';
+    var daysStr   = days===null?'—':days<0?Math.abs(days)+'d atraso':days+'d';
+    var etapa = etapaMap[i.status]||i.status;
+    var name  = esc(i.summary.replace(/\[.*?\]\s*/,'').slice(0,45));
+    var cs    = i.clientService ? (function(){
+      var p = String(i.clientService).trim().split(' ').filter(Boolean);
+      function tc(w){ return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase(); }
+      return p.length>1 ? tc(p[0])+' '+tc(p[p.length-1]) : tc(p[0]||'');
+    })() : '—';
+    var alt = idx%2===0 ? '#F9F8FC' : '#FFFFFF';
+
+    // Bullets de observação
+    var obsHtml = '—';
+    if (i.notes && i.notes.length) {
+      obsHtml = i.notes.map(function(line){
+        return '<div style="display:flex;gap:5px;margin-bottom:2px">'
+          +'<span style="color:#aaa;flex-shrink:0">•</span>'
+          +'<span>'+esc(line)+'</span></div>';
+      }).join('');
+    }
+
+    var STATUS_PCT = {'Backlog':5,'Iniciação':10,'Planejamento':20,'Desenvolvimento':50,'Em Andamento':50,'Sign Off':70,'Homologação':80,'Homologação e preparação para Go Live':85,'Operação Assistida':95,'OPERAÇÃO ASSISTIDA':95,'Aguardando Cliente':60,'Bloqueado':40};
+    var pct = STATUS_PCT[i.status]||30;
+
+    return '<tr style="background:'+alt+'">'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top">'
+        +'<div style="font-size:11px;font-weight:600;color:#2D2640">'+name+'</div>'
+        +'<div style="font-size:9px;color:#aaa;font-family:monospace;margin-top:1px">'+esc(i.key)+'</div>'
+      +'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center">'
+        +'<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:#EDE9F8;color:#3F3354;font-weight:500;white-space:nowrap">'+esc(etapa)+'</span>'
+      +'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center">'
+        +'<span style="font-size:9px;padding:2px 8px;border-radius:99px;background:'+hbg+';color:'+hc+';font-weight:700">'+hl.label+'</span>'
+      +'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center;font-size:10px;font-weight:600;color:'+daysColor+'">'+fmtDate(i.goLivePlanejado)+'<div style="font-size:8px;color:'+daysColor+'">'+daysStr+'</div></td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center;font-size:10px;color:#7A7488">'+esc(cs)+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center;font-size:11px;font-weight:700;color:#7A6CFF">'+(i.sp?i.sp+'pt':'—')+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;font-size:10px;color:#2D2640;text-align:center">'+esc(shortName(i.assignee))+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top">'
+        +'<div style="font-size:9px;color:#2D2640;line-height:1.5">'+obsHtml+'</div>'
+      +'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center">'
+        +'<div style="width:60px;height:5px;background:#EDE9F8;border-radius:99px;overflow:hidden;margin:0 auto 2px">'
+          +'<div style="width:'+pct+'%;height:100%;background:'+(h==='risk'?'#E52862':h==='warn'?'#FFAC48':'#32CC7E')+';border-radius:99px"></div>'
+        +'</div>'
+        +'<div style="font-size:8px;color:#aaa">'+pct+'%</div>'
+      +'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid #F0EEF7;vertical-align:top;text-align:center">'
+        +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+hc+'"></span>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+
+  var html_pdf = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">'
+    +'<title>Status Report Executivo · '+hoje+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,Helvetica,sans-serif;background:#EDE9F8;color:#2D2640}'
+    +'.page{max-width:1100px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(63,51,84,.12)}'
+    +'.header{background:#3F3354;padding:22px 32px}'
+    +'.header-meta{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}'
+    +'.header-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}'
+    +'.header-sub{font-size:12px;color:rgba(255,255,255,.6)}'
+    +'.kpis{display:flex;gap:12px;padding:20px 32px;background:#F7F6FA;border-bottom:1px solid #E8E4F0}'
+    +'.kpi{flex:1;background:#fff;border:1px solid #E8E4F0;border-radius:10px;padding:12px 14px;text-align:center}'
+    +'.kpi-val{font-size:24px;font-weight:800;color:#3F3354;line-height:1;margin-bottom:4px}'
+    +'.kpi-label{font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:.06em}'
+    +'.table-wrap{padding:0 0 24px}'
+    +'table{width:100%;border-collapse:collapse;font-size:11px}'
+    +'thead th{padding:9px 10px;font-size:9px;font-weight:700;color:#7A7488;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid #3F3354;background:#F7F6FA;text-align:center;white-space:nowrap}'
+    +'thead th:first-child{text-align:left;padding-left:16px}'
+    +'.footer{padding:12px 32px;border-top:1px solid #F0EEF7;display:flex;align-items:center;justify-content:space-between;background:#F7F6FA}'
+    +'.footer-txt{font-size:9px;color:#aaa}'
+    +'@media print{body{background:#fff;padding:0}.page{box-shadow:none;border-radius:0;max-width:100%}}'
+    +'</style></head><body style="padding:24px">'
+    +'<div class="page">'
+
+    // HEADER
+    +'<div class="header">'
+      +'<div class="header-meta">C.P · Controle Projetos · Infracommerce</div>'
+      +'<div class="header-title">Status Report Executivo</div>'
+      +'<div class="header-sub">Visão consolidada de todos os projetos ativos · Gerado em '+hoje+'</div>'
+    +'</div>'
+
+    // KPIs
+    +'<div class="kpis">'
+      +'<div class="kpi"><div class="kpi-val" style="color:#7A6CFF">'+ativos.length+'</div><div class="kpi-label">Projetos ativos</div></div>'
+      +'<div class="kpi"><div class="kpi-val" style="color:#3F3354">'+totalSP+'pt</div><div class="kpi-label">SP total</div></div>'
+      +'<div class="kpi"><div class="kpi-val" style="color:#32CC7E">'+glProx+'</div><div class="kpi-label">Go Live em 30d</div></div>'
+      +'<div class="kpi"><div class="kpi-val" style="color:'+(atrasados>0?'#B30022':'#32CC7E')+'">'+atrasados+'</div><div class="kpi-label">Em atraso</div></div>'
+      +'<div class="kpi"><div class="kpi-val" style="color:'+(riscos>0?'#B30022':'#32CC7E')+'">'+riscos+'</div><div class="kpi-label">Em risco</div></div>'
+    +'</div>'
+
+    // TABELA
+    +'<div class="table-wrap">'
+    +'<table>'
+    +'<thead><tr>'
+      +'<th style="text-align:left;padding-left:16px">Projeto</th>'
+      +'<th>Etapa</th>'
+      +'<th>Status</th>'
+      +'<th>Go Live</th>'
+      +'<th>CS</th>'
+      +'<th>SP</th>'
+      +'<th>Responsável</th>'
+      +'<th style="text-align:left">Observação</th>'
+      +'<th>Progresso</th>'
+      +'<th>Saúde</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table>'
+    +'</div>'
+
+    // FOOTER
+    +'<div class="footer">'
+      +'<span class="footer-txt">C.P · Controle Projetos · Infracommerce</span>'
+      +'<span class="footer-txt">'+hoje+'</span>'
+    +'</div>'
+    +'</div>'
+    +'</body></html>';
+
+  var win = window.open('', '_blank');
+  win.document.write(html_pdf);
+  win.document.close();
+  win.focus();
+  setTimeout(function(){ win.print(); }, 700);
 }
 
-// ── TOGGLE SIDEBAR ───────────────────────────────────────────────────────────
+
 function toggleSidebar() {
   var sidebar = document.querySelector('.sidebar');
   var main    = document.querySelector('.main');
