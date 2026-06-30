@@ -3879,9 +3879,18 @@ function renderStatusProjeto() {
   html_out += '</div>';
 
   // ── Observações ──────────────────────────────────────────────────────────
+  // Prioridade: localStorage (editado manualmente) > Risco vs Impacto do Jira > vazio
+  var obsJira = (issue && issue.riscoImpacto) ? issue.riscoImpacto : '';
+  var obsVal  = d.obs || obsJira;
+  var obsFromJira = !d.obs && obsJira;
   html_out += '<div class="chart-card" style="margin-bottom:14px;">';
-  html_out +=   '<div class="chart-title" style="margin-bottom:10px">Observações e riscos</div>';
-  html_out +=   '<textarea data-srkey="' + key + '" data-srfield="obs" onblur="saveSRField(this.dataset.srkey, this.dataset.srfield, this.value)" style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5" placeholder="Contexto adicional, riscos identificados, dependências externas...">' + (d.obs || '') + '</textarea>';
+  html_out +=   '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  html_out +=     '<div class="chart-title">Observações e riscos</div>';
+  if (obsFromJira) {
+    html_out +=   '<span style="font-size:9px;color:#7A6CFF;display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#7A6CFF;display:inline-block"></span> Risco vs Impacto · Jira</span>';
+  }
+  html_out +=   '</div>';
+  html_out +=   '<textarea data-srkey="' + key + '" data-srfield="obs" onblur="saveSRField(this.dataset.srkey, this.dataset.srfield, this.value)" style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5" placeholder="Contexto adicional, riscos identificados, dependências externas...">' + obsVal + '</textarea>';
   html_out += '</div>';
 
   // ── Rodapé ────────────────────────────────────────────────────────────────
