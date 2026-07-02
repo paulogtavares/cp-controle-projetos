@@ -104,6 +104,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #presentation-overlay .pres-drawer.open{width:360px;}
 #presentation-overlay .pres-drawer-inner{width:360px;padding:20px;height:100%;overflow-y:auto;}
 #presentation-overlay .pres-group-sep td{padding:4px 0;background:rgba(255,255,255,.02);}
+/* ── OVERLAY STATUS PROJETO ─────────────────────── */
+#proj-presentation-overlay{display:none;position:fixed;inset:0;background:#0f0c1a;z-index:9999;flex-direction:column;overflow:hidden;}
+#proj-presentation-overlay.active{display:flex;}
+#proj-presentation-overlay .pp-header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#3F3354;flex-shrink:0;}
+#proj-presentation-overlay .pp-title{font-size:16px;font-weight:800;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;max-width:600px;line-height:1.3;}
+#proj-presentation-overlay .pp-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+#proj-presentation-overlay .pp-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s;}
+#proj-presentation-overlay .pp-close:hover{background:rgba(255,255,255,.2);}
+#proj-presentation-overlay .pp-body{flex:1;overflow-y:auto;padding:28px 40px;}
 /* ── STATS ── */
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
@@ -661,6 +670,7 @@ td{padding:10px 15px;font-size:12px;}
           <select id="sr-proj-select" onchange="renderStatusProjeto()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;min-width:260px;">
             <option value="">— Selecionar projeto —</option>
           </select>
+          <button onclick="toggleProjPresentationMode()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px">⛶ Apresentação</button>
           <button onclick="exportarStatusProjeto()" style="background:var(--accent);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit">↓ Exportar</button>
         </div>
       </div>
@@ -4497,6 +4507,155 @@ function exportarStatusExecutivo() {
 }
 
 
+function toggleProjPresentationMode() {
+  var sel = document.getElementById('sr-proj-select');
+  var key = sel ? sel.value : '';
+  if (!key) { alert('Selecione um projeto primeiro'); return; }
+  renderProjPresentation(key);
+  var overlay = document.getElementById('proj-presentation-overlay');
+  if (overlay) overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(function(){});
+  }
+}
+
+function closeProjPresentationMode() {
+  var overlay = document.getElementById('proj-presentation-overlay');
+  if (overlay) overlay.classList.remove('active');
+  document.body.style.overflow = '';
+  if (document.exitFullscreen && document.fullscreenElement) {
+    document.exitFullscreen().catch(function(){});
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeProjPresentationMode();
+    closePresentationMode();
+  }
+});
+
+function renderProjPresentation(key) {
+  var issue = projIssues.find(function(i){ return i.key===key; });
+  if (!issue) return;
+  var d   = getStatusData(key);
+  var h   = getEffectiveHealth(issue);
+  var hl  = healthLabel(h);
+  var hc  = {'ok':'#4ade80','warn':'#fbbf24','risk':'#f87171'}[h]||'#94a3b8';
+  var hbg = {'ok':'#052e16','warn':'#451a03','risk':'#450a0a'}[h]||'#1e293b';
+  var days  = diffDays(issue.goLivePlanejado);
+  var glCol = days===null?'#94a3b8':days<0?'#f87171':days<=14?'#fbbf24':'#86efac';
+  var daysStr = days===null?'':days<0?Math.abs(days)+'d em atraso':days===0?'hoje':days+'d restantes';
+  var STATUS_PCT = {'Backlog':5,'Iniciação':10,'Planejamento':20,'Desenvolvimento':50,'Em Andamento':50,'Sign Off':70,'Homologação':80,'Homologação e preparação para Go Live':85,'Operação Assistida':95,'OPERAÇÃO ASSISTIDA':95,'Aguardando Cliente':60,'Bloqueado':40};
+  var pct = STATUS_PCT[issue.status]||30;
+
+  // Header
+  var titleEl = document.getElementById('pp-proj-title');
+  var subEl   = document.getElementById('pp-proj-sub');
+  var badgeEl = document.getElementById('pp-health-badge');
+  if (titleEl) titleEl.textContent = issue.summary.replace(/\[.*?\]\s*/g,'');
+  if (subEl)   subEl.textContent = key + ' · ' + issue.status + ' · ' + new Date().toLocaleDateString('pt-BR');
+  if (badgeEl) badgeEl.innerHTML = '<span style="display:inline-block;padding:5px 16px;border-radius:99px;font-size:13px;font-weight:700;background:'+hbg+';color:'+hc+';border:1px solid '+hc+'55">'+hl.label+'</span>';
+
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // KPIs
+  var kpiHtml = '<div style="display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap">'
+    +kpiCard(issue.sp?issue.sp+'pt':'—','Story Points','#c4b5fd')
+    +kpiCard(fmtDate(issue.dataInicio),'Início','#94a3b8')
+    +kpiCard(fmtDate(issue.goLivePlanejado),'Go Live',glCol,daysStr,glCol)
+    +kpiCard(fmtDate(issue.goLiveRealizado)||'—','Go Live Real','#94a3b8')
+    +kpiCard(pct+'%','Progresso',hc)
+  +'</div>';
+
+  function kpiCard(val,lbl,col,sub,subCol) {
+    return '<div style="background:#1a1330;border:1px solid #2d2540;border-radius:12px;padding:16px 24px;text-align:center;min-width:120px;flex:1">'
+      +'<div style="font-size:22px;font-weight:800;color:'+col+';font-family:DM Mono,monospace;line-height:1">'+val+'</div>'
+      +(sub?'<div style="font-size:12px;color:'+(subCol||'#94a3b8')+';margin-top:4px">'+sub+'</div>':'')
+      +'<div style="font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-top:6px">'+lbl+'</div>'
+    +'</div>';
+  }
+
+  // Saúde do projeto
+  var healthHtml = '<div style="margin-bottom:32px">'
+    +'<div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Saúde do projeto</div>'
+    +'<div style="display:flex;gap:12px">'
+    +['ok','warn','risk'].map(function(hv){
+      var hlab = healthLabel(hv).label;
+      var hcol = {'ok':'#4ade80','warn':'#fbbf24','risk':'#f87171'}[hv];
+      var hbg2 = {'ok':'#052e16','warn':'#451a03','risk':'#450a0a'}[hv];
+      var active = h===hv;
+      return '<div style="flex:1;padding:14px;border-radius:10px;text-align:center;background:'+(active?hbg2:'#1a1330')+';border:'+(active?'2px solid '+hcol:'1px solid #2d2540')+'">'
+        +'<span style="display:block;width:14px;height:14px;border-radius:50%;background:'+(active?hcol:'#2d2540')+';margin:0 auto 8px"></span>'
+        +'<span style="font-size:14px;font-weight:700;color:'+(active?hcol:'#475569')+'">'+hlab+'</span>'
+      +'</div>';
+    }).join('')
+  +'</div></div>';
+
+  // Colunas de atividades
+  var cols = [
+    {label:'Atividades concluídas', color:'#4ade80', struct:issue.entregasStruct, manual:d.concluidas},
+    {label:'Em andamento',          color:'#fbbf24', struct:issue.andamentoStruct, manual:d.andamento},
+    {label:'Próximos passos',       color:'#c4b5fd', struct:issue.proximosStruct,  manual:d.proximos},
+  ];
+
+  function getItems(col) {
+    if (col.manual && col.manual.trim()) return col.manual.split('\n').filter(Boolean);
+    if (col.struct && col.struct.items && col.struct.items.length) return col.struct.items;
+    return [];
+  }
+
+  var colsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:28px">'
+    +cols.map(function(col){
+      var items = getItems(col);
+      var ref = col.struct && col.struct.refDate ? col.struct.refDate : '';
+      return '<div style="background:#1a1330;border:1px solid #2d2540;border-radius:12px;padding:18px">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #2d2540">'
+          +'<span style="width:8px;height:8px;border-radius:50%;background:'+col.color+';flex-shrink:0;display:inline-block"></span>'
+          +'<span style="font-size:12px;font-weight:700;color:'+col.color+';text-transform:uppercase;letter-spacing:.05em">'+col.label+'</span>'
+          +(ref?'<span style="margin-left:auto;font-size:10px;color:#475569;font-family:monospace">'+ref+'</span>':'')
+        +'</div>'
+        +(items.length
+          ? items.map(function(item){
+              return '<div style="display:flex;gap:7px;margin-bottom:6px;align-items:flex-start">'
+                +'<span style="color:'+col.color+';flex-shrink:0;font-size:12px;margin-top:2px;line-height:1.5">•</span>'
+                +'<span style="font-size:14px;color:#e2e8f0;line-height:1.55">'+esc(item)+'</span>'
+              +'</div>';
+            }).join('')
+          : '<span style="font-size:13px;color:#475569;font-style:italic">Não informado</span>')
+      +'</div>';
+    }).join('')
+  +'</div>';
+
+  // Observações e riscos
+  var obsText = d.obs || issue.riscoImpacto || '';
+  var obsHtml = '';
+  if (obsText) {
+    obsHtml = '<div style="background:#1a1330;border:1px solid #2d2540;border-radius:12px;padding:18px;margin-bottom:28px">'
+      +'<div style="font-size:11px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Observações e riscos</div>'
+      +'<p style="font-size:15px;color:#e2e8f0;line-height:1.7;margin:0;white-space:pre-wrap">'+esc(obsText)+'</p>'
+    +'</div>';
+  }
+
+  // Notes (campo Notes do Jira)
+  var notesHtml = '';
+  if (issue.notes && issue.notes.length) {
+    notesHtml = '<div style="background:#1a1330;border:1px solid #2d2540;border-radius:12px;padding:18px">'
+      +'<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Observação (Notes)</div>'
+      +issue.notes.map(function(line){
+        return '<div style="display:flex;gap:7px;margin-bottom:6px;align-items:flex-start">'
+          +'<span style="color:#64748b;flex-shrink:0;font-size:12px;margin-top:2px">•</span>'
+          +'<span style="font-size:14px;color:#cbd5e1;line-height:1.55">'+esc(line)+'</span>'
+        +'</div>';
+      }).join('')
+    +'</div>';
+  }
+
+  var body = document.getElementById('pp-body');
+  if (body) body.innerHTML = kpiHtml + healthHtml + colsHtml + obsHtml + notesHtml;
+}
+
 function togglePresentationMode() {
   renderPresentationTable();
   var overlay = document.getElementById('presentation-overlay');
@@ -4924,6 +5083,21 @@ function toast(msg, type) {
       <div id="presentation-content"></div>
     </div>
   </div>
+</div>
+
+<!-- ── OVERLAY STATUS POR PROJETO ─────────────────────── -->
+<div id="proj-presentation-overlay">
+  <div class="pp-header">
+    <div style="flex:1;min-width:0">
+      <div class="pp-title" id="pp-proj-title">Status Report · Projeto</div>
+      <div class="pp-sub" id="pp-proj-sub"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;margin-left:20px">
+      <div id="pp-health-badge"></div>
+      <button class="pp-close" onclick="closeProjPresentationMode()">✕ Fechar</button>
+    </div>
+  </div>
+  <div class="pp-body" id="pp-body"></div>
 </div>
 </body>
 </html>
