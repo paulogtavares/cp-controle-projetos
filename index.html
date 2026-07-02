@@ -86,6 +86,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .badge{background:rgba(124,92,252,0.2);color:var(--accent2);font-size:11px;font-family:DM Mono,monospace;padding:3px 9px;border-radius:99px;}
 .content{padding:22px 26px;}
 
+/* ── MODO APRESENTAÇÃO ─────────────────────────── */
+#presentation-overlay{display:none;position:fixed;inset:0;background:#1A1428;z-index:9999;flex-direction:column;overflow:hidden;}
+#presentation-overlay.active{display:flex;}
+#presentation-overlay .pres-header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#3F3354;flex-shrink:0;}
+#presentation-overlay .pres-title{font-size:18px;font-weight:800;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;}
+#presentation-overlay .pres-subtitle{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;}
+#presentation-overlay .pres-close{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;transition:background .15s;}
+#presentation-overlay .pres-close:hover{background:rgba(255,255,255,.2);}
+#presentation-overlay .pres-body{flex:1;overflow-y:auto;padding:20px 28px;}
+#presentation-overlay .pres-table-wrap{width:100%;overflow-x:auto;}
 /* ── STATS ── */
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
@@ -662,6 +672,7 @@ td{padding:10px 15px;font-size:12px;}
           <select id="sr-exec-filter-person" onchange="renderStatusExecutivo()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;min-width:200px;">
             <option value="">Todos os responsáveis</option>
           </select>
+          <button onclick="togglePresentationMode()" id="presentation-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">⛶ Apresentação</button>
           <button onclick="renderStatusExecutivo()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">↻ Atualizar</button>
           <button onclick="exportarStatusExecutivo()" style="background:var(--accent);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit">↓ Exportar</button>
         </div>
@@ -4013,8 +4024,8 @@ function renderStatusExecutivo() {
     'Em Andamento':50,'Sign Off':70,'Homologação':80,'Homologação e preparação para Go Live':85,
     'Operação Assistida':95,'OPERAÇÃO ASSISTIDA':95,'Aguardando Cliente':60,'Bloqueado':40};
 
-  var TH  = 'text-align:center;padding:8px 10px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)';
-  var THL = 'text-align:left;padding:8px 12px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)';
+  var TH  = 'text-align:center;padding:8px 10px;font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)';
+  var THL = 'text-align:left;padding:8px 12px;font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2);background:var(--surface2)';
   var thead = '<thead><tr>'
     + '<th style="'+THL+'">Projeto</th>'
     + '<th style="'+TH+'">Etapa</th>'
@@ -4023,8 +4034,8 @@ function renderStatusExecutivo() {
     + '<th style="'+TH+'">CS</th>'
     + '<th style="'+TH+'">SP</th>'
     + '<th style="'+TH+'">Responsável</th>'
-    + '<th style="'+TH+';width:500px;min-width:500px;max-width:500px;text-align:left;padding-left:12px">Observação</th>'
-    + '<th style="'+TH+';width:240px;min-width:240px">Progresso</th>'
+    + '<th style="'+TH+';width:700px;min-width:700px;max-width:700px;text-align:left;padding-left:12px">Observação</th>'
+    + '<th style="'+TH+';width:80px;min-width:80px">Progresso</th>'
     + '<th style="'+TH+'">Saúde</th>'
     + '</tr></thead>';
 
@@ -4085,36 +4096,33 @@ function renderStatusExecutivo() {
 
     return '<tr style="'+alt+';cursor:pointer" data-issuekey="'+i.key+'" onclick="abrirStatusProjeto(this.dataset.issuekey)" title="Clique para ver detalhes">'
       + '<td style="padding:10px 14px;vertical-align:top;">'
-        + '<div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="'+i.summary+'">'+name+'</div>'
-        + '<div style="font-size:10px;color:var(--muted);font-family:DM Mono,monospace;margin-top:1px;display:flex;align-items:center;gap:6px">'+i.key+(hasNotes?'<span style="background:rgba(122,108,255,0.15);color:#7A6CFF;border-radius:99px;padding:0 5px;font-size:9px">notas</span>':'')+'</div>'
+        + '<div style="font-size:16px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="'+i.summary+'">'+name+'</div>'
+        + '<div style="font-size:12px;color:var(--muted);font-family:DM Mono,monospace;margin-top:1px;display:flex;align-items:center;gap:6px">'+i.key+(hasNotes?'<span style="background:rgba(122,108,255,0.15);color:#7A6CFF;border-radius:99px;padding:0 5px;font-size:9px">notas</span>':'')+'</div>'
       + '</td>'
-      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:'+etapaCor+'22;color:'+etapaCor+';font-weight:500;white-space:nowrap">'+etapa+'</span></td>'
-      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;"><span style="font-size:10px;padding:2px 10px;border-radius:99px;background:'+statusBg+';color:'+statusCor+';font-weight:600">'+statusPrazo+'</span></td>'
-      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:11px;font-family:DM Mono,monospace;color:'+glColor+';font-weight:600">'+glLabel+'</td>'
-      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:11px;color:var(--muted)">'+csLabel+'</td>'
-      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:12px;font-family:DM Mono,monospace;color:#7A6CFF;font-weight:700">'+(i.sp?i.sp+'pt':'—')+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;"><span style="font-size:13px;padding:3px 10px;border-radius:99px;background:'+etapaCor+'22;color:'+etapaCor+';font-weight:500;white-space:nowrap">'+etapa+'</span></td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;"><span style="font-size:13px;padding:4px 12px;border-radius:99px;background:'+statusBg+';color:'+statusCor+';font-weight:600">'+statusPrazo+'</span></td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:11px;font-family:DM Mono,monospace;color:'+glColor+';font-weight:600;font-size:15px">'+glLabel+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:13px;color:var(--muted)">'+csLabel+'</td>'
+      + '<td style="text-align:center;padding:10px 8px;vertical-align:top;font-size:16px;font-family:DM Mono,monospace;color:#7A6CFF;font-weight:700">'+(i.sp?i.sp+'pt':'—')+'</td>'
       + '<td style="text-align:center;padding:10px 8px;vertical-align:top;">'
         + '<div style="display:flex;align-items:center;justify-content:center;gap:5px">'
         + '<div style="width:22px;height:22px;border-radius:50%;background:'+pm.bg+';color:'+pm.color+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700">'+pm.initials+'</div>'
-        + '<span style="font-size:11px;color:var(--text)">'+shortName(i.assignee)+'</span>'
+        + '<span style="font-size:14px;color:var(--text)">'+shortName(i.assignee)+'</span>'
         + '</div>'
       + '</td>'
       + (i.notes && i.notes.length
-        ? '<td style="padding:8px 12px;width:500px;min-width:500px;max-width:500px;vertical-align:top;">'
+        ? '<td style="padding:8px 12px;width:700px;min-width:700px;max-width:700px;vertical-align:top;">'
           + ((['<div>'].concat(i.notes.map(function(line) {
               var safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
               return '<div style="display:flex;align-items:flex-start;gap:5px;margin-bottom:3px">'
                 + '<span style="width:4px;height:4px;border-radius:50%;background:var(--muted);flex-shrink:0;margin-top:4px;display:inline-block"></span>'
-                + '<span style="font-size:10px;color:var(--muted);line-height:1.5;max-width:460px;word-break:break-word;white-space:normal">' + safe + '</span>'
+                + '<span style="font-size:14px;color:var(--muted);line-height:1.6;max-width:660px;word-break:break-word;white-space:normal">' + safe + '</span>'
                 + '</div>';
             })).concat(['</div>'])).join(''))
           + '</td>'
         : '<td style="text-align:center;padding:8px 12px;color:var(--border2)">—</td>')
-      + '<td style="padding:10px 8px;vertical-align:top;width:240px;min-width:240px;">'
-        + '<div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:3px">'
-          + '<div style="height:100%;width:'+pct+'%;background:'+hl.color+';border-radius:99px"></div>'
-        + '</div>'
-        + '<div style="font-size:9px;color:var(--muted);text-align:right">'+pct+'%</div>'
+      + '<td style="padding:10px 8px;vertical-align:top;width:80px;min-width:80px;text-align:center;">'
+        + '<span style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--muted)">'+pct+'%</span>'
       + '</td>'
       + '<td style="text-align:center;padding:10px 8px;vertical-align:top;">'
         + '<span data-issuekey2="'+i.key+'" onclick="event.stopPropagation();toggleExecHealth(this.dataset.issuekey2)" title="Clique para alterar" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+hl.color+';cursor:pointer;box-shadow:0 0 0 2px '+(h==='ok'?'rgba(50,204,126,0.3)':h==='warn'?'rgba(255,172,72,0.3)':'rgba(229,40,98,0.3)')+'"></span>'
@@ -4310,7 +4318,7 @@ function exportarStatusProjeto() {
 function exportarStatusExecutivo() {
   var STATUS_ATIVOS = ['Backlog','Iniciação','Planejamento','Desenvolvimento','Em Andamento',
     'Sign Off','Homologação','Homologação e preparação para Go Live',
-    'Operação Assistida','OPERAÇÃO ASSISTIDA','Aguardando Cliente','Bloqueado'];
+    'Operação Assistida','OPERAÇÃO ASSISTIDA','Aguardando Cliente'];
   var hoje = new Date().toLocaleDateString('pt-BR');
   var selPerson2 = document.getElementById('sr-exec-filter-person');
   var filterPerson = selPerson2 ? selPerson2.value : '';
@@ -4481,6 +4489,156 @@ function exportarStatusExecutivo() {
 }
 
 
+function togglePresentationMode() {
+  renderPresentationTable();
+  var overlay = document.getElementById('presentation-overlay');
+  if (overlay) overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(function(){});
+  }
+}
+
+function closePresentationMode() {
+  var overlay = document.getElementById('presentation-overlay');
+  if (overlay) overlay.classList.remove('active');
+  document.body.style.overflow = '';
+  if (document.exitFullscreen && document.fullscreenElement) {
+    document.exitFullscreen().catch(function(){});
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closePresentationMode();
+});
+
+document.addEventListener('fullscreenchange', function() {
+  if (!document.fullscreenElement) {
+    var overlay = document.getElementById('presentation-overlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+});
+
+function renderPresentationTable() {
+  var STATUS_ATIVOS = ['Backlog','Iniciação','Planejamento','Desenvolvimento','Em Andamento',
+    'Sign Off','Homologação','Homologação e preparação para Go Live',
+    'Operação Assistida','OPERAÇÃO ASSISTIDA','Aguardando Cliente'];
+  var etapaMap = {
+    'Backlog':'Backlog','Iniciação':'Iniciação','Planejamento':'Planejamento',
+    'Desenvolvimento':'Desenvolvimento','Em Andamento':'Desenvolvimento','Sign Off':'Desenvolvimento',
+    'Homologação':'Homologação','Homologação e preparação para Go Live':'Homologação',
+    'Operação Assistida':'Op. Assistida','OPERAÇÃO ASSISTIDA':'Op. Assistida',
+    'Aguardando Cliente':'Ag. Cliente','Bloqueado':'Bloqueado'
+  };
+  var etapaCores = {
+    'Backlog':'#6b7280','Iniciação':'#8b5cf6','Planejamento':'#43BDDE',
+    'Desenvolvimento':'#06b6d4','Homologação':'#f97316',
+    'Op. Assistida':'#E52862','Ag. Cliente':'#eab308','Bloqueado':'#E52862'
+  };
+  var hColorMap = {'ok':'#32CC7E','warn':'#FFAC48','risk':'#E52862'};
+  var STATUS_PCT = {'Backlog':5,'Iniciação':10,'Planejamento':20,'Desenvolvimento':50,
+    'Em Andamento':50,'Sign Off':70,'Homologação':80,
+    'Homologação e preparação para Go Live':85,
+    'Operação Assistida':95,'OPERAÇÃO ASSISTIDA':95,'Aguardando Cliente':60,'Bloqueado':40};
+
+  var selPerson = document.getElementById('sr-exec-filter-person');
+  var filterPerson = selPerson ? selPerson.value : '';
+
+  var ativos = projIssues.filter(function(i) {
+    if (!STATUS_ATIVOS.includes(i.status) || !isProjActive(i.assignee)) return false;
+    if (filterPerson && i.assignee !== filterPerson) return false;
+    return true;
+  }).sort(function(a,b) {
+    var o = {'risk':0,'warn':1,'ok':2};
+    return o[getEffectiveHealth(a)] - o[getEffectiveHealth(b)];
+  });
+
+  var subtitleEl = document.getElementById('pres-subtitle');
+  var dateEl = document.getElementById('pres-date');
+  if (subtitleEl) subtitleEl.textContent = (filterPerson ? shortName(filterPerson) + ' · ' : '') + ativos.length + ' projetos ativos';
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('pt-BR');
+
+  var THS = 'padding:14px 12px;font-size:13px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(255,255,255,.07);background:#2A2040;text-align:center;white-space:nowrap';
+  var THL = 'padding:14px 18px;font-size:13px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid rgba(255,255,255,.07);background:#2A2040;text-align:left;white-space:nowrap';
+
+  var rows = ativos.map(function(i, idx) {
+    var h = getEffectiveHealth(i);
+    var hc = hColorMap[h] || '#888';
+    var hl = healthLabel(h);
+    var days = diffDays(i.goLivePlanejado);
+    var glCol = days===null?'rgba(255,255,255,.4)':days<0?'#FF6B6B':days<=14?'#FFAC48':'rgba(255,255,255,.9)';
+    var dSub = days===null?'':days<0?'('+Math.abs(days)+'d atraso)':days===0?'(hoje)':'('+days+'d)';
+    var etapa = etapaMap[i.status] || i.status;
+    var eCol = etapaCores[etapa] || '#7A7488';
+    var name = i.summary.replace(/\[.*?\]\s*/g,'').slice(0,42);
+    var pct = STATUS_PCT[i.status] || 30;
+    var alt = idx%2===0 ? 'background:rgba(255,255,255,.022)' : '';
+    var sLabel,sCol,sBg;
+    if (days===null){sLabel='Sem data';sCol='rgba(255,255,255,.3)';sBg='rgba(255,255,255,.05)';}
+    else if(days<0){sLabel='Atrasado';sCol='#FF6B6B';sBg='rgba(229,40,98,.18)';}
+    else if(days<=30){sLabel='Em risco';sCol='#FFAC48';sBg='rgba(255,172,72,.18)';}
+    else{sLabel='Controlado';sCol='#32CC7E';sBg='rgba(50,204,126,.18)';}
+    var cs = i.clientService ? (function(){
+      var p=String(i.clientService).trim().split(' ').filter(Boolean);
+      function tc(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();}
+      return p.length>1?tc(p[0])+' '+tc(p[p.length-1]):tc(p[0]||'');
+    })() : '—';
+    var obsHtml = '<span style="color:rgba(255,255,255,.2)">—</span>';
+    if (i.notes && i.notes.length) {
+      obsHtml = i.notes.map(function(line){
+        return '<div style="display:flex;gap:6px;margin-bottom:4px;align-items:flex-start">'
+          +'<span style="color:rgba(255,255,255,.3);flex-shrink:0">•</span>'
+          +'<span>'+String(line).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>'
+          +'</div>';
+      }).join('');
+    }
+    return '<tr style="'+alt+'" onmouseover="this.style.background=\'rgba(255,255,255,.055)\'" onmouseout="this.style.background=\'\'">'
+      +'<td style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top">'
+        +'<div style="font-size:15px;font-weight:600;color:#fff;max-width:220px;line-height:1.3">'+name+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.3);font-family:monospace;margin-top:3px">'+i.key+'</div>'
+      +'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center">'
+        +'<span style="font-size:12px;padding:4px 10px;border-radius:99px;background:'+eCol+'22;color:'+eCol+';font-weight:600;border:1px solid '+eCol+'44;white-space:nowrap">'+etapa+'</span>'
+      +'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center">'
+        +'<span style="font-size:12px;padding:4px 12px;border-radius:99px;background:'+sBg+';color:'+sCol+';font-weight:700;white-space:nowrap">'+sLabel+'</span>'
+      +'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center">'
+        +'<div style="font-size:15px;font-weight:700;color:'+glCol+';font-family:monospace">'+fmtDate(i.goLivePlanejado)+'</div>'
+        +'<div style="font-size:10px;color:'+glCol+';opacity:.7;margin-top:2px">'+dSub+'</div>'
+      +'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center;font-size:13px;color:rgba(255,255,255,.6)">'+cs+'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center;font-size:16px;font-weight:800;color:#9B8FFF;font-family:monospace">'+(i.sp?i.sp+'pt':'—')+'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center;font-size:13px;color:rgba(255,255,255,.75)">'+shortName(i.assignee)+'</td>'
+      +'<td style="padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;width:500px;min-width:400px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.55">'+obsHtml+'</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center;font-size:17px;font-weight:800;color:rgba(255,255,255,.45);font-family:monospace">'+pct+'%</td>'
+      +'<td style="padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;text-align:center">'
+        +'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+hc+';box-shadow:0 0 10px '+hc+'99"></span>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+
+  var tableHtml = '<table style="width:100%;border-collapse:collapse;color:rgba(255,255,255,.85)">'
+    +'<thead><tr>'
+      +'<th style="'+THL+'">Projeto</th>'
+      +'<th style="'+THS+'">Etapa</th>'
+      +'<th style="'+THS+'">Status</th>'
+      +'<th style="'+THS+'">Go Live</th>'
+      +'<th style="'+THS+'">CS</th>'
+      +'<th style="'+THS+'">SP</th>'
+      +'<th style="'+THS+'">Responsável</th>'
+      +'<th style="'+THL+';min-width:400px">Observação</th>'
+      +'<th style="'+THS+'">Progresso</th>'
+      +'<th style="'+THS+'">Saúde</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table>';
+
+  var el = document.getElementById('presentation-content');
+  if (el) el.innerHTML = tableHtml;
+}
+
 function toggleSidebar() {
   var sidebar = document.querySelector('.sidebar');
   var main    = document.querySelector('.main');
@@ -4607,5 +4765,29 @@ function toast(msg, type) {
   setTimeout(()=>t.classList.remove('show'), 3500);
 }
 </script>
+
+<!-- ── MODO APRESENTAÇÃO ─────────────────────────────────────────────── -->
+<div id="presentation-overlay">
+  <div class="pres-header">
+    <div>
+      <div class="pres-title">Status Report · Executivo</div>
+      <div class="pres-subtitle" id="pres-subtitle"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="display:flex;gap:14px;font-size:12px;color:rgba(255,255,255,.5)">
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#32CC7E;margin-right:5px;vertical-align:middle"></span>OK</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#FFAC48;margin-right:5px;vertical-align:middle"></span>Atenção</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E52862;margin-right:5px;vertical-align:middle"></span>Risco</span>
+      </div>
+      <span id="pres-date" style="font-size:12px;color:rgba(255,255,255,.3)"></span>
+      <button class="pres-close" onclick="closePresentationMode()">✕ Fechar</button>
+    </div>
+  </div>
+  <div class="pres-body">
+    <div class="pres-table-wrap">
+      <div id="presentation-content"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
