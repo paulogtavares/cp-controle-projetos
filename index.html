@@ -3750,9 +3750,7 @@ function initStatusProjeto() {
     var hl = healthLabel(h);
     var opt = document.createElement('option');
     opt.value = i.key;
-    var days = diffDays(i.goLivePlanejado);
-    var daysStr = days !== null ? (days < 0 ? ' ⚠ ' + Math.abs(days) + 'd atraso' : ' · ' + days + 'd') : '';
-    opt.textContent = '[' + hl.label + '] ' + i.key + ' — ' + i.summary.slice(0,50) + daysStr;
+    opt.textContent = i.summary;
     if (i.key === prev) opt.selected = true;
     sel.appendChild(opt);
   });
