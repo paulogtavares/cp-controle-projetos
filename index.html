@@ -2998,7 +2998,19 @@ function renderMonthly() {
     }
   });
 
-  const months      = Object.keys(byMonth).sort();
+  // Janela fixa: 2 meses anteriores + mês atual + 7 meses à frente = 10 meses
+  const windowMonths = [];
+  const winRef = new Date(hoje);
+  winRef.setDate(1);
+  winRef.setMonth(winRef.getMonth() - 2); // começa 2 meses atrás
+  for (let w = 0; w < 10; w++) {
+    const wKey = winRef.getFullYear() + '-' + String(winRef.getMonth()+1).padStart(2,'0');
+    windowMonths.push(wKey);
+    // Garantir que o mês existe no byMonth mesmo que vazio
+    if (!byMonth[wKey]) byMonth[wKey] = { total:0, totalNeg:0, byPerson:{}, issues:[] };
+    winRef.setMonth(winRef.getMonth() + 1);
+  }
+  const months = windowMonths; // janela fixa de 10 meses
 
   // personList inclui TODOS os responsáveis ativos do módulo Projetos
   // não apenas os que têm issues com Go Live preenchido
