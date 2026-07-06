@@ -357,6 +357,7 @@ td{padding:10px 15px;font-size:12px;}
       <!-- Visões do Projetos -->
       <div class="nav-section" style="padding-left:20px">Visões</div>
       <div class="nav-item nav-view-item" onclick="switchView('proj-board',this)" style="padding-left:20px"><span class="nav-icon">⬛</span><span>Board</span></div>
+      <div class="nav-item nav-view-item" onclick="switchView('proj-negociacoes',this)" style="padding-left:20px"><span class="nav-icon">🤝</span><span>Negociações</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('proj-table',this)" style="padding-left:20px"><span class="nav-icon">☰</span><span>Lista</span></div>
       <div class="nav-item nav-view-item" onclick="switchView('proj-sp',this)" style="padding-left:20px"><span class="nav-icon">◈</span><span>Story Points</span></div>
       <!-- Status Report -->
@@ -726,6 +727,19 @@ td{padding:10px 15px;font-size:12px;}
       </div>
       <div id="proj-stats-row" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:20px;"></div>
       <div class="board" id="proj-board-cols"></div>
+    </div>
+
+    <!-- ═══ PROJETOS — Negociações ═══ -->
+    <div class="view" id="view-proj-negociacoes">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--text)">Projetos em Negociação</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Cadastre projetos futuros para planejar capacity</div>
+        </div>
+        <button onclick="abrirModalNegociacao()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">+ Novo projeto</button>
+      </div>
+      <div id="neg-capacity-bar" style="margin-bottom:20px"></div>
+      <div id="neg-table-wrap"></div>
     </div>
 
     <!-- ═══ PROJETOS — Lista ═══ -->
@@ -1858,6 +1872,7 @@ function switchView(v, el) {
   if (v === 'overview')         setTimeout(renderOverview, 0);
   if (v === 'monthly')          setTimeout(renderMonthly, 0);
   if (v === 'proj-board')       setTimeout(renderProjBoard, 0);
+  if (v === 'proj-negociacoes') setTimeout(renderNegociacoes, 0);
   if (v === 'proj-table')       setTimeout(renderProjTable, 0);
   if (v === 'proj-sp')          setTimeout(renderProjSP, 0);
   if (v === 'status-projeto')   setTimeout(initStatusProjeto, 0);
@@ -2115,7 +2130,11 @@ function renderProjBoard() {
     <div class="stat-label">Total</div>
     <div class="stat-value" style="font-size:20px">${total}</div>
     <div class="stat-sub">${new Set(f.map(i=>i.assignee)).size} responsáveis</div>
-  </div>`;
+  </div>` + (getNegociacoes().length ? `<div class="stat-card" style="--c:#7A6CFF">
+    <div class="stat-label">Negociações</div>
+    <div class="stat-value" style="font-size:20px;color:#7A6CFF">${getNegociacoes().length}</div>
+    <div class="stat-sub" style="color:#7A6CFF">${getNegociacoes().reduce((s,n)=>s+(parseInt(n.sp)||0),0)}pt plan.</div>
+  </div>` : '');
 
   const ARCHIVE_PROJ = ['Concluído','Cancelado','Recusado / Cancelado'];
   boardEl.innerHTML = '';
@@ -2194,12 +2213,15 @@ function renderProjSP() {
 
   // Status excluídos do capacity — concluídos e cancelados não entram na soma de SP
   const STATUS_EXCLUIR_CAPACITY_PROJ = ['Concluído', 'Cancelado', 'Recusado / Cancelado'];
+  const allProjIssues = applyJiraFilters(projIssues, 'b2b1').concat(getNegIssues());
   const persons = {};
-  applyJiraFilters(projIssues, 'b2b1').forEach(i => {
-    if (!persons[i.assignee]) persons[i.assignee] = {total:0,count:0,byStatus:{},issues:[]};
+  allProjIssues.forEach(i => {
+    if (!persons[i.assignee]) persons[i.assignee] = {total:0,totalAtivo:0,totalNeg:0,count:0,byStatus:{},issues:[]};
     // Só soma SP se o status não for Concluído ou Cancelado
     if (!STATUS_EXCLUIR_CAPACITY_PROJ.includes(i.status)) {
       persons[i.assignee].total += (i.sp||0);
+      if (i.isNegociacao) persons[i.assignee].totalNeg  += (i.sp||0);
+      else                persons[i.assignee].totalAtivo += (i.sp||0);
     }
     persons[i.assignee].count++;
     persons[i.assignee].issues.push(i);
@@ -2231,7 +2253,8 @@ function renderProjSP() {
       <div style="font-size:10px;font-weight:600;color:${f.color};margin-bottom:10px;text-transform:uppercase">${f.text}</div>
       <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;position:relative;">
         <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(125/151*100)}%;background:rgba(50,204,126,0.15);border-right:1px dashed rgba(50,204,126,0.4)"></div>
-        <div style="height:100%;width:${pct}%;background:${f.color};border-radius:99px;min-width:${p.total>0?'4px':'0'}"></div>
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(p.totalAtivo/maxSP*100)}%;background:${f.color};border-radius:99px"></div>
+        ${p.totalNeg>0?`<div style="position:absolute;left:${Math.round(p.totalAtivo/maxSP*100)}%;top:0;bottom:0;width:${Math.round(p.totalNeg/maxSP*100)}%;background:#7A6CFF;border-radius:0 99px 99px 0"></div>`:``}
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:DM Mono,monospace">
         <span>${p.count} issues</span><span>${est} est · média ${avg}pt</span>
@@ -2245,7 +2268,7 @@ function renderProjSP() {
     const pct150 = Math.round(150/refMax*100);
     chartEl.innerHTML =
       `<div style="position:relative;margin-bottom:10px;font-size:10px;color:var(--muted);display:flex;gap:16px;align-items:center;">
-        🟢 ≤125pt &nbsp; 🟡 126–150pt &nbsp; 🔴 >150pt
+        🟢 ≤125pt &nbsp; 🟡 126–150pt &nbsp; 🔴 >150pt &nbsp; <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#7A6CFF;vertical-align:middle;margin-right:2px"></span> Em negociação
       </div>` +
       sorted.map(([name,p],idx)=>{
         const short = name.split(' ').slice(0,2).map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(' ');
@@ -2257,16 +2280,17 @@ function renderProjSP() {
           <div style="flex:1;height:22px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
             <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(50,204,126,0.06);border-right:1px dashed rgba(50,204,126,0.4)"></div>
             <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(255,172,72,0.05);border-right:1px dashed rgba(255,172,72,0.4)"></div>
-            <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${p.total>0?'32px':'0'}">${p.total>0?p.total+'pt':''}</div>
+            <div style="position:absolute;left:0;top:0;bottom:0;width:${Math.round(p.totalAtivo/refMax*100)}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff"><span style="position:relative;z-index:1">${p.totalAtivo>0?p.totalAtivo+'pt':''}</span></div>
+            ${p.totalNeg>0?`<div style="position:absolute;left:${Math.round(p.totalAtivo/refMax*100)}%;top:0;bottom:0;width:${Math.round(p.totalNeg/refMax*100)}%;background:#7A6CFF;border-radius:0 6px 6px 0;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;min-width:28px">+${p.totalNeg}pt</div>`:``}
           </div>
-          <div style="font-size:10px;color:${f.color};font-family:DM Mono,monospace;font-weight:700;min-width:36px;text-align:right">${totalSP?Math.round(p.total/totalSP*100):0}%</div>
+          <div style="font-size:10px;font-family:DM Mono,monospace;font-weight:700;min-width:80px;text-align:right"><span style="color:${f.color}">${p.totalAtivo}pt</span>${p.totalNeg>0?` <span style="color:#7A6CFF;font-size:9px">+${p.totalNeg}neg</span>`:''}</div>
         </div>`;
       }).join('');
   }
 
   const spByStatus = {};
   PROJ_S_ORDER.forEach(s=>spByStatus[s]=0);
-  applyJiraFilters(projIssues, 'b2b1').forEach(i=>{if(i.sp)spByStatus[i.status]=(spByStatus[i.status]||0)+i.sp;});
+  allProjIssues.forEach(i=>{if(i.sp)spByStatus[i.status]=(spByStatus[i.status]||0)+i.sp;});
   const maxSt = Math.max(...Object.values(spByStatus),1);
   if (stChartEl) {
     const STATUS_ATIVOS_PROJ    = ['Backlog','Iniciação','Planejamento','Desenvolvimento','Em Andamento','Sign Off','Homologação','Homologação e preparação para Go Live','Operação Assistida','Aguardando Cliente','Bloqueado'];
@@ -2906,7 +2930,10 @@ function renderMonthly() {
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   // Aplica filtros de responsáveis ignorados (jiraFilters) mas não filtros de tipo/status do board
+  // Issues ativos + negociações com data de fim válida
+  const negIssuesRM = getNegIssues().filter(i => isProjActive(i.assignee));
   const issuesFiltrados = applyJiraFilters(projIssues, 'b2b1')
+    .concat(negIssuesRM)
     .filter(i => isProjActive(i.assignee))
     .filter(i => {
       const sNorm = (i.status || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
@@ -2958,8 +2985,9 @@ function renderMonthly() {
     let y = iniYear, m = iniMon;
     while (y < fimYear || (y === fimYear && m <= fimMon)) {
       const mKey = y + '-' + String(m+1).padStart(2,'0');
-      if (!byMonth[mKey]) byMonth[mKey] = { total:0, byPerson:{}, issues:[] };
+      if (!byMonth[mKey]) byMonth[mKey] = { total:0, totalNeg:0, byPerson:{}, issues:[] };
       byMonth[mKey].total += sp;
+      if (i.isNegociacao) byMonth[mKey].totalNeg += sp;
       byMonth[mKey].byPerson[name] = (byMonth[mKey].byPerson[name] || 0) + sp;
       // Adicionar o issue apenas no mês do go live para evitar duplicatas no painel de detalhe
       if (y === fimYear && m === fimMon) byMonth[mKey].issues.push(i);
@@ -2977,6 +3005,7 @@ function renderMonthly() {
   // Assim a matriz mostra todos, com — para quem não tem dado naquele mês
   const allProjPersons = [...new Set(
     applyJiraFilters(projIssues, 'b2b1')
+      .concat(negIssuesRM)
       .filter(i => isProjActive(i.assignee) && i.assignee && i.assignee !== 'Sem responsável')
       .map(i => i.assignee)
   )].sort();
@@ -3042,10 +3071,17 @@ function renderMonthly() {
       const isThis = mKey === thisKey;
       const color  = isThis ? '#7A6CFF' : '#43BDDE';
       var colDiv = '<div data-mkey="' + mKey + '" onclick="showMonthDetail(this.dataset.mkey)" style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px;flex:1;cursor:pointer;border-radius:8px;padding:6px 4px;">';
+      const totalAtivo = d.total - (d.totalNeg||0);
+      const barHAtivo = totalAtivo > 0 ? Math.max(Math.round(totalAtivo/maxMonthSP*maxH), 4) : 0;
+      const barHNeg   = (d.totalNeg||0) > 0 ? Math.max(Math.round((d.totalNeg||0)/maxMonthSP*maxH), 4) : 0;
+      const labelColor = (d.totalNeg||0) > 0 ? '#a78bfa' : color;
+      const labelText = d.total > 0 ? (totalAtivo > 0 ? totalAtivo+'pt' : '') + ((d.totalNeg||0) > 0 ? (totalAtivo>0?' ':'') + '+' + d.totalNeg : '') : '';
       return colDiv
-        + '<div style="font-size:11px;font-family:DM Mono,monospace;font-weight:700;color:' + color + '">' + (d.total>0?d.total+'pt':'') + '</div>'
-        + '<div style="width:100%;background:var(--surface2);border-radius:6px 6px 0 0;display:flex;align-items:flex-end;height:' + maxH + 'px;overflow:hidden;">'
-        + '<div style="width:100%;height:' + barH + 'px;background:' + color + ';border-radius:6px 6px 0 0;"></div></div>'
+        + '<div style="font-size:11px;font-family:DM Mono,monospace;font-weight:700;color:' + labelColor + '">' + (d.total>0?labelText:'') + '</div>'
+        + '<div style="width:100%;background:var(--surface2);border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;height:' + maxH + 'px;overflow:hidden;">'
+        + ((d.totalNeg||0) > 0 ? '<div style="width:100%;height:' + barHNeg + 'px;background:#7A6CFF;flex-shrink:0"></div>' : '')
+        + (totalAtivo > 0 ? '<div style="width:100%;height:' + barHAtivo + 'px;background:' + color + ';flex-shrink:0"></div>' : '')
+        + '</div>'
         + '<div style="font-size:11px;font-family:DM Mono,monospace;color:' + (isThis?'#7A6CFF':'var(--muted)') + ';font-weight:' + (isThis?'700':'400') + ';text-align:center">' + monthLabel(mKey) + '</div>'
         + '<div style="font-size:10px;color:var(--muted);text-align:center">' + d.issues.length + ' iss.</div>'
         + '</div>';
@@ -3264,7 +3300,8 @@ function showMonthDetail(mKey) {
   var MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   var STATUS_EXCLUIR_NORM = ['concluido','cancelado','recusado / cancelado'];
 
-  var issues = (projIssues || []).filter(function(i) {
+  var negI = getNegIssues();
+  var issues = (projIssues || []).concat(negI).filter(function(i) {
     if (!isProjActive(i.assignee)) return false; // ignorar inativos
     var sNorm = (i.status||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
     if (STATUS_EXCLUIR_NORM.includes(sNorm)) return false;
@@ -3356,7 +3393,8 @@ function showProjPersonDetail(name) {
   var STATUS_EXCLUIR_NORM2 = ['concluido','cancelado','recusado / cancelado'];
 
   // Buscar todos os issues em andamento do responsável
-  var issues = (projIssues || []).filter(function(i) {
+  var negI = getNegIssues();
+  var issues = (projIssues || []).concat(negI).filter(function(i) {
     if (i.assignee !== name) return false;
     if (!isProjActive(i.assignee)) return false; // ignorar inativos
     if (!i.sp || i.sp <= 0) return false;
@@ -3615,19 +3653,25 @@ function renderHome() {
   // Usa mesma base do renderProjSP: todos os projIssues exceto Concluído/Cancelado
   const STATUS_EXCLUIR_CAP_HOME = ['Concluído','Cancelado','Recusado / Cancelado'];
   const capByPerson = {};
-  applyJiraFilters(projIssues, 'b2b1').filter(i=>i.sp>0).forEach(i=>{
+  applyJiraFilters(projIssues, 'b2b1').concat(getNegIssues()).filter(i=>i.sp>0).forEach(i=>{
     if (!isProjActive(i.assignee)) return;
     if (STATUS_EXCLUIR_CAP_HOME.includes(i.status)) return;
-    capByPerson[i.assignee]=(capByPerson[i.assignee]||0)+i.sp;
+    if (!capByPerson[i.assignee]) capByPerson[i.assignee] = {total:0, ativo:0, neg:0};
+    capByPerson[i.assignee].total += i.sp;
+    if (i.isNegociacao) capByPerson[i.assignee].neg   += i.sp;
+    else                capByPerson[i.assignee].ativo  += i.sp;
   });
-  const capSorted = Object.entries(capByPerson).sort((a,b)=>b[1]-a[1]);
-  const capMax = Math.max(...capSorted.map(([,v])=>v), 200);
+  const capSorted = Object.entries(capByPerson).sort((a,b)=>b[1].total-a[1].total);
+  const capMax = Math.max(...capSorted.map(([,v])=>v.total), 200);
   if (capSorted.length===0) {
     capEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">Nenhum dado de capacity disponível</div>';
   } else {
-    capEl.innerHTML = capSorted.map(([name,sp])=>{
+    capEl.innerHTML = capSorted.map(([name,cap])=>{
+      const sp = cap.total;
       const f = sp<=125?{color:'#32CC7E',emoji:'🟢'}:sp<=150?{color:'#e69020',emoji:'🟡'}:{color:'#E52862',emoji:'🔴'};
       const pct = Math.round(sp/capMax*100);
+      const pctAtivo = Math.round(cap.ativo/capMax*100);
+      const pctNeg   = Math.round(cap.neg/capMax*100);
       const pct125 = Math.round(125/capMax*100);
       const pct150 = Math.round(150/capMax*100);
       const short = name.split(' ').slice(0,2).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
@@ -3638,12 +3682,45 @@ function renderHome() {
         <div style="flex:1;height:20px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;">
           <div style="position:absolute;left:0;top:0;bottom:0;width:${pct125}%;background:rgba(50,204,126,0.06);border-right:1.5px dashed rgba(50,204,126,0.4)"></div>
           <div style="position:absolute;left:${pct125}%;top:0;bottom:0;width:${pct150-pct125}%;background:rgba(255,172,72,0.04);border-right:1.5px dashed rgba(255,172,72,0.4)"></div>
-          <div style="height:100%;width:${pct}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${sp>0?'32px':'0'};transition:width .5s">${sp>0?sp+'pt':''}</div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${pctAtivo}%;background:${f.color};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;color:#fff;min-width:${cap.ativo>0?'32px':'0'};transition:width .5s">${cap.ativo>0?cap.ativo+'pt':''}</div>
+          ${cap.neg>0?`<div style="position:absolute;left:${pctAtivo}%;top:0;bottom:0;width:${pctNeg}%;background:#7A6CFF;border-radius:0 6px 6px 0;display:flex;align-items:center;padding:0 6px;font-size:10px;font-weight:700;color:#fff;min-width:28px;transition:width .5s">+${cap.neg}pt</div>`:''}
         </div>
+        <div style="font-size:10px;font-family:DM Mono,monospace;font-weight:600;min-width:80px;text-align:right"><span style="color:${f.color}">${cap.ativo}pt</span>${cap.neg>0?` <span style="color:#7A6CFF;font-size:9px">+${cap.neg}</span>`:''}</div>
       </div>`;
     }).join('');
+    // ── NEGOCIAÇÕES no Dashboard ─────────────────────────────────────────────
+  var negArr = getNegociacoes();
+  var negDashEl = document.getElementById('home-negociacoes');
+  if (negDashEl && negArr.length > 0) {
+    var STATUS_EXCLUIR_C = ['Concluído','Cancelado','Recusado / Cancelado'];
+    var spAtivosD = {};
+    applyJiraFilters(projIssues,'b2b1').filter(function(i){ return !STATUS_EXCLUIR_C.includes(i.status) && isProjActive(i.assignee) && i.sp > 0; }).forEach(function(i){
+      spAtivosD[i.assignee] = (spAtivosD[i.assignee]||0) + i.sp;
+    });
+    var spNegD = {};
+    negArr.forEach(function(n){ spNegD[n.pm] = (spNegD[n.pm]||0)+(parseInt(n.sp)||0); });
+    var allPMsD = [...new Set([...Object.keys(spAtivosD),...Object.keys(spNegD)])].filter(isProjActive).sort();
+    var maxD = Math.max(...allPMsD.map(function(pm){ return (spAtivosD[pm]||0)+(spNegD[pm]||0); }), 200);
+    negDashEl.innerHTML = allPMsD.map(function(pm) {
+      var a = spAtivosD[pm]||0, n = spNegD[pm]||0, t = a+n;
+      var pA = Math.min(a/maxD*100,100), pN = Math.min(n/maxD*100,100-pA);
+      var col = t>150?'#E52862':t>125?'#FFAC48':'#32CC7E';
+      return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+        +'<div style="width:100px;font-size:11px;color:var(--text);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+shortName(pm)+'</div>'
+        +'<div style="flex:1;height:14px;background:var(--surface2);border-radius:99px;overflow:hidden;position:relative">'
+          +'<div style="position:absolute;left:0;top:0;height:100%;width:'+pA+'%;background:'+col+';border-radius:99px"></div>'
+          +'<div style="position:absolute;left:'+pA+'%;top:0;height:100%;width:'+pN+'%;background:rgba(122,108,255,.55);border-radius:99px"></div>'
+        +'</div>'
+        +'<div style="width:90px;font-size:10px;color:var(--muted);flex-shrink:0;text-align:right">'
+          +'<b style="color:var(--text)">'+t+'pt</b>'+(n?' <span style="color:#7A6CFF">+'+n+'</span>':'')
+        +'</div>'
+      +'</div>';
+    }).join('');
+  } else if (negDashEl) {
+    negDashEl.innerHTML = '<div style="font-size:11px;color:var(--muted);font-style:italic">Nenhuma negociação cadastrada</div>';
   }
 }
+} // fim renderHome
 
 // ── STATUS REPORT ────────────────────────────────────────────────────────────
 
@@ -4505,6 +4582,213 @@ function exportarStatusExecutivo() {
 }
 
 
+// ── NEGOCIAÇÕES ──────────────────────────────────────────────────────────────
+var NEG_KEY = 'cp_negociacoes';
+var _negEditId = null;
+
+function getNegociacoes() {
+  try { return JSON.parse(localStorage.getItem(NEG_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveNegociacoes(arr) {
+  try { localStorage.setItem(NEG_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+
+// Converte negociações em pseudo-issues compatíveis com projIssues
+function getNegIssues() {
+  return getNegociacoes().map(function(n) {
+    return {
+      key:            'NEG-'+n.id.slice(-4).toUpperCase(),
+      summary:        '[Negociação] '+(n.cliente||''),
+      status:         'Em Andamento',
+      rawStatus:      'Em Andamento',
+      assignee:       n.pm || '',
+      sp:             parseInt(n.sp)||0,
+      dataInicio:     n.inicio  || null,
+      goLivePlanejado:n.fim     || null,
+      goLiveRealizado:null,
+      type:           'Iniciativas',
+      isNegociacao:   true,        // flag para filtrar se necessário
+      entregasStruct: {refDate:'',items:[]},
+      andamentoStruct:{refDate:'',items:[]},
+      proximosStruct: {refDate:'',items:[]},
+      notes:          n.obs ? [n.obs] : [],
+      clientService:  null,
+      riscoImpacto:   '',
+    };
+  }).filter(function(i){ return i.sp > 0 && i.assignee && i.goLivePlanejado; });
+}
+
+function abrirModalNegociacao(id) {
+  _negEditId = id || null;
+  var modal = document.getElementById('neg-modal-overlay');
+  var titleEl = document.getElementById('neg-modal-title');
+  if (titleEl) titleEl.textContent = id ? 'Editar Projeto' : 'Novo Projeto em Negociação';
+
+  // Popular select de PMs a partir dos projIssues ativos
+  var pmSel = document.getElementById('neg-f-pm');
+  if (pmSel) {
+    var pms = [...new Set(projIssues.filter(function(i){ return isProjActive(i.assignee); }).map(function(i){ return i.assignee; }))].sort();
+    pmSel.innerHTML = '<option value="">— Selecionar PM —</option>'
+      + pms.map(function(p){ return '<option value="'+p+'">'+shortName(p)+'</option>'; }).join('');
+  }
+
+  // Se edição, preencher campos
+  var fields = {cliente:'',pm:'',assinatura:'',sp:'',inicio:'',fim:'',obs:''};
+  if (id) {
+    var neg = getNegociacoes().find(function(n){ return n.id===id; });
+    if (neg) fields = Object.assign(fields, neg);
+  }
+  ['cliente','pm','assinatura','sp','inicio','fim','obs'].forEach(function(f) {
+    var el = document.getElementById('neg-f-'+f);
+    if (el) el.value = fields[f]||'';
+  });
+
+  var errEl = document.getElementById('neg-modal-err');
+  if (errEl) errEl.style.display = 'none';
+  if (modal) modal.style.display = 'flex';
+}
+
+function fecharModalNegociacao() {
+  var modal = document.getElementById('neg-modal-overlay');
+  if (modal) modal.style.display = 'none';
+  _negEditId = null;
+}
+
+function salvarNegociacao() {
+  var errEl = document.getElementById('neg-modal-err');
+  var vals = {};
+  ['cliente','pm','sp','inicio','fim','assinatura','obs'].forEach(function(f) {
+    var el = document.getElementById('neg-f-'+f);
+    vals[f] = el ? el.value.trim() : '';
+  });
+  // Validação
+  var erros = [];
+  if (!vals.cliente) erros.push('Nome do cliente');
+  if (!vals.pm)      erros.push('Responsável');
+  if (!vals.sp || isNaN(parseInt(vals.sp))) erros.push('Story Points');
+  if (!vals.inicio)  erros.push('Previsão de Início');
+  if (!vals.fim)     erros.push('Previsão de Fim');
+  if (erros.length) {
+    if (errEl) { errEl.textContent = 'Preencha: '+erros.join(', '); errEl.style.display='block'; }
+    return;
+  }
+  var arr = getNegociacoes();
+  if (_negEditId) {
+    var idx = arr.findIndex(function(n){ return n.id===_negEditId; });
+    if (idx >= 0) arr[idx] = Object.assign(arr[idx], vals);
+  } else {
+    arr.push(Object.assign({id: Date.now()+'-'+Math.random().toString(36).slice(2)}, vals));
+  }
+  saveNegociacoes(arr);
+  fecharModalNegociacao();
+  renderNegociacoes();
+  renderHome(); // atualiza capacity no dashboard
+}
+
+function excluirNegociacao(id) {
+  if (!confirm('Excluir este projeto?')) return;
+  saveNegociacoes(getNegociacoes().filter(function(n){ return n.id!==id; }));
+  renderNegociacoes();
+  renderHome();
+}
+
+function renderNegociacoes() {
+  var arr = getNegociacoes();
+  var wrap = document.getElementById('neg-table-wrap');
+  var capEl = document.getElementById('neg-capacity-bar');
+  if (!wrap) return;
+
+  // ── Capacity bar por PM ───────────────────────────────────────────────────
+  var spAtivos = {}; // SP dos projetos ativos no Jira por PM
+  var STATUS_EXCLUIR_CAP = ['Concluído','Cancelado','Recusado / Cancelado'];
+  applyJiraFilters(projIssues,'b2b1').filter(function(i){ return !STATUS_EXCLUIR_CAP.includes(i.status) && isProjActive(i.assignee); }).forEach(function(i){
+    if (i.sp > 0) spAtivos[i.assignee] = (spAtivos[i.assignee]||0) + i.sp;
+  });
+  var spNeg = {}; // SP das negociações por PM
+  arr.forEach(function(n) { spNeg[n.pm] = (spNeg[n.pm]||0) + (parseInt(n.sp)||0); });
+
+  // Todos os PMs que aparecem em pelo menos um dos dois
+  var allPMs = [...new Set([...Object.keys(spAtivos), ...Object.keys(spNeg)])].sort();
+
+  var capHtml = '';
+  if (allPMs.length) {
+    capHtml = '<div class="chart-card" style="margin-bottom:20px;padding:16px 20px">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">📊 Capacity planejada — Ativos + Negociações</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px">'
+      +allPMs.filter(function(pm){ return isProjActive(pm); }).map(function(pm) {
+        var ativo  = spAtivos[pm]||0;
+        var negoc  = spNeg[pm]||0;
+        var total  = ativo + negoc;
+        var max    = 200;
+        var pctA   = Math.min(ativo/max*100, 100);
+        var pctN   = Math.min(negoc/max*100, 100 - pctA);
+        var colA   = ativo > 150 ? '#E52862' : ativo > 125 ? '#FFAC48' : '#32CC7E';
+        return '<div style="display:flex;align-items:center;gap:12px">'
+          +'<div style="width:130px;font-size:12px;color:var(--text);flex-shrink:0">'+shortName(pm)+'</div>'
+          +'<div style="flex:1;height:18px;background:var(--surface2);border-radius:99px;overflow:hidden;position:relative">'
+            +'<div style="position:absolute;left:0;top:0;height:100%;width:'+pctA+'%;background:'+colA+';border-radius:99px;transition:width .3s"></div>'
+            +'<div style="position:absolute;left:'+pctA+'%;top:0;height:100%;width:'+pctN+'%;background:rgba(122,108,255,0.5);border-radius:99px;transition:width .3s"></div>'
+          +'</div>'
+          +'<div style="width:140px;font-size:11px;color:var(--muted);flex-shrink:0">'
+            +'<span style="color:var(--text);font-weight:600">'+total+'pt</span>'
+            +(negoc?' <span style="color:#7A6CFF">(+'+negoc+'pt neg.)</span>':'')
+          +'</div>'
+        +'</div>';
+      }).join('')
+      +'</div>'
+      +'<div style="display:flex;gap:16px;margin-top:12px;font-size:10px;color:var(--muted)">'
+        +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#32CC7E;margin-right:4px;vertical-align:middle"></span>Ativos (Jira)</span>'
+        +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(122,108,255,.6);margin-right:4px;vertical-align:middle"></span>Em negociação</span>'
+      +'</div>'
+    +'</div>';
+  }
+  if (capEl) capEl.innerHTML = capHtml;
+
+  // ── Tabela de negociações ─────────────────────────────────────────────────
+  if (!arr.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted)">'
+      +'<div style="font-size:32px;margin-bottom:12px">🤝</div>'
+      +'<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Nenhum projeto em negociação</div>'
+      +'<div style="font-size:12px">Clique em <strong>+ Novo projeto</strong> para começar</div>'
+    +'</div>';
+    return;
+  }
+
+  function fmtD(s) { if(!s) return '—'; var p=s.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); }
+  var TH = 'padding:10px 14px;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--surface2);text-align:left;white-space:nowrap';
+
+  var rows = arr.sort(function(a,b){ return (a.inicio||'9999') < (b.inicio||'9999') ? -1 : 1; }).map(function(n, idx) {
+    var alt = idx%2===0?'background:var(--surface2)':'';
+    return '<tr style="'+alt+'">'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text)">'+n.cliente+'</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)">'+shortName(n.pm)+'</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)">'+fmtD(n.assinatura)+'</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)">'+fmtD(n.inicio)+'</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)">'+fmtD(n.fim)+'</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:#7A6CFF;font-family:DM Mono,monospace">'+(n.sp||'—')+'pt</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(n.obs||'—')+'</td>'
+      +'<td style="padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap">'
+        +'<button data-id="'+n.id+'" onclick="abrirModalNegociacao(this.dataset.id)" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;margin-right:4px">✎ Editar</button>'
+        +'<button data-id="'+n.id+'" onclick="excluirNegociacao(this.dataset.id)" style="background:none;border:1px solid rgba(229,40,98,.3);color:#E52862;padding:3px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit">✕</button>'
+      +'</td>'
+    +'</tr>';
+  }).join('');
+
+  wrap.innerHTML = '<table style="width:100%;border-collapse:collapse">'
+    +'<thead><tr>'
+      +'<th style="'+TH+'">Cliente / Seller</th>'
+      +'<th style="'+TH+'">PM</th>'
+      +'<th style="'+TH+'">Assinatura</th>'
+      +'<th style="'+TH+'">Início previsto</th>'
+      +'<th style="'+TH+'">Fim previsto</th>'
+      +'<th style="'+TH+'">SP</th>'
+      +'<th style="'+TH+'">Observações</th>'
+      +'<th style="'+TH+'">Ações</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+  +'</table>';
+}
+
 function toggleProjPresentationMode() {
   var sel = document.getElementById('sr-proj-select');
   var key = sel ? sel.value : '';
@@ -5096,6 +5380,57 @@ function toast(msg, type) {
     </div>
   </div>
   <div class="pp-body" id="pp-body"></div>
+</div>
+
+<!-- ── MODAL NEGOCIAÇÃO ─────────────────────────────────────────────────── -->
+<div id="neg-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:var(--text)" id="neg-modal-title">Novo Projeto em Negociação</div>
+      <button onclick="fecharModalNegociacao()" style="background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Nome do Cliente / Seller *</label>
+        <input id="neg-f-cliente" type="text" placeholder="Ex: PopMart" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Responsável (PM) *</label>
+        <select id="neg-f-pm" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer">
+          <option value="">— Selecionar PM —</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Assinatura da Proposta</label>
+          <input id="neg-f-assinatura" type="date" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Story Points *</label>
+          <input id="neg-f-sp" type="number" min="1" placeholder="Ex: 34" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Previsão de Início *</label>
+          <input id="neg-f-inicio" type="date" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Previsão de Fim *</label>
+          <input id="neg-f-fim" type="date" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Observações</label>
+        <textarea id="neg-f-obs" rows="3" placeholder="Contexto adicional, riscos, dependências..." style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div id="neg-modal-err" style="color:#E52862;font-size:12px;margin-top:10px;display:none"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button onclick="fecharModalNegociacao()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button onclick="salvarNegociacao()" style="background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Salvar</button>
+    </div>
+  </div>
 </div>
 </body>
 </html>
